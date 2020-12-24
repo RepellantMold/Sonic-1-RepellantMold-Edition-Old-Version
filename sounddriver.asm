@@ -61,11 +61,11 @@ loc_71B5A:
 		btst	#7,($A01FFD).l
 		beq.s	loc_71B82
 		move.w	#0,($A11100).l	; start	the Z80
-		nop
-		nop	
-		nop	
-		nop
-		nop
+	;	nop
+	;	nop
+	;	nop
+	;	nop
+	;	nop
 		bra.s	sub_71B4C
 ; ===========================================================================
 
@@ -170,14 +170,14 @@ loc_71C38:
 
 loc_71C44:
 		move.w	#0,($A11100).l	; start	the Z80
-		btst #6,($FFFFFFF8).w ; is Genesis/Megadrive PAL?
-     		beq.s @end 		; if not, branch
-      	     	cmpi.b #5,($FFFFFFBF).w ; 5th frame?
-       		bne.s @end ; if not, branch
-      	     	clr.b ($FFFFFFBF).w ; reset counter
-       		bra.w sub_71B4C ; run sound driver again
+		btst 	#6,($FFFFFFF8).w; is Genesis/Megadrive PAL?
+     		beq.s 	@end 		; if not, branch
+      	     	cmpi.b 	#5,($FFFFFFBF).w; 5th frame?
+       		bne.s 	@end 		; if not, branch
+      	     	clr.b 	($FFFFFFBF).w 	; reset counter
+       		bra.w 	sub_71B4C 	; run sound driver again
 @end:
-      		addq.b #1,($FFFFFFBF).w ; add 1 to frame count
+      		addq.b 	#1,($FFFFFFBF).w; add 1 to frame count
 		rts
 ; End of function sub_71B4C
 

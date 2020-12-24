@@ -7,11 +7,11 @@
 ; this macro is created to emulate enum in AS
 enum	macro	num, lable
 ; copy initial number for referencing later
-@num =	num
+.num =	num
 
 	rept narg-1
-\lable		set @num
-@num =	@num+1
+\lable		set .num
+.num =	.num+1
 	shift
 	endr
     endm
@@ -27,11 +27,11 @@ enum	macro	num, lable
 	enum nB6+1,	nC7,nCs7,nD7,nEb7,nE7,nF7,nFs7,nG7,nAb7,nA7,nBb7
 ; ---------------------------------------------------------------------------------------------
 ; PSG volume envelope equates
-	enum $00,   v00,v01,v02,v03,v04
+	enum 0,   v00,v01,v02,v03,v04
 	enum v04+1, v05,v06,v07,v08,v09
 ; ---------------------------------------------------------------------------------------------
 ; PSG modulation envelope equates
-	enum $00, 	  m00
+	enum 0, 	  m00
 ; ---------------------------------------------------------------------------------------------
 ; DAC Equates
 	enum $81, dKick,dSnare,dTimpani

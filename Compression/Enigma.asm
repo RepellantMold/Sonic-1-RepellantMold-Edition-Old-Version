@@ -58,11 +58,11 @@ EniDec_Loop:
 	andi.w	#$7F,d1			; keep only lower 7 bits
 	move.w	d1,d2
 	cmpi.w	#$40,d1			; is bit 6 set?
-	bhs.s	@got_field		; if it is, branch
+	bhs.s	.got_field		; if it is, branch
 	moveq	#6,d0			; if not, process 6 bits instead of 7
 	lsr.w	#1,d2			; bitfield now becomes TTSSSS instead of TTTSSSS
 
-@got_field:
+.got_field:
 	bsr.w	EniDec_ChkGetNextByte
 	andi.w	#$F,d2			; keep only lower nybble
 	lsr.w	#4,d1			; store upper nybble (max value = 7)
@@ -83,29 +83,29 @@ EniDec_Sub4:
 EniDec_Sub8:
 	bsr.w	EniDec_GetInlineCopyVal
 
-@loop1:
+.loop1:
 	move.w	d1,(a1)+
-	dbra	d2,@loop1
+	dbra	d2,.loop1
 
 	bra.s	EniDec_Loop
 ; ---------------------------------------------------------------------------
 EniDec_SubA:
 	bsr.w	EniDec_GetInlineCopyVal
 
-@loop2:
+.loop2:
 	move.w	d1,(a1)+
 	addq.w	#1,d1
-	dbra	d2,@loop2
+	dbra	d2,.loop2
 
 	bra.s	EniDec_Loop
 ; ---------------------------------------------------------------------------
 EniDec_SubC:
 	bsr.w	EniDec_GetInlineCopyVal
 
-@loop3:
+.loop3:
 	move.w	d1,(a1)+
 	subq.w	#1,d1
-	dbra	d2,@loop3
+	dbra	d2,.loop3
 
 	bra.s	EniDec_Loop
 ; ---------------------------------------------------------------------------
@@ -113,10 +113,10 @@ EniDec_SubE:
 	cmpi.w	#$F,d2
 	beq.s	EniDec_End
 
-@loop4:
+.loop4:
 	bsr.w	EniDec_GetInlineCopyVal
 	move.w	d1,(a1)+
-	dbra	d2,@loop4
+	dbra	d2,.loop4
 
 	bra.s	EniDec_Loop
 ; ---------------------------------------------------------------------------
@@ -134,10 +134,10 @@ EniDec_JmpTable:
 EniDec_End:
 	subq.w	#1,a0
 	cmpi.w	#16,d6		; were we going to start on a completely new byte?
-	bne.s	@got_byte	; if not, branch
+	bne.s	.got_byte	; if not, branch
 	subq.w	#1,a0
 
-@got_byte:
+.got_byte:
 	move.w	a0,d0
 	lsr.w	#1,d0		; are we on an odd byte?
 	bhs.s	.even_loc	; if not, branch
@@ -155,49 +155,49 @@ EniDec_GetInlineCopyVal:
 	move.w	a3,d3		; store starting art tile
 	move.b	d4,d1
 	add.b	d1,d1
-	bhs.s	@skip_pri	; if d4 was < $80
+	bhs.s	.skip_pri	; if d4 was < $80
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5		; is the bit set?
-	beq.s	@skip_pri	; if not, branch
+	beq.s	.skip_pri	; if not, branch
 	ori.w	#high_priority,d3	; set high priority bit
 
-@skip_pri:
+.skip_pri:
 	add.b	d1,d1
-	bhs.s	@skip_pal2	; if d4 was < $40
+	bhs.s	.skip_pal2	; if d4 was < $40
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5
-	beq.s	@skip_pal2
+	beq.s	.skip_pal2
 	addi.w	#palette_line_2,d3	; set second palette line bit
 
-@skip_pal2:
+.skip_pal2:
 	add.b	d1,d1
-	bhs.s	@skip_pal1	; if d4 was < $20
+	bhs.s	.skip_pal1	; if d4 was < $20
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5
-	beq.s	@skip_pal1
+	beq.s	.skip_pal1
 	addi.w	#palette_line_1,d3	; set first palette line bit
 
-@skip_pal1:
+.skip_pal1:
 	add.b	d1,d1
-	bhs.s	@skip_flipy	; if d4 was < $10
+	bhs.s	.skip_flipy	; if d4 was < $10
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5
-	beq.s	@skip_flipy
+	beq.s	.skip_flipy
 	ori.w	#flip_y,d3	; set Y-flip bit
 
-@skip_flipy:
+.skip_flipy:
 	add.b	d1,d1
-	bhs.s	@skip_flipx	; if d4 was < 8
+	bhs.s	.skip_flipx	; if d4 was < 8
 	subq.w	#1,d6
 	btst	d6,d5
-	beq.s	@skip_flipx
+	beq.s	.skip_flipx
 	ori.w	#flip_x,d3	; set X-flip bit
 
-@skip_flipx:
+.skip_flipx:
 	move.w	d5,d1
 	move.w	d6,d7		; get remaining bits
 	sub.w	a5,d7		; subtract minimum bit number
-	bhs.s	@got_enough	; if we're beyond that, branch
+	bhs.s	.got_enough	; if we're beyond that, branch
 	move.w	d7,d6
 	addi.w	#16,d6		; 16 bits = 2 bytes
 	neg.w	d7			; calculate bit deficit
@@ -208,7 +208,7 @@ EniDec_GetInlineCopyVal:
 	and.w	EniDec_AndVals-2(pc,d7.w),d5	; only keep X lower bits
 	add.w	d5,d1		; compensate for the bit deficit
 
-@got_field:
+.got_field:
 	move.w	a5,d0
 	add.w	d0,d0
 	and.w	EniDec_AndVals-2(pc,d0.w),d1	; only keep as many bits as required
@@ -218,8 +218,8 @@ EniDec_GetInlineCopyVal:
 	move.b	(a0)+,d5	; store next byte in lower register byte
 	rts
 ; ---------------------------------------------------------------------------
-@got_enough:
-	beq.s	@got_exact	; if the exact number of bits are leftover, branch
+.got_enough:
+	beq.s	.got_exact	; if the exact number of bits are leftover, branch
 	lsr.w	d7,d1		; remove unneeded bits
 	move.w	a5,d0
 	add.w	d0,d0
@@ -228,9 +228,9 @@ EniDec_GetInlineCopyVal:
 	move.w	a5,d0		; store number of bits used up by inline copy
 	bra.s	EniDec_ChkGetNextByte	; move onto next byte
 ; ---------------------------------------------------------------------------
-@got_exact:
+.got_exact:
 	moveq	#16,d6		; 16 bits = 2 bytes
-	bra.s	@got_field
+	bra.s	.got_field
 ; ---------------------------------------------------------------------------
 EniDec_AndVals:
 	dc.w	 1,    3,    7,   $F

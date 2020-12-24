@@ -1093,191 +1093,194 @@ loc_1432:
 		rts	
 ; End of function ShowVDPGraphics
 
+; ==============================================================================
 ; ------------------------------------------------------------------------------
 ; Nemesis decompression routine
 ; ------------------------------------------------------------------------------
-; Optimized by vladikcomper, further optimizations & comments by carljr17
+; Optimized by vladikcomper
 ; ------------------------------------------------------------------------------
 
 NemDec_RAM:
-        ; INPUT:
-        ;   a0 -> number of patterns + mode, followed by compressed data
-        ;   a4 -> RAM to output patterns to
-        movem.l d0-d6/a0-a1/a3-a5,-(sp)     ; 8 + 8*12 = 104
-
-        lea     NemDec_WriteRowToRAM(pc),a3 ; 8
-
-        bra.s   NemDec_Main                 ; 10
+	movem.l	d0-a1/a3-a6,-(sp)
+	lea	NemDec_WriteRowToRAM(pc),a3
+	bra.s	NemDec_Main
 
 ; ------------------------------------------------------------------------------
-
 NemDec:
-        ; INPUT:
-        ;   a0 -> number of patterns + mode, followed by compressed data
-        movem.l d0-d6/a0-a1/a3-a5,-(sp)
-        lea     NemDec_WriteRowToVDP(pc),a3 ;  8 a3  = jump address for pixel row writes
-        lea     $C00000,a4                  ; 12 a4 -> [vdp_data_port]
+	movem.l	d0-a1/a3-a6,-(sp)
+	lea	$C00000,a4		; load VDP Data Port     
+	lea	NemDec_WriteRowToVDP(pc),a3
+
 NemDec_Main:
-        ; INPUT:
-        ;   a3  = NemDec_WriteRowToRAM/VDP
-        ;   a4 -> [$C00000] (vdp_data_port) (or anywhere in RAM)
-        lea     $FFFFAA00.w,a1          ;  8 a1 -> [$FFAA00] (Nemesis decompression buffer)
-        move.w  (a0)+,d3                ;  8 d3 <- #/patterns (MSB set for Mode 1)
-        bpl.s   @0                      ; 10/8 d3.15 == 1 ? no, so in Mode 0 (not based on changes between rows)
-        lea     NemDec_WriteRowToVDP_XOR-NemDec_WriteRowToVDP(a3),a3 ;  8 yes, so in Mode 1 (each row XOR'd with last, only changes recorded)
-@0:
-        lsl.w   #3,d3                   ; 6 + 2*3 = 12 -.
-        subq.w  #1,d3                   ;            4 -' d3 = #/patterns * 8 (= number of rows to plot), minus 1
-        bsr.w   NemDec4                 ; 18 d0-d2/d5/a5 build opcode-to-count/color lookup table
-        moveq   #0,d2                   ; for use with Mode 1 only (XOR with first row)
-        moveq   #1,d4                   ; set stop bit (nybble counter) -- 8 pixels per row
-        move.b  (a0)+,d5                ; -. get first two bytes of compressed data
-        asl.w   #8,d5                   ;  : (can't we replace this with move.w (a0)+,d5 !?)
-        move.b  (a0)+,d5                ; -'
-        moveq   #16,d6                  ; 16 bits ready, set initial shift value
-        bsr.s   NemDec2                 ; read in from bit stream of opcodes/in-line data, output rows
-        movem.l (sp)+,d0-d6/a0-a1/a3-a5
-        rts
+	lea	$FFFFAA00,a1		; load Nemesis decompression buffer
+	move.w	(a0)+,d2		; get number of patterns
+	bpl.s	.0			; are we in Mode 0?
+	lea	$A(a3),a3		; if not, use Mode 1
+.0	lsl.w	#3,d2
+	movea.w	d2,a5
+	moveq	#7,d3
+	moveq	#0,d2
+	moveq	#0,d4
+	bsr.w	NemDec4
+	move.b	(a0)+,d5		; get first byte of compressed data
+	asl.w	#8,d5			; shift up by a byte
+	move.b	(a0)+,d5		; get second byte of compressed data
+	move.w	#$10,d6			; set initial shift value
+	bsr.s	NemDec2
+	movem.l	(sp)+,d0-a1/a3-a6
+	rts
 
 ; ---------------------------------------------------------------------------
 ; Part of the Nemesis decompressor, processes the actual compressed data
 ; ---------------------------------------------------------------------------
 
-NemDec3: ; this is an entry point for compatibility with code in sonic.asm
-        move.w  a5,d3                   ;  4 -. number of rows to plot from a5 (for compatibility)
-        subq.w  #1,d3                   ;  4 -'
-        moveq   #1,d4                   ;  4 reset 8-pixel row, set stop bit/nybble counter
-        eor.b   d1,d4                   ;  4 cheaper than a branch around next instruction
-NemDec_WritePixelLoop:
-        eor.b   d1,d4                   ;  4 d4.l = ........ ........ .......! 00001111 etc.
-NemDec3_1:
-        dbra    d0,NemDec_WritePixel    ; 10/12 --repeat count == -1 ? no, so plot another pixel
 NemDec2:
-        ; INPUT:
-        ;   a0 -> stream of bits -- opcodes and/or in-line data
-        ;   a1 -> [$FFAA000] (LUT: opcode to palette, repeat count, & opcode width, 512 bytes)
-        ;   a3  = NemDec_WriteRowToRAM/VDP/_XOR
-        ;   a4 -> [$C00000] (vdp_data_port) (or anywhere in RAM)
-        ;   d2.l  = previous row of 8 pixels, or 0 if first row; XOR'd with new row (mode 1 only)
-        ;   d3.w  = number of patterns * 8 (= number of rows to plot), minus 1
-        ;   d4.l  = holds 8 pixel nibbles, initially 1 (used as a stop bit or nybble counter)
-        ;   d5.w  = [a0 - 2] (first 16 bits of stream, read left to right)
-        ;   d6.b  = #/bits remaining to process, initially 16
-        ; TRASHES: d0-d1
-        sub.b   #9,d6                   ;  8 get right shift value to peek ahead at next 9 bits
-        move.w  d5,d0                   ;  4    -. left-justify opcode (high bit in bit #8),
-        lsr.w   d6,d0                   ;  6+2n -' followed by 1 or more unrelated, unprocessed bits
-        andi.w  #$01FE,d0               ;  8 isolate 8 bits for lookup: opcode and 1 or more unrelated bits
-        sub.b   0(a1,d0.w),d6           ; 14 subtract opcode width, minus 9, from #/bits remaining
-        move.b  1(a1,d0.w),d0           ; 14 d0.w <- .......? irrrpppp
-        bpl.s   NemDec_NotInline        ; if i == 1, inline: next 7 bits are palette + count (rrrpppp)
-        cmpi.b  #9,d6                   ; 9 or more bits still available ?
-        bcc.s   @0                      ; no,  so not enough room to read next byte
-        addq.b  #8,d6                   ; 8 new bits, about to be read in below
-        asl.w   #8,d5                   ; shift all remaining bits into high byte
-        move.b  (a0)+,d5                ; get next 8 bits into low of d5
-@0:
-        subq.b  #7,d6                   ; 7 bits needed for inline data itself (palette + count) * (could be combined in above sub)
-        move.w  d5,d0
-        lsr.w   d6,d0                   ; shift so that low bit rrrpppp is in bit position 0
-NemDec_NotInline:
-        cmpi.b  #9,d6                   ; 9 or more bits still available ?
-        bcc.s   @1                      ; no,  so not enough room for read next byte
-        addq.b  #8,d6                   ; 8 new bits, about to be read in below
-        asl.w   #8,d5                   ; shift all remaining bits into high byte
-        move.b  (a0)+,d5                ; get next 8 bits into low of d5
-@1:
-        move.b  d0,d1                   ; d1.w  = ???????? ?rrrpppp
-        andi.b  #$0F,d1                 ;       = ???????? ....pppp (palette index)
-        andi.w  #$0070,d0               ; d0.w  = ........ .rrr....
-        lsr.w   #4,d0                   ;       = ........ .....rrr (repeat count, minus 1; clear bits 8-15)
-NemDec_WritePixel:
-        lsl.l   #4,d4                   ; d4.l = ........ ........ .......! 0000....
-        bcc.s   NemDec_WritePixelLoop   ; 10/8
-        or.b    d1,d4                   ; d4.l = 00001111 22223333 44445555 66667777
-        jmp     (a3)                    ; 8
+	move.w	d6,d7
+	subq.w	#8,d7			; get shift value
+	move.w	d5,d1
+	lsr.w	d7,d1			; shift so that high bit of the code is in bit position 7
+	cmpi.b	#%11111100,d1		; are the high 6 bits set?
+	bcc.s	NemDec_InlineData	; if they are, it signifies inline data
+	andi.w	#$FF,d1
+	add.w	d1,d1
+	sub.b	(a1,d1.w),d6		; ~~ subtract from shift value so that the next code is read next time around
+	cmpi.w	#9,d6			; does a new byte need to be read?
+	bcc.s	.0			; if not, branch
+	addq.w	#8,d6
+	asl.w	#8,d5
+	move.b	(a0)+,d5		; read next byte
+.0	move.b	1(a1,d1.w),d1
+	move.w	d1,d0
+	andi.w	#$F,d1			; get palette index for pixel
+	andi.w	#$F0,d0
 
+NemDec_GetRepeatCount:
+	lsr.w	#4,d0			; get repeat count
+
+NemDec_WritePixel:
+	lsl.l	#4,d4			; shift up by a nybble
+	or.b	d1,d4			; write pixel
+	dbf	d3,NemDec_WritePixelLoop; ~~
+	jmp	(a3)			; otherwise, write the row to its destination
+; ---------------------------------------------------------------------------
+
+NemDec3:
+	moveq	#0,d4			; reset row
+	moveq	#7,d3			; reset nybble counter
+
+NemDec_WritePixelLoop:
+	dbf	d0,NemDec_WritePixel
+	bra.s	NemDec2
+; ---------------------------------------------------------------------------
+
+NemDec_InlineData:
+	subq.w	#6,d6			; 6 bits needed to signal inline data
+	cmpi.w	#9,d6
+	bcc.s	.0
+	addq.w	#8,d6
+	asl.w	#8,d5
+	move.b	(a0)+,d5
+.0	subq.w	#7,d6			; and 7 bits needed for the inline data itself
+	move.w	d5,d1
+	lsr.w	d6,d1			; shift so that low bit of the code is in bit position 0
+	move.w	d1,d0
+	andi.w	#$F,d1			; get palette index for pixel
+	andi.w	#$70,d0			; high nybble is repeat count for pixel
+	cmpi.w	#9,d6
+	bcc.s	NemDec_GetRepeatCount
+	addq.w	#8,d6
+	asl.w	#8,d5
+	move.b	(a0)+,d5
+	bra.s	NemDec_GetRepeatCount
+
+; ---------------------------------------------------------------------------
+; Subroutines to output decompressed entry
+; Selected depending on current decompression mode
 ; ---------------------------------------------------------------------------
 
 NemDec_WriteRowToVDP:
 loc_1502:
-        move.l  d4,(a4)                 ; write 8-pixel row to VDP control port
-        moveq   #1,d4                   ;  4 reset 8-pixel row, set stop bit/nybble counter
-        dbra    d3,NemDec3_1            ; 10/12 have all 8-pixel rows been written ? if yes, branch
-        rts
+	move.l	d4,(a4)			; write 8-pixel row
+	subq.w	#1,a5
+	move.w	a5,d4			; have all the 8-pixel rows been written?
+	bne.s	NemDec3			; if not, branch
+	rts
+; ---------------------------------------------------------------------------
 
 NemDec_WriteRowToVDP_XOR:
-        eor.l   d4,d2                   ; XOR the previous row by the current row
-        move.l  d2,(a4)                 ; write new current row to VDP control port
-        moveq   #1,d4                   ;  4 reset 8-pixel row, set stop bit/nybble counter
-        dbra    d3,NemDec3_1            ; 10/12 have all 8-pixel rows been written? if yes, branch
-        rts
-
+	eor.l	d4,d2			; XOR the previous row by the current row
+	move.l	d2,(a4)			; and write the result
+	subq.w	#1,a5
+	move.w	a5,d4
+	bne.s	NemDec3
+	rts
 ; ---------------------------------------------------------------------------
 
 NemDec_WriteRowToRAM:
-        move.l  d4,(a4)+                ; write 8-pixel row to RAM, with post-increment
-        moveq   #1,d4                   ;  4 reset 8-pixel row, set stop bit/nybble counter
-        dbra    d3,NemDec3_1            ; 10/12 have all 8-pixel rows been written? if yes, branch
-        rts
+	move.l	d4,(a4)+		; write 8-pixel row
+	subq.w	#1,a5
+	move.w	a5,d4			; have all the 8-pixel rows been written?
+	bne.s	NemDec3			; if not, branch
+	rts
+; ---------------------------------------------------------------------------
 
 NemDec_WriteRowToRAM_XOR:
-        eor.l   d4,d2                   ; XOR the previous row by the current row
-        move.l  d2,(a4)+                ; write new current row to RAM with post-increment
-        moveq   #1,d4                   ;  4 reset 8-pixel row, set stop bit/nybble counter
-        dbra    d3,NemDec3_1            ; 10/12 have all 8-pixel rows been written ? if yes, branch
-        rts
+	eor.l	d4,d2			; XOR the previous row by the current row
+	move.l	d2,(a4)+		; and write the result
+	subq.w	#1,a5
+	move.w	a5,d4
+	bne.s	NemDec3
+	rts
 
 ; ---------------------------------------------------------------------------
 ; Part of the Nemesis decompressor, builds the code table (in RAM)
 ; ---------------------------------------------------------------------------
 
 NemDec4:
-        ; INPUT:
-        ;   a0 -> !...pppp (palette index -- 1st need not have bit #7 set)
-        ;         .rrrcccc (repeat count + code length)
-        ;         cccccccc (opcode, mysteriously right-justified)
-        ;         .rrrcccc (repeat count + code length)
-        ;         cccccccc (opcode, mysteriously right-justified)
-        ;         ...
-        ;         $FF      (end-of-table)
-        ;   a1 -> [$FFAA000] (nemesis decompression buffer -- actually 512 byte opcode-to-count/color LUT)
-        ; TRASHES: d0-2/d5/a5
-        lea     $01F8(a1),a5            ;  8 point to last four entries of table (used to flag inline data)
-        move.l  #$FDFFFDFF,d5           ; 12 set cccc (opcode width) = 6 (minus 9), i (inline) = 1, rrrpppp = don't care
-        move.l  d5,(a5)+                ; 12 [$01F8 + 0/2].w <- !!!!cccc irrrpppp
-        move.l  d5,(a5)+                ; 12 [$01F8 + 4/6].w <- !!!!cccc irrrpppp
-        move.b  (a0)+,d0                ;  8 read 1st byte (????pppp or $FF for end-of-table)
-        bra.s   @ChkEnd                 ; 10 if d0.7 == 1, end of table ($FF) OR new palette index (!???pppp)
-@ItemLoop:
-        move.b  d0,d5                   ;  4 d5.w = ???????? .rrrcccc (rrr = repeat count, cccc = opcode width)
-        andi.w  #$000F,d2               ;  8 d2.w = ........ ....pppp
-        andi.w  #$0070,d0               ;  8 d0.w = ........ .rrr.... (note bits 8-15 cleared for below)
-        or.b    d0,d2                   ;  4 d2.w = ........ .rrrpppp
-        eor.b   d0,d5                   ;  4 d5.w = ???????? ....cccc
-        moveq   #8,d1                   ;  4 -. d1.b = 8 - opcode width = shift left count (for left-justify)
-        sub.b   d5,d1                   ;  4 -' i.e., 12345678 -> 76543210
-        sub.b   #9,d5                   ;  8 opcode width - 9 needed for NemDec2 *
-        lsl.w   #8,d5                   ; 6 + 2*8 = 22 d5.w = !!!!cccc ........
-        or.w    d5,d2                   ;  4           d2.w = !!!!cccc .rrrpppp (table entry)
-        move.b  (a0)+,d0                ;  8 get actual opcode (mysteriously not shifted into position)
-        lsl.b   d1,d0                   ; 6 + 2*d1 d0.b = opcode << ( 8 - opcode width ) (= left justify opcode; but why isn't this just pre-shifted ?)
-        add.w   d0,d0                   ;  4 double to index into table of words
-        moveq   #0,d5                   ;  4 -.
-        bset    d1,d5                   ;  6  : d5 = 1 << ( 8 - opcode length ) - 1
-        subq.b  #1,d5                   ;  4 -'    = #/times to repeat table entry
-        lea     (a1,d0.w),a5            ; 12 (versus 4 move.w a1, a5 + 8 add.w d0, a5 = 12)
-@ItemShortCodeLoop:
-        move.w  d2,(a5)+                ;  8 store entry: !!!!cccc .rrrpppp
-        dbra    d5,@ItemShortCodeLoop   ; 10/14 repeat for required number of entries
-@ChkNext:
-        move.b  (a0)+,d0                ;  8 palette index, repeat count/opcode width, or end-of-table
-        bpl.s   @ItemLoop               ; 10/8 if d0.7 == 0, repeat count/opcode width
-@ChkEnd:
-        move.b  d0,d2                   ;  4 d2.w = ???????? ????pppp (pppp = palette index)
-        not.b   d0                      ;  4 reached end-of-table ?
-        bne.s   @ChkNext                ; 10/8 yes, so return to caller (RTS)
-        rts                             ; return to caller
+	move.b	(a0)+,d0		; read first byte
+
+.ChkEnd:
+	cmpi.b	#$FF,d0			; has the end of the code table description been reached?
+	bne.s	.NewPalIndex		; if not, branch
+	rts
+; ---------------------------------------------------------------------------
+
+.NewPalIndex:
+	move.w	d0,d7
+
+.ItemLoop:
+	move.b	(a0)+,d0		; read next byte
+	bmi.s	.ChkEnd			; ~~
+	move.b	d0,d1
+	andi.w	#$F,d7			; get palette index
+	andi.w	#$70,d1			; get repeat count for palette index
+	or.w	d1,d7			; combine the two
+	andi.w	#$F,d0			; get the length of the code in bits
+	move.b	d0,d1
+	lsl.w	#8,d1
+	or.w	d1,d7			; combine with palette index and repeat count to form code table entry
+	moveq	#8,d1
+	sub.w	d0,d1			; is the code 8 bits long?
+	bne.s	.ItemShortCode		; if not, a bit of extra processing is needed
+	move.b	(a0)+,d0		; get code
+	add.w	d0,d0			; each code gets a word-sized entry in the table
+	move.w	d7,(a1,d0.w)		; store the entry for the code
+	bra.s	.ItemLoop		; repeat
+; ---------------------------------------------------------------------------
+
+.ItemShortCode:
+	move.b	(a0)+,d0		; get code
+	lsl.w	d1,d0			; shift so that high bit is in bit position 7
+	add.w	d0,d0			; get index into code table
+	moveq	#1,d5
+	lsl.w	d1,d5
+	subq.w	#1,d5			; d5 = 2^d1 - 1
+	lea	(a1,d0.w),a6		; ~~
+
+.ItemShortCodeLoop:
+	move.w	d7,(a6)+		; ~~ store entry
+	dbf	d5,.ItemShortCodeLoop	; repeat for required number of entries
+	bra.s	.ItemLoop
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	load pattern load cues
@@ -1378,7 +1381,6 @@ RunPLC_RAM:				; XREF: Pal_FadeTo
 
 loc_160E:
 		andi.w	#$7FFF,d2
-		move.w	d2,($FFFFF6F8).w
 		bsr.w	NemDec4
 		move.b	(a0)+,d5
 		asl.w	#8,d5
@@ -1392,6 +1394,7 @@ loc_160E:
 		move.l	d0,($FFFFF6EC).w
 		move.l	d5,($FFFFF6F0).w
 		move.l	d6,($FFFFF6F4).w
+		move.w	d2,($FFFFF6F8).w
 
 locret_1640:
 		rts	
@@ -2743,7 +2746,7 @@ Title_LoadText:
 		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
-		move.w	#7,d1
+		move.w	#$F,d1
 
 Title_ClrObjRam2:
 		move.l	d0,(a1)+
@@ -2841,11 +2844,10 @@ loc_3230:
 		beq.w	loc_317C	; if not, branch
 
 Title_ChkLevSel:
-		moveq	#$00,d0				; clear d0
+		moveq	#0,d0				; clear d0
 		move.b	d0,($FFFFFF32).w		; clear background strip 1 draw flags
 		move.b	d0,($FFFFFF34).w		; clear background strip 2 draw flags
 		move.b	d0,($FFFFFF30).w		; clear foreground strip draw flags
-; Please note, REV01 background will have more strips, thus more flags to be cleare
 		tst.b	($FFFFFFE0).w	; check	if level select	code is	on
 		beq.w	PlayLevel	; if not, play level
 		btst	#6,($FFFFF604).w ; check if A is pressed
@@ -4052,7 +4054,7 @@ loc_4056:
 		move.b	(a1),d0
 		lea	($FFFFF604).w,a0
 		move.b	d0,d1
-		move.b	(a0),d2
+		move.b	-2(a0),d2
 		eor.b	d2,d0
 		move.b	d1,(a0)+
 		and.b	d1,d0
@@ -6854,9 +6856,9 @@ ScrollHoriz2:				; XREF: ScrollHoriz
 		move.w	($FFFFD008).w,d0
 		sub.w	($FFFFF700).w,d0
 		subi.w	#$90,d0
-		bcs.s	loc_65F6
+		bmi.s	loc_65F6
 		subi.w	#$10,d0
-		bcc.s	loc_65CC
+		bpl.s	loc_65CC
 		clr.w	($FFFFF73A).w
 		rts	
 ; ===========================================================================
@@ -6881,19 +6883,18 @@ loc_65E4:
 		rts	
 ; ===========================================================================
 
-loc_65F6:				; XREF: ScrollHoriz2
+loc_65F6:
+		cmpi.w	#$FFF0,d0				; has the screen moved more than 10 pixels left?
+		bcc.s	Left_NoMax				; if not, branch
+		move.w	#$FFF0,d0				; set the maximum move distance to 10 pixels left
+
+Left_NoMax:
 		add.w	($FFFFF700).w,d0
 		cmp.w	($FFFFF728).w,d0
 		bgt.s	loc_65E4
 		move.w	($FFFFF728).w,d0
 		bra.s	loc_65E4
 ; End of function ScrollHoriz2
-
-; ===========================================================================
-		tst.w	d0
-		bpl.s	loc_6610
-		move.w	#-2,d0
-		bra.s	loc_65F6
 ; ===========================================================================
 
 loc_6610:
@@ -12357,14 +12358,14 @@ Obj37_MakeRings:			; XREF: Obj37_CountRings
 	;	move.w	d4,d2
 	;	lsr.w	#8,d2
 		tst.b	($FFFFF64C).w		; Does the level have water?
-		beq.s	@skiphalvingvel		; If not, branch and skip underwater checks
+		beq.s	.skiphalvingvel		; If not, branch and skip underwater checks
 		move.w	($FFFFF646).w,d6	; Move water level to d6
 		cmp.w	$C(a0),d6		; Is the ring object underneath the water level?
-		bgt.s	@skiphalvingvel		; If not, branch and skip underwater commands
+		bgt.s	.skiphalvingvel		; If not, branch and skip underwater commands
 		asr.w	d0			; Half d0. Makes the ring's x_vel bounce to the left/right slower
 		asr.w	d1			; Half d1. Makes the ring's y_vel bounce up/down slower
 
-@skiphalvingvel:
+.skiphalvingvel:
 	;	asl.w	d2,d0
 	;	asl.w	d2,d1
 	;	move.w	d0,d2
@@ -12399,13 +12400,13 @@ Obj37_Bounce:				; XREF: Obj37_Index
 		bsr.w	SpeedToPos
 		addi.w	#$18,$12(a0)
 		tst.b	($FFFFF64C).w		; Does the level have water?
-		beq.s	@skipbounceslow		; If not, branch and skip underwater checks
+		beq.s	.skipbounceslow		; If not, branch and skip underwater checks
 		move.w	($FFFFF646).w,d6	; Move water level to d6
 		cmp.w	$C(a0),d6		; Is the ring object underneath the water level?
-		bgt.s	@skipbounceslow		; If not, branch and skip underwater commands
+		bgt.s	.skipbounceslow		; If not, branch and skip underwater commands
 		subi.w	#$E,$12(a0)		; Reduce gravity by $E ($18-$E=$A), giving the underwater effect
 
-@skipbounceslow:
+.skipbounceslow:
 		bmi.s	Obj37_ChkDel
 		move.b	($FFFFFE0F).w,d0
 		add.b	d7,d0
@@ -12444,12 +12445,12 @@ Obj37_Display:
 	;	andi.w	#$380,d0
 	;	adda.w	d0,a1
 		cmpi.w	#$7E,(a1)
-		bcc.s	@locret
+		bcc.s	.locret
 		addq.w	#2,(a1)
 		adda.w	(a1),a1
 		move.w	a0,(a1)
 
-@locret:
+.locret:
 		rts
 ; ===========================================================================
 
@@ -12465,11 +12466,11 @@ Obj37_Sparkle:				; XREF: Obj37_Index
         lea     ($FFFFAC00).w,a1
         adda.w  #$80,a1
         cmpi.w  #$7E,(a1)
-        bcc.s   @locret
+        bcc.s   .locret
         addq.w  #2,(a1)
         adda.w  (a1),a1
         move.w  a0,(a1)
-@locret:
+.locret:
         rts
 ; ===========================================================================
 
@@ -15534,18 +15535,18 @@ Obj3A_TimeBonus:			; XREF: Obj3A_Index
 		move.b	#10,d1	; set score decrement to 10
 		move.b	($FFFFF604).w,d0
 		andi.b	#%01110000,d0	; is A, B or C pressed?
-		beq.w	@dontspeedup	; if not, branch
+		beq.w	.dontspeedup	; if not, branch
 		move.b	#100,d1	; increase score decrement to 100
 		
-	@dontspeedup:
+	.dontspeedup:
 		move.b	#1,($FFFFF7D6).w ; set time/ring bonus update flag
 		moveq	#0,d0
 		tst.w	($FFFFF7D2).w	; is time bonus	= zero?
 		beq.s	Got_RingBonus	; if yes, branch
 		cmp.w	($FFFFF7D2).w,d1	; compare time bonus to score decrement
-		blt.s	@skip	; if it's greater or equal, branch
+		blt.s	.skip	; if it's greater or equal, branch
 		move.w	($FFFFF7D2).w,d1	; else, set the decrement to the remaining bonus
-	@skip:
+	.skip:
 		add.w	d1,d0		; add decrement to score
 		sub.w	d1,($FFFFF7D2).w ; subtract decrement from time bonus
 
@@ -15553,9 +15554,9 @@ Got_RingBonus:
 		tst.w	($FFFFF7D4).w	; is ring bonus	= zero?
 		beq.s	Obj3A_ChkBonus	; if yes, branch
 		cmp.w	($FFFFF7D4).w,d1	; compare ring bonus to score decrement
-		blt.s	@skip	; if it's greater or equal, branch
+		blt.s	.skip	; if it's greater or equal, branch
 		move.w	($FFFFF7D4).w,d1	; else, set the decrement to the remaining bonus
-	@skip:
+	.skip:
 		add.w	d1,d0		; add decrement to score
 		sub.w	d1,($FFFFF7D4).w ; subtract decrement from ring bonus
 
@@ -15783,15 +15784,15 @@ Obj7E_RingBonus:			; XREF: Obj7E_Index
 		move.b	#10,d1	; set score decrement to 10
 		move.b	($FFFFF604).w,d0
 		andi.b	#%01110000,d0	; is A, B or C pressed?
-		beq.w	@dontspeedup	; if not, branch
+		beq.w	.dontspeedup	; if not, branch
 		move.b	#100,d1	; increase score decrement to 100
 		
-	@dontspeedup:
+	.dontspeedup:
 		moveq	#0,d0
 		cmp.w	($FFFFF7D4).w,d1	; compare ring bonus to score decrement
-		blt.s	@skip	; if it's greater or equal, branch
+		blt.s	.skip	; if it's greater or equal, branch
 		move.w	($FFFFF7D4).w,d1	; else, set the decrement to the remaining bonus
-	@skip:
+	.skip:
 		add.w	d1,d0		; add decrement to score
 		sub.w	d1,($FFFFF7D4).w ; subtract decrement from ring bonus
 		jsr	AddPoints
@@ -16620,6 +16621,8 @@ loc_D358:
 ; ===========================================================================
 
 loc_D362:
+		cmpi.b	#$A,($FFFFD000+$24).w	; Has Sonic drowned?
+		beq.s	loc_D348		; If so, run objects a little longer
 		moveq	#$1F,d7
 		bsr.s	loc_D348
 		moveq	#$5F,d7
@@ -23806,6 +23809,7 @@ Obj01_Index:	dc.w Obj01_Main-Obj01_Index
 		dc.w Obj01_Hurt-Obj01_Index
 		dc.w Obj01_Death-Obj01_Index
 		dc.w Obj01_ResetLevel-Obj01_Index
+		dc.w Obj01_Drowned-Obj01_Index
 ; ===========================================================================
 
 Obj01_Main:				; XREF: Obj01_Index
@@ -25210,10 +25214,10 @@ Obj01_Death:				; XREF: Obj01_Index
 
 
 GameOver:				; XREF: Obj01_Death
-		move.w	($FFFFF72E).w,d0
+		move.w	($FFFFF704).w,d0
 		addi.w	#$100,d0
 		cmp.w	$C(a0),d0
-		bcc.w	locret_13900
+		bge.w	locret_13900
 		move.w	#-$38,$12(a0)
 		addq.b	#2,$24(a0)
 		clr.b	($FFFFFE1E).w	; stop time counter
@@ -25340,6 +25344,21 @@ loc_139B2:
 locret_139C2:
 		rts	
 ; End of function Sonic_Loops
+
+; ---------------------------------------------------------------------------
+; Sonic when he's drowning
+; ---------------------------------------------------------------------------
+ 
+; ||||||||||||||| S	U B	R O	U T	I N	E |||||||||||||||||||||||||||||||||||||||
+ 
+ 
+Obj01_Drowned:
+		bsr.w   SpeedToPos		; Make Sonic able to move
+		addi.w  #$10,$12(a0)	; Apply gravity
+		bsr.w   Sonic_RecordPos	; Record position
+		bsr.s   Sonic_Animate	; Animate Sonic
+		bsr.w   LoadSonicDynPLC	; Load Sonic's DPLCs
+		bra.w   DisplaySprite	; And finally, display Sonic
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	animate	Sonic's sprites
@@ -25781,25 +25800,18 @@ Obj0A_ReduceAir:
 		move.w	#0,$12(a0)
 		move.w	#0,$10(a0)
 		move.w	#0,$14(a0)
+		move.b	#$A,$24(a0)		; Force the character to drown
 		move.b	#1,($FFFFF744).w
+		move.b	#0,($FFFFFE1E).w	; Stop the timer immediately
 		movea.l	(sp)+,a0
 		rts	
 ; ===========================================================================
 
 loc_13F86:
 		subq.w	#1,$2C(a0)
-		bne.s	loc_13F94
-		move.b	#6,($FFFFD024).w
-		rts	
-; ===========================================================================
-
-loc_13F94:
-		move.l	a0,-(sp)
-		lea	($FFFFD000).w,a0
-		jsr	SpeedToPos
-		addi.w	#$10,$12(a0)
-		movea.l	(sp)+,a0
-;		bra.s	loc_13FAC
+		bne.s	loc_13FAC	; Make it jump straight to this location
+		move.b	#6,($FFFFD000+$24).w
+		rts
 ; ===========================================================================
 
 ;Obj0A_GoMakeItem:			; XREF: Obj0A_ReduceAir
@@ -26226,14 +26238,14 @@ locret_146BE:
 
 loc_146C0:
 		move.b	$10(a0),d0
-		bpl.s	@next1
+		bpl.s	.next1
 		neg.b	d0
-	@next1:
+	.next1:
 		addq.b	#4,d0
 		cmpi.b	#$E,d0
-		bcs.s	@next2
+		bcs.s	.next2
 		move.b	#$E,d0
-	@next2:
+	.next2:
 		cmp.b	d0,d1
 		bgt.s	loc_146CC
 
@@ -26274,15 +26286,15 @@ loc_1475E:
 		bne.s	loc_1476A
 		
 		tst.b	$38(a0)
-		bne.s	@onwheel
+		bne.s	.onwheel
 		move.b	d2,d0
 		sub.b	$26(a0),d0
-		bpl.s	@next
+		bpl.s	.next
 		neg.b	d0
-	@next:
+	.next:
 		cmpi.b	#$20,d0
 		bcc.s	loc_1476A
-	@onwheel:
+	.onwheel:
 
 		move.b	d2,$26(a0)
 		rts	
@@ -26349,14 +26361,14 @@ locret_147F0:
 
 loc_147F2:
 		move.b	$12(a0),d0
-		bpl.s	@next1
+		bpl.s	.next1
 		neg.b	d0
-	@next1:
+	.next1:
 		addq.b	#4,d0
 		cmpi.b	#$E,d0
-		bcs.s	@next2
+		bcs.s	.next2
 		move.b	#$E,d0
-	@next2:
+	.next2:
 		cmp.b	d0,d1
 		bgt.s	loc_147FE
 
@@ -26428,14 +26440,14 @@ locret_14892:
 
 loc_14894:
 		move.b	$10(a0),d0
-		bpl.s	@next1
+		bpl.s	.next1
 		neg.b	d0
-	@next1:	
+	.next1:	
 		addq.b	#4,d0
 		cmpi.b	#$E,d0
-		bcs.s	@next2
+		bcs.s	.next2
 		move.b	#$E,d0
-	@next2:
+	.next2:
 		cmp.b	d0,d1
 		bgt.s	loc_148A0
 
@@ -26507,14 +26519,14 @@ locret_14934:
 
 loc_14936:
 		move.b	$12(a0),d0
-		bpl.s	@next1
+		bpl.s	.next1
 		neg.b	d0
-	@next1:
+	.next1:
 		addq.b	#4,d0
 		cmpi.b	#$E,d0
-		bcs.s	@next2
+		bcs.s	.next2
 		move.b	#$E,d0
-	@next2:
+	.next2:
 		cmp.b	d0,d1
 		bgt.s	loc_14942
 
@@ -29828,7 +29840,7 @@ Obj7D_Delete:
 Obj7D_Points:	dc.w 0			; Bonus	points array
 		dc.w 1000
 		dc.w 100
-		dc.w 1
+		dc.w 10
 ; ===========================================================================
 
 Obj7D_DelayDel:				; XREF: Obj7D_Index
@@ -34932,11 +34944,11 @@ Hurt_ChkSpikes:
 		move.w	#$78,$30(a0)
 		move.w	#$A3,d0		; load normal damage sound
 		cmpi.b	#$36,(a2)	; was damage caused by spikes?
-		beq.s	@setspikesound	; if so, branch
+		beq.s	.setspikesound	; if so, branch
 		cmpi.b	#$16,(a2) ; was damage caused by LZ harpoon?
 		bne.s	Hurt_Sound		; if not, branch
 
-	@setspikesound:
+	.setspikesound:
 		move.w	#$A6,d0		; load spikes damage sound
 
 Hurt_Sound:
@@ -36946,17 +36958,15 @@ Obj21_Main:				; XREF: Obj21_Main
 		move.b	#0,$18(a0)
 
 Obj21_Flash:				; XREF: Obj21_Main
-		tst.w	($FFFFFE20).w	; do you have any rings?
-		beq.s	Obj21_Flash2	; if not, branch
-		clr.b	$1A(a0)		; make all counters yellow
-		jmp	DisplaySprite
-; ===========================================================================
-
-Obj21_Flash2:
 		moveq	#0,d0
 		btst	#3,($FFFFFE05).w
 		bne.s	Obj21_Display
+		tst.w	($FFFFFE20).w	; do you have any rings?
+		bne.s	Obj21_Flash2	; if not, branch
 		addq.w	#1,d0		; make ring counter flash red
+; ===========================================================================
+
+Obj21_Flash2:
 		cmpi.b	#9,($FFFFFE23).w ; have	9 minutes elapsed?
 		bne.s	Obj21_Display	; if not, branch
 		addq.w	#2,d0		; make time counter flash red

@@ -87,8 +87,8 @@ copyTilemap:	macro source,loc,width,height
 
 stopZ80:	macro
 		move.w	#$100,($A11100).l
-	@wait:	btst	#0,($A11100).l
-		bne.s	@wait
+	.wait:	btst	#0,($A11100).l
+		bne.s	.wait
 		endm
 
 ; ---------------------------------------------------------------------------
@@ -203,15 +203,15 @@ enable_ints:	macro
 ; ---------------------------------------------------------------------------
 
 jhi:		macro loc
-		bls.s	@nojump\@
+		bls.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jcc:		macro loc
-		bcs.s	@nojump\@
+		bcs.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jhs:		macro loc
@@ -219,15 +219,15 @@ jhs:		macro loc
 		endm
 
 jls:		macro loc
-		bhi.s	@nojump\@
+		bhi.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jcs:		macro loc
-		bcc.s	@nojump\@
+		bcc.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jlo:		macro loc
@@ -235,49 +235,49 @@ jlo:		macro loc
 		endm
 
 jeq:		macro loc
-		bne.s	@nojump\@
+		bne.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jne:		macro loc
-		beq.s	@nojump\@
+		beq.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jgt:		macro loc
-		ble.s	@nojump\@
+		ble.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jge:		macro loc
-		blt.s	@nojump\@
+		blt.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jle:		macro loc
-		bgt.s	@nojump\@
+		bgt.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jlt:		macro loc
-		bge.s	@nojump\@
+		bge.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jpl:		macro loc
-		bmi.s	@nojump\@
+		bmi.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm
 
 jmi:		macro loc
-		bpl.s	@nojump\@
+		bpl.s	.nojump\@
 		jmp	loc
-	@nojump\@:
+	.nojump\@:
 		endm

@@ -29,18 +29,18 @@ _Kos_LoopUnroll = 3
 _Kos_ExtremeUnrolling = 1
 
 _Kos_RunBitStream macro
-	dbra	d2,@skip\@
+	dbra	d2,.skip\@
 	moveq	#7,d2					; We have 8 new bits, but will use one up below.
 	move.b	d1,d0					; Use the remaining 8 bits.
 	not.w	d3						; Have all 16 bits been used up?
-	bne.s	@skip\@					; Branch if not.
+	bne.s	.skip\@					; Branch if not.
 	move.b	(a0)+,d0				; Get desc field low-byte.
 	move.b	(a0)+,d1				; Get desc field hi-byte.
 	if _Kos_UseLUT=1
 		move.b	(a4,d0.w),d0		; Invert bit order...
 		move.b	(a4,d1.w),d1		; ... for both bytes.
 	endif
-@skip\@
+.skip\@
 	endm
 
 _Kos_ReadBit macro
