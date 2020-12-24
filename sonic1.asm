@@ -48,6 +48,7 @@ SRAMSupport:	dc.l $20202020		; change to $5241E020 to create	SRAM
 		dc.l $20202020		; SRAM end
 Notes:		dc.b '                                                    '
 Region:		dc.b 'JUE             ' ; Region
+EndofHeader:
 
 ; ===========================================================================
 
@@ -165,41 +166,36 @@ GameProgram:
 		tst.w	($C00004).l
 		btst	#6,($A1000D).l
 		beq.s	CheckSumCheck
-		cmpi.l	#'init',($FFFFFFFC).w ; has checksum routine already run?
-		beq.w	GameInit	; if yes, branch
+		cmpi.l	#'init',($FFFFFFFC).w 	; has checksum routine already run?
+		beq.s	GameInit		; if yes, branch
 
 CheckSumCheck:
-		movea.w #$0200,a0 ; prepare start address
-		move.l (RomEndLoc).w,d7 ; load size
-		sub.l a0,d7 ; minus start address
-		move.b d7,d5 ; copy end nybble
-		andi.w #$000F,d5 ; get only the remaining nybble
-		lsr.l #$04,d7 ; divide the size by 20
-		move.w d7,d6 ; load lower word size
-		swap d7 ; get upper word size
-		moveq #$00,d0 ; clear d0
+		movea.w #EndofHeader,a0 	; prepare start address
+		move.l 	(RomEndLoc).w,d7 	; load size
+		sub.l 	a0,d7 			; minus start address
+		move.b	d7,d5 			; copy end nybble
+		andi.w 	#$F,d5 			; get only the remaining nybble
+		lsr.l 	#4,d7 			; divide the size by 20
+		move.w 	d7,d6 			; load lower word size
+		swap 	d7 			; get upper word size
+		moveq 	#0,d0 			; clear d0
 
 CS_MainBlock:
-		add.w (a0)+,d0 ; modular checksum (8 words)
-		add.w (a0)+,d0 ; ''
-		add.w (a0)+,d0 ; ''
-		add.w (a0)+,d0 ; ''
-		add.w (a0)+,d0 ; ''
-		add.w (a0)+,d0 ; ''
-		add.w (a0)+,d0 ; ''
-		add.w (a0)+,d0 ; ''
-		dbf d6,CS_MainBlock ; repeat until all main block sections are done
-		dbf d7,CS_MainBlock ; ''
-		subq.w #1,d5	 ; decrease remaining nybble for dbf
-		bpl.s CS_Finish ; if there is no remaining nybble, branch
+	     	rept 8                          ; modular checksum (8 words)
+		add.w 	(a0)+,d0
+		endr
+		dbf 	d6,CS_MainBlock 	; repeat until all main block sections are done
+		dbf 	d7,CS_MainBlock 	; ''
+		subq.w 	#1,d5	 		; decrease remaining nybble for dbf
+		bpl.s	CS_Finish 		; if there is no remaining nybble, branch
 
 CS_Remains:
-	   	add.w (a0)+,d0 ; add remaining words
-   		dbf d5,CS_Remains ; repeat until the remaining words are done
+	   	add.w 	(a0)+,d0 		; add remaining words
+   		dbf 	d5,CS_Remains 		; repeat until the remaining words are done
 
 CS_Finish:
-	  	cmp.w (Checksum).w,d0 ; does the checksum match?
-      		bne.w CheckSumError ; if not, branch
+	  	cmp.w 	(Checksum).w,d0 	; does the checksum match?
+      		bne.s 	CheckSumError 		; if not, branch
 
 		lea	($FFFFFE00).w,a6
 		moveq	#0,d7
@@ -211,7 +207,7 @@ loc_348:
 		move.b	($A10001).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,($FFFFFFF8).w
-		move.l	#'init',($FFFFFFFC).w ; set flag so checksum won't be run again
+		move.l	#'init',($FFFFFFFC).w 	; set flag so checksum won't be run again
 
 GameInit:
 		lea	($FF0000).l,a6
@@ -238,21 +234,13 @@ MainGameLoop:
 
 GameModeArray:
 		bra.w	SegaScreen	; Sega Screen ($00)
-; ===========================================================================
 		bra.w	TitleScreen	; Title	Screen ($04)
-; ===========================================================================
 		bra.w	Level		; Demo Mode ($08)
-; ===========================================================================
 		bra.w	Level		; Normal Level ($0C)
-; ===========================================================================
 		bra.w	SpecialStage	; Special Stage	($10)
-; ===========================================================================
 		bra.w	ContinueScreen	; Continue Screen ($14)
-; ===========================================================================
 		bra.w	EndingSequence	; End of game sequence ($18)
-; ===========================================================================
 		bra.w	Credits		; Credits ($1C)
-; ===========================================================================
 		rts
 ; ===========================================================================
 
@@ -2731,7 +2719,7 @@ Title_LoadText:
 		move.w	#0,d0
 		bsr.w	EniDec
 		lea	($FF0000).l,a1
-		move.l	#$42060003,d0
+		move.l	#$42080003,d0
 		moveq	#$21,d1
 		moveq	#$15,d2
 		bsr.w	ShowVDPGraphics
@@ -13061,7 +13049,7 @@ Obj0E_Index:	dc.w Obj0E_Main-Obj0E_Index
 
 Obj0E_Main:				; XREF: Obj0E_Index
 		addq.b	#2,$24(a0)
-		move.w	#$F0,8(a0)
+		move.w	#$F8,8(a0)
 		move.w	#$DE,$A(a0)
 		move.l	#Map_obj0E,4(a0)
 		move.w	#$2300,2(a0)
@@ -13118,7 +13106,7 @@ Obj0F_Index:	dc.w Obj0F_Main-Obj0F_Index
 
 Obj0F_Main:				; XREF: Obj0F_Index
 		addq.b	#2,$24(a0)
-		move.w	#$D0,8(a0)
+		move.w	#$D8,8(a0)
 		move.w	#$130,$A(a0)
 		move.l	#Map_obj0F,4(a0)
 		move.w	#$200,2(a0)
@@ -13128,7 +13116,7 @@ Obj0F_Main:				; XREF: Obj0F_Index
 		cmpi.b	#3,$1A(a0)	; is the object	"TM"?
 		bne.s	locret_A6F8	; if not, branch
 		move.w	#$2510,2(a0)	; "TM" specific	code
-		move.w	#$170,8(a0)
+		move.w	#$178,8(a0)
 		move.w	#$F8,$A(a0)
 
 locret_A6F8:				; XREF: Obj0F_Index
@@ -13170,7 +13158,8 @@ Anim_Run:
 		moveq	#0,d1
 		move.b	$1B(a0),d1	; load current frame number
 		move.b	1(a1,d1.w),d0	; read sprite number from script
-		bmi.s	Anim_End_FF	; if animation is complete, branch
+		cmp.b	#$FA,d0
+		bhs.s	Anim_End_FF
 
 Anim_Next:
 		move.b	d0,d1
@@ -16250,6 +16239,8 @@ Obj36_Upright:				; XREF: Obj36_Solid
 Obj36_Hurt:				; XREF: Obj36_SideWays; Obj36_Upright
 		tst.b	($FFFFFE2D).w	; is Sonic invincible?
 		bne.s	Obj36_Display	; if yes, branch
+		tst.w	($FFFFD030).w	; +++ is Sonic invulnerable?
+		bne.s	Obj36_Display	; +++ if yes, branch
 		move.l	a0,-(sp)
 		movea.l	a0,a2
 		lea	($FFFFD000).w,a0
@@ -16838,8 +16829,9 @@ loc_D700:
 		btst	#5,d4
 		bne.s	loc_D71C
 		move.b	$1A(a0),d1
-		add.b	d1,d1
+		add.w	d1,d1
 		adda.w	(a1,d1.w),a1
+		moveq	#0,d1
 		move.b	(a1)+,d1
 		subq.b	#1,d1
 		bmi.s	loc_D720
@@ -23997,6 +23989,7 @@ Obj01_OutWater:
 		move.w	#$C,($FFFFF762).w ; restore Sonic's acceleration
 		move.w	#$80,($FFFFF764).w ; restore Sonic's deceleration
 		asl	$12(a0)
+		tst.w   $12(a0)	; <--
 		beq.w	locret_12D80
 		move.b	#8,($FFFFD300).w ; load	splash object
 		cmpi.w	#-$1000,$12(a0)
@@ -24279,6 +24272,9 @@ loc_1309A:
 		neg.w	d1
 		cmp.w	d1,d0
 		bgt.s	loc_130A6
+		add.w	d5,d0
+		cmp.w	d1,d0
+		ble.s	loc_130A6
 		move.w	d1,d0
 
 loc_130A6:
@@ -24325,6 +24321,9 @@ loc_13104:
 		add.w	d5,d0
 		cmp.w	d6,d0
 		blt.s	loc_1310C
+		sub.w	d5,d0
+		cmp.w	d6,d0
+		bge.s	loc_1310C
 		move.w	d6,d0
 
 loc_1310C:
@@ -24503,6 +24502,9 @@ Sonic_ChgJumpDir:			; XREF: Obj01_MdJump; Obj01_MdJump2
 		neg.w	d1
 		cmp.w	d1,d0
 		bgt.s	loc_13278
+		add.w	d5,d0		; +++ remove this frame's acceleration change
+		cmp.w	d1,d0		; +++ compare speed with top speed
+		ble.s	loc_13278	; +++ if speed was already greater than the maximum, branch
 		move.w	d1,d0
 
 loc_13278:
@@ -24512,6 +24514,9 @@ loc_13278:
 		add.w	d5,d0
 		cmp.w	d6,d0
 		blt.s	Obj01_JumpMove
+		sub.w	d5,d0		; +++ remove this frame's acceleration change
+		cmp.w	d6,d0		; +++ compare speed with top speed
+		bge.s	Obj01_JumpMove	; +++ if speed was already greater than the maximum, branch
 		move.w	d6,d0
 
 Obj01_JumpMove:
@@ -25166,6 +25171,7 @@ loc_1380C:
 		bsr.w	Sonic_HurtStop
 		bsr.w	Sonic_LevelBound
 		bsr.w	Sonic_RecordPos
+	    	bsr.w	Sonic_Water	; <--
 		bsr.w	Sonic_Animate
 		bsr.w	LoadSonicDynPLC
 		jmp	DisplaySprite
@@ -25394,7 +25400,8 @@ SAnim_Do2:
 		moveq	#0,d1
 		move.b	$1B(a0),d1	; load current frame number
 		move.b	1(a1,d1.w),d0	; read sprite number from script
-		bmi.s	SAnim_End_FF	; if animation is complete, branch
+		cmp.b	#$FD,d0
+		bhs.s	SAnim_End_FF
 
 SAnim_Next:
 		move.b	d0,$1A(a0)	; load sprite number
@@ -25569,7 +25576,8 @@ SPLC_ReadEntry:
 		lsr.b	#4,d0
 		lsl.w	#8,d2
 		move.b	(a2)+,d2
-		lsl.w	#5,d2
+		andi.w	#$0FFF,d2
+		lsl.l	#5,d2
 		lea	(Art_Sonic).l,a1
 		adda.l	d2,a1
 
@@ -37613,9 +37621,9 @@ Debug_Index:	dc.w Debug_Main-Debug_Index
 ; ===========================================================================
 
 Debug_Main:				; XREF: Debug_Index
-        clr.w   ($FFFFD000+$14).w ; Clear Inertia
-        clr.w   ($FFFFD000+$12).w ; Clear X/Y Speed
-        clr.w   ($FFFFD000+$10).w ; Clear X/Y Speed
+		clr.w   ($FFFFD000+$14).w ; Clear Inertia
+		clr.w   ($FFFFD000+$12).w ; Clear X/Y Speed
+		clr.w   ($FFFFD000+$10).w ; Clear X/Y Speed
 		addq.b	#2,($FFFFFE08).w
 		move.w	($FFFFF72C).w,($FFFFFEF0).w ; buffer level x-boundary
 		move.w	($FFFFF726).w,($FFFFFEF2).w ; buffer level y-boundary
