@@ -14,9 +14,6 @@
 
 	include "macros.asm"
     include   "Debugger.asm"
-    
-Water_Flag equ 	$FFFFFFBC  ; if the level has water
-Saved_Music equ $FFFFFFBD  ; store level music
 
 StartOfRom:
 Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
@@ -312,11 +309,11 @@ loc_B88:				; XREF: loc_B10; off_B6E
 		cmpi.b	#$8C,($FFFFF600).w
 		beq.s	loc_B9A
 		cmpi.b	#$C,($FFFFF600).w
-		bne.s	loc_B5E
+		bne.w	loc_B5E
 
 loc_B9A:
-        	tst.b   (Water_flag).w  ; does level have water ?
-        	beq.w   loc_B5E        ; if not, branch
+		cmpi.b	#1,($FFFFFE10).w ; is level LZ ?
+		bne.w	loc_B5E		; if not, branch
 		move.w	($C00004).l,d0
 		btst	#6,($FFFFFFF8).w
 		beq.s	loc_BBA
@@ -1849,8 +1846,8 @@ Pal_FadeIn:				; XREF: Pal_FadeTo
 loc_1DFA:
 		bsr.s	Pal_AddColor
 		dbf	d0,loc_1DFA
-		tst.b	(Water_flag).w
-		beq.s	locret_1E24
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	locret_1E24
 		moveq	#0,d0
 		lea	($FFFFFA80).w,a0
 		lea	($FFFFFA00).w,a1
@@ -2032,8 +2029,8 @@ loc_1F20:
 		bsr.s	Pal_DecColor2
 		dbf	d0,loc_1F20
 
-		tst.b	(Water_flag).w
-		beq.s	locret_1F4A
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	locret_1F4A
 		moveq	#0,d0
 		lea	($FFFFFA80).w,a0
 		lea	($FFFFFA00).w,a1
@@ -3284,25 +3281,40 @@ Level_ClrVars3:
 		move.w	#$8720,(a6)
 		move.w	#$8ADF,($FFFFF624).w
 		move.w	($FFFFF624).w,(a6)
-; ---------------------------------------------------------------------------
-; Water reading routine
-            	move.w  #$1E,($FFFFFE14).w     ; T: set Sonic air left
-        	jsr     (LoadWaterLevel).l     ; T: init water
-        	tst.b   (Water_flag).w         ; T: in water level?
-        	beq.s   Level_LoadPal          ; T: if not, branch
-        	move.w  #$8014,(a6)            ; T: load water internal features
-        	lea    	($FFFFFAA0).w,a1       ; T: fix palette
-        	moveq   #0,d0
-        	move.w  #$17,d1
-.loop:		move.l	d0,(a1)+
-        	dbf	d1,.loop
-; ---------------------------------------------------------------------------
+		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
+		bne.s	Level_LoadPal	; if not, branch
+		move.w	#$8014,(a6)
+		moveq	#0,d0
+		move.b	($FFFFFE11).w,d0
+		add.w	d0,d0
+		lea	(WaterHeight).l,a1 ; load water	height array
+		move.w	(a1,d0.w),d0
+		move.w	d0,($FFFFF646).w ; set water heights
+		move.w	d0,($FFFFF648).w
+		move.w	d0,($FFFFF64A).w
+		clr.b	($FFFFF64D).w	; clear	water routine counter
+		clr.b	($FFFFF64E).w	; clear	water movement
+		move.b	#1,($FFFFF64C).w ; enable water
 
 Level_LoadPal:
 		move.w	#$1E,($FFFFFE14).w
 		move	#$2300,sr
 		moveq	#3,d0
 		bsr.w	PalLoad2	; load Sonic's pallet line
+		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
+		bne.s	Level_GetBgm	; if not, branch
+		moveq	#$F,d0		; pallet number	$0F (LZ)
+		cmpi.b	#3,($FFFFFE11).w ; is act number 3?
+		bne.s	Level_WaterPal	; if not, branch
+		moveq	#$10,d0		; pallet number	$10 (SBZ3)
+
+Level_WaterPal:
+		bsr.w	PalLoad3_Water	; load underwater pallet (see d0)
+		tst.b	($FFFFFE30).w
+		beq.s	Level_GetBgm
+		move.b	($FFFFFE53).w,($FFFFF64E).w
+
+Level_GetBgm:
 		tst.w	($FFFFFFF0).w
 		bmi.s	loc_3946
 		moveq	#0,d0
@@ -3319,7 +3331,6 @@ Level_BgmNotLZ4:
 Level_PlayBgm:
 		lea	(MusicList).l,a1 ; load	music playlist
 		move.b	(a1,d0.w),d0	; add d0 to a1
-		move.w  d0,(Saved_Music).w    ; store level music
 		bsr.w	PlaySound	; play music
 		move.b	#$34,($FFFFD080).w ; load title	card object
 
@@ -3362,6 +3373,12 @@ Level_ChkDebug:
 Level_ChkWater:
 		move.w	#0,($FFFFF602).w
 		move.w	#0,($FFFFF604).w
+		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
+		bne.s	Level_LoadObj	; if not, branch
+		move.b	#$1B,($FFFFD780).w ; load water	surface	object
+		move.w	#$60,($FFFFD788).w
+		move.b	#$1B,($FFFFD7C0).w
+		move.w	#$120,($FFFFD7C8).w
 
 Level_LoadObj:
 		jsr	ObjPosLoad
@@ -3413,6 +3430,17 @@ Level_Demo:
 		move.w	#510,($FFFFF614).w
 
 Level_ChkWaterPal:
+		cmpi.b	#1,($FFFFFE10).w ; is level LZ/SBZ3?
+		bne.s	Level_Delay	; if not, branch
+		moveq	#$B,d0		; pallet $0B (LZ underwater)
+		cmpi.b	#3,($FFFFFE11).w ; is level SBZ3?
+		bne.s	Level_WaterPal2	; if not, branch
+		moveq	#$D,d0		; pallet $0D (SBZ3 underwater)
+
+Level_WaterPal2:
+		bsr.w	PalLoad4_Water
+
+Level_Delay:
 		move.w	#3,d1
 
 Level_DelayLoop:
@@ -3518,84 +3546,20 @@ loc_3B98:
 loc_3BC8:
 		tst.w	($FFFFF614).w
 		bne.s	loc_3B98
-		rts
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Subroutine to work with water
-; ---------------------------------------------------------------------------
-
-LoadWaterLevel:
-; Initially check which zones work with this
-                cmpi.b  #1,($FFFFFE10).w   ; Check Labyrinth Zone
-                beq.s   LoadWater          ; If LZ, continue
-                move.b  #0,(Water_flag).w  ; Prevent water from appearing outside the above stages.
-                rts
-; ===========================================================================
-
-LoadWater:
-                move.b  #1,(Water_flag).w  ; Enable water in the checked level
-        	moveq   #0,d0
-        	move.w  ($FFFFFE10).w,d0   ; Now this check every zone and act
-        	lsl.b   #6,d0
-        	lsr.w   #5,d0
-        	andi.w  #$FFFE,d0
-        	lea     (WaterHeight).l,a1 ; load water    height array
-        	move.w  (a1,d0.w),d0
-        	move.w  d0,($FFFFF646).w   ; set water heights
-        	move.w  d0,($FFFFF648).w
-        	move.w  d0,($FFFFF64A).w
-        	clr.b   ($FFFFF64D).w       ; clear water routine counter
-        	clr.b   ($FFFFF64E).w      ; clear water movement
-        	move.b  #1,($FFFFF64C).w   ; enable water
-
-                ; If you don't want these objects to be read, check your zone here!
-       	 	;cmpi.b  #X,($FFFFFE10).w
-        	;beq.s   LoadWaterPalette
-		move.b  #$1B,($FFFFD780).w ; load water    surface    objects
-        	move.w  #$60,($FFFFD788).w
-        	move.b  #$1B,($FFFFD7C0).w
-        	move.w  #$120,($FFFFD7C8).w
-
-; ||||||||||||||| S U B    R O U T    I N E |||||||||||||||||||||||||||||||||||||||
-
-; Load underwater palettes
-LoadWaterPalette:
-                cmpi.b  #1,($FFFFFE10).w          ; check if zone is LZ
-        	bne.s   .newzone                  ; if not, skip to next zone
-                moveq   #$B,d0                    ; read palette number $B (Normal LZ underwater)
-                cmpi.w  #$103,($FFFFFE10).w       ; check if act number is $103 (SBZ3)
-                bne.s   .newzone                  ; if not, skip to next zone
-                moveq    #$D,d0                   ; read palette number $D (SBZ3 underwater)
-                bra.s   .waterpal                 ; branch to .waterpal routine (read underwater palettes)
-; ---------------------------------------------------------------------------
-.newzone:       cmpi.b  #7,($FFFFFE10).w	  ; zone is???
-        	bne.s   .waterpal                 ; not? Skip to the next!
-                moveq   #7,d0			  ; read palette number X
-; ---------------------------------------------------------------------------
-
-.waterpal:
-                move.w  d0,d1
-        	bsr.w   PalLoad3_Water
-        	move.w  d1,d0
-        	bsr.w   PalLoad4_Water
-                tst.b   (Water_flag).w
-        	beq.s   WaterPal_End
-                move.b  ($FFFFFE53).w,($FFFFF64E).w
-WaterPal_End:
-                rts
+		rts	
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Subroutine to	do special water effects in Labyrinth Zone
 ; ---------------------------------------------------------------------------
 
 LZWaterEffects:				; XREF: Level
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		bne.s	locret_3C28	; if not, branch
 		cmpi.b	#6,($FFFFD024).w
 		bcc.s	LZMoveWater
-		bsr.w	LZDynamicWater
-                cmpi.b  #1,($FFFFFE10).w
-                bne.s   LZMoveWater     ; don't load this in any other zone
 		bsr.w	LZWindTunnels
 		bsr.w	LZWaterSlides
+		bsr.w	LZDynamicWater
 
 LZMoveWater:
 		clr.b	($FFFFF64E).w
@@ -3626,14 +3590,8 @@ locret_3C28:
 ; ---------------------------------------------------------------------------
 ; Labyrinth default water heights
 ; ---------------------------------------------------------------------------
-WaterHeight:    dc.w    $600,$600,$600,$600
-             	dc.w    $0B8,$328,$900,$228   ; LZ default water heights
-             	dc.w    $600,$600,$600,$600
-             	dc.w    $600,$600,$600,$600
-             	dc.w    $600,$600,$600,$600
-             	dc.w    $600,$600,$600,$600
-             	dc.w    $600,$600,$600,$600
-        	even
+WaterHeight:	incbin	misc\lz_heigh.bin
+		even
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
@@ -3641,13 +3599,11 @@ WaterHeight:    dc.w    $600,$600,$600,$600
 ; ---------------------------------------------------------------------------
 
 LZDynamicWater:				; XREF: LZWaterEffects
-		moveq   #0,d0
-               	move.w  ($FFFFFE10).w,d0
-		lsl.b   #6,d0
-      		lsr.w   #5,d0
-      		andi.w  #$FFFE,d0
-      		move.w  DynWater_Index(pc,d0.w),d0
-	       	jsr    	DynWater_Index(pc,d0.w)
+		moveq	#0,d0
+		move.b	($FFFFFE11).w,d0
+		add.w	d0,d0
+		move.w	DynWater_Index(pc,d0.w),d0
+		jsr	DynWater_Index(pc,d0.w)
 		moveq	#0,d1
 		move.b	($FFFFF64C).w,d1
 		move.w	($FFFFF64A).w,d0
@@ -3662,35 +3618,10 @@ loc_3C56:
 locret_3C5A:
 		rts	
 ; ===========================================================================
-DynWater_Index:
-                 dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-                dc.w DynWater_LZ1-DynWater_Index    ; LZ is here
-        dc.w DynWater_LZ2-DynWater_Index
-        dc.w DynWater_LZ3-DynWater_Index
-        dc.w DynWater_SBZ3-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
-        dc.w locret_3C5A-DynWater_Index
+DynWater_Index:	dc.w DynWater_LZ1-DynWater_Index
+		dc.w DynWater_LZ2-DynWater_Index
+		dc.w DynWater_LZ3-DynWater_Index
+		dc.w DynWater_SBZ3-DynWater_Index
 ; ===========================================================================
 
 DynWater_LZ1:				; XREF: DynWater_Index
@@ -14892,8 +14823,8 @@ Obj33_Main:				; XREF: Obj33_Index
 		move.b	#$F,$17(a0)
 		move.l	#Map_obj33,4(a0)
 		move.w	#$42B8,2(a0)	; MZ specific code
-		tst.b	(Water_flag).w
-		beq.s	loc_BF16
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	loc_BF16
 		move.w	#$43DE,2(a0)	; LZ specific code
 
 loc_BF16:
@@ -19948,8 +19879,8 @@ Obj52_Main:				; XREF: Obj52_Index
 		addq.b	#2,$24(a0)
 		move.l	#Map_obj52,4(a0)
 		move.w	#$42B8,2(a0)
-		tst.b	(Water_flag).w ; check if level is LZ
-		beq.s	loc_FE44
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		bne.s	loc_FE44
 		move.l	#Map_obj52a,4(a0) ; LZ specific	code
 		move.w	#$43BC,2(a0)
 		move.b	#7,$16(a0)
@@ -20373,8 +20304,8 @@ Obj56_Main:				; XREF: Obj56_Index
 		addq.b	#2,$24(a0)
 		move.l	#Map_obj56,4(a0)
 		move.w	#$4000,2(a0)
-		tst.b	(Water_flag).w ; check if level is LZ
-		beq.s	loc_102C8
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		bne.s	loc_102C8
 		move.w	#$43C4,2(a0)	; LZ specific code
 
 loc_102C8:
@@ -20396,8 +20327,8 @@ loc_102C8:
 		add.w	d0,d0
 		move.w	d0,$3A(a0)
 		moveq	#0,d0
-		tst.b	(Water_flag).w ; check if level is LZ
-		bne.s	loc_10332
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		beq.s	loc_10332
 		move.b	$28(a0),d0	; SYZ/SLZ specific code
 		andi.w	#$F,d0
 		subq.w	#8,d0
@@ -20844,8 +20775,8 @@ Obj57_Main:				; XREF: Obj57_Index
 		move.w	8(a0),$3A(a0)
 		move.w	$C(a0),$38(a0)
 		move.b	#$98,$20(a0)	; SYZ specific code (chain hurts Sonic)
-		tst.b	(Water_flag).w ; check if level is LZ
-		beq.s	loc_107E8
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		bne.s	loc_107E8
 		move.b	#0,$20(a0)	; LZ specific code (chain doesn't hurt)
 		move.w	#$310,2(a0)
 		move.l	#Map_obj57a,4(a0)
@@ -20893,8 +20824,8 @@ Obj57_MakeChain:
 		move.b	$20(a0),$20(a1)
 		subi.b	#$10,d3
 		move.b	d3,$3C(a1)
-		tst.b	(Water_flag).w
-		beq.s	loc_10890
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	loc_10890
 		tst.b	d3
 		bne.s	loc_10890
 		move.b	#2,$1A(a1)
@@ -20908,8 +20839,8 @@ loc_10894:
 		lsr.w	#6,d5
 		andi.w	#$7F,d5
 		move.b	d5,(a2)+
-		tst.b	(Water_flag).w ; check if level is LZ
-		beq.s	Obj57_Move
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		bne.s	Obj57_Move
 		move.b	#$8B,$20(a0)	; if yes, make last spikeball larger
 		move.b	#1,$1A(a0)	; use different	frame
 
@@ -22654,8 +22585,8 @@ Obj60_Main:				; XREF: Obj60_Index
 		move.w	#$2429,2(a0)	; SLZ specific code
 
 loc_11D02:
-		tst.b	(Water_flag).w ; check if level is LZ
-		beq.s	loc_11D10
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ
+		bne.s	loc_11D10
 		move.w	#$467,2(a0)	; LZ specific code
 
 loc_11D10:
@@ -23937,6 +23868,11 @@ Obj01_Modes:	dc.w Obj01_MdNormal-Obj01_Modes
 		dc.w Obj01_MdJump-Obj01_Modes
 		dc.w Obj01_MdRoll-Obj01_Modes
 		dc.w Obj01_MdJump2-Obj01_Modes
+; ---------------------------------------------------------------------------
+; Music	to play	after invincibility wears off
+; ---------------------------------------------------------------------------
+MusicList2:	incbin	misc\muslist2.bin
+		even
 ; ===========================================================================
 
 Sonic_Display:				; XREF: loc_12C7E
@@ -23960,7 +23896,15 @@ Obj01_ChkInvin:
 		bne.s	Obj01_RmvInvin
 		cmpi.w	#$C,($FFFFFE14).w
 		bcs.s	Obj01_RmvInvin
-		move.w  (Saved_Music).w,d0
+		moveq	#0,d0
+		move.b	($FFFFFE10).w,d0
+		cmpi.w	#$103,($FFFFFE10).w ; check if level is	SBZ3
+		bne.s	Obj01_PlayMusic
+		moveq	#5,d0		; play SBZ music
+
+Obj01_PlayMusic:
+		lea	(MusicList2).l,a1
+		move.b	(a1,d0.w),d0
 		jsr	(PlaySound).l	; play normal music
 
 Obj01_RmvInvin:
@@ -24009,8 +23953,8 @@ Sonic_RecordPos:			; XREF: loc_12C7E; Obj01_Hurt; Obj01_Death
 
 
 Sonic_Water:				; XREF: loc_12C7E
-		tst.b	(Water_flag).w ; is level LZ?
-		bne.s	Obj01_InWater	; if yes, branch
+		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
+		beq.s	Obj01_InWater	; if yes, branch
 
 locret_12D80:
 		rts	
@@ -25961,7 +25905,12 @@ locret_1408C:
 ResumeMusic:				; XREF: Obj64_Wobble; Sonic_Water; Obj0A_ReduceAir
 		cmpi.w	#$C,($FFFFFE14).w
 		bhi.s	loc_140AC
-		move.w  (Saved_Music).w,d0    ; prepare to play current level's music
+		move.w	#$82,d0		; play LZ music
+		cmpi.w	#$103,($FFFFFE10).w ; check if level is	0103 (SBZ3)
+		bne.s	loc_140A6
+		move.w	#$86,d0		; play SBZ music
+
+loc_140A6:
 		jsr	(PlaySound).l
 
 loc_140AC:
@@ -28250,8 +28199,8 @@ Obj6B_Main:				; XREF: Obj6B_Index
 		move.b	d0,$1A(a0)
 		move.l	#Map_obj6B,4(a0)
 		move.w	#$22C0,2(a0)
-		tst.b	(Water_flag).w	; check if level is LZ/SBZ3
-		beq.s	Obj6B_SBZ12	; if not, branch
+		cmpi.b	#1,($FFFFFE10).w ; check if level is LZ/SBZ3
+		bne.s	Obj6B_SBZ12	; if not, branch
 		bset	#0,($FFFFF7CB).w
 		beq.s	Obj6B_SBZ3
 
@@ -28338,8 +28287,8 @@ Obj6B_ChkDel:
 ; ===========================================================================
 
 loc_15D64:
-		tst.b	(Water_flag).w
-		beq.s	Obj6B_Delete2
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	Obj6B_Delete2
 		clr.b	($FFFFF7CB).w
 		lea	($FFFFFC00).w,a2
 		moveq	#0,d0
@@ -29807,8 +29756,8 @@ Obj79_LoadInfo:				; XREF: LevelSizeLoad
 		move.w	($FFFFFE4A).w,($FFFFF714).w
 		move.w	($FFFFFE4C).w,($FFFFF718).w
 		move.w	($FFFFFE4E).w,($FFFFF71C).w
-		tst.b	(Water_flag).w
-		beq.s	loc_170E4
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	loc_170E4
 		move.w	($FFFFFE50).w,($FFFFF648).w
 		move.b	($FFFFFE52).w,($FFFFF64D).w
 		move.b	($FFFFFE53).w,($FFFFF64E).w
@@ -30264,7 +30213,7 @@ loc_179DA:
 
 loc_179E0:
 		clr.w	$12(a0)
-		move.w  (Saved_Music).w,d0
+		move.w	#$81,d0
 		jsr	(PlaySound).l	; play GHZ music
 
 loc_179EE:
@@ -30834,7 +30783,7 @@ loc_180F6:				; XREF: Obj77_ShipIndex
 		move.b	#$32,$3C(a0)
 
 loc_18112:
-		move.w  (Saved_Music).w,d0
+		move.w	#$82,d0
 		jsr	(PlaySound).l	; play LZ music
 		bset	#0,$22(a0)
 		addq.b	#2,$25(a0)
@@ -31264,7 +31213,7 @@ loc_18566:
 
 loc_1856C:
 		clr.w	$12(a0)
-		move.w  (Saved_Music).w,d0
+		move.w	#$83,d0
 		jsr	(PlaySound).l	; play MZ music
 
 loc_1857A:
@@ -31912,7 +31861,7 @@ loc_18BAE:
 
 loc_18BB4:
 		clr.w	$12(a0)
-		move.w  (Saved_Music).w,d0
+		move.w	#$84,d0
 		jsr	(PlaySound).l	; play SLZ music
 
 loc_18BC2:
@@ -32807,7 +32756,7 @@ loc_194DA:
 
 loc_194E0:
 		clr.w	$12(a0)
-		move.w  (Saved_Music).w,d0
+		move.w	#$85,d0
 		jsr	(PlaySound).l	; play SYZ music
 
 loc_194EE:
