@@ -35697,7 +35697,7 @@ Obj09_OnWall:				; XREF: Obj09_Modes
 ; ===========================================================================
 
 Obj09_InAir:				; XREF: Obj09_Modes
-		bsr.w	nullsub_2
+		bsr.w	Obj09_JumpHeight
 		bsr.w	Obj09_Move
 		bsr.w	Obj09_Fall
 
