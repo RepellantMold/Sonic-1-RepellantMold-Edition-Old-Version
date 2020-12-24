@@ -22,7 +22,7 @@
 ; ---------------------------------------------------------------------------
 PLC_Main:	dc.w 4
 		dc.l Nem_Lamp		; lamppost
-		dc.w $F400
+		dc.w $D800
 		dc.l Nem_Hud		; HUD
 		dc.w $D940
 		dc.l Nem_Lives		; lives	counter

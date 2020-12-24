@@ -105,6 +105,11 @@ loc_71BBC:
 		jsr	Sound_ChkValue(pc)
 
 loc_71BC8:
+		tst.b	($FFFFC901).w
+		beq.s	.cont
+		subq.b	#1,($FFFFC901).w
+
+.cont:
 		lea	$40(a6),a5
 		tst.b	(a5)
 		bpl.s	loc_71BD4
@@ -171,12 +176,12 @@ loc_71C38:
 loc_71C44:
 		move.w	#0,($A11100).l	; start	the Z80
 		btst 	#6,($FFFFFFF8).w; is Genesis/Megadrive PAL?
-     		beq.s 	@end 		; if not, branch
+     		beq.s 	.end 		; if not, branch
       	     	cmpi.b 	#5,($FFFFFFBF).w; 5th frame?
-       		bne.s 	@end 		; if not, branch
+       		bne.s 	.end 		; if not, branch
       	     	clr.b 	($FFFFFFBF).w 	; reset counter
        		bra.w 	sub_71B4C 	; run sound driver again
-@end:
+.end:
       		addq.b 	#1,($FFFFFFBF).w; add 1 to frame count
 		rts
 ; End of function sub_71B4C
@@ -391,35 +396,35 @@ locret_71DC4:
 
 sub_71DC6:				; XREF: sub_71CCA; sub_72850
         btst    #3,(a5)     ; Is modulation active?
-        beq.s   @dontreturn ; Return if not
+        beq.s   .dontreturn ; Return if not
         tst.b   $18(a5)     ; Has modulation wait expired?
-        beq.s   @waitdone   ; If yes, branch
+        beq.s   .waitdone   ; If yes, branch
         subq.b  #1,$18(a5)  ; Update wait timeout
        
-@dontreturn:
+.dontreturn:
         addq.w  #4,sp       ; ++ Do not return to caller (but see below)
         rts
 ; ===========================================================================
  
-@waitdone:
+.waitdone:
         subq.b  #1,$19(a5)  ; Update speed
-        beq.s   @updatemodulation   ; If it expired, want to update modulation
+        beq.s   .updatemodulation   ; If it expired, want to update modulation
         addq.w  #4,sp       ; ++ Do not return to caller (but see below)
         rts
 ; ===========================================================================
  
-@updatemodulation:
+.updatemodulation:
         movea.l $14(a5),a0  ; Get modulation data
         move.b  1(a0),$19(a5)   ; Restore modulation speed
         tst.b   $1B(a5)     ; Check number of steps
-        bne.s   @calcfreq   ; If nonzero, branch
+        bne.s   .calcfreq   ; If nonzero, branch
         move.b  3(a0),$1B(a5)   ; Restore from modulation data
         neg.b   $1A(a5)     ; Negate modulation delta
         addq.w  #4,sp       ; ++ Do not return to caller (but see below)
         rts
 ; ===========================================================================
  
-@calcfreq:
+.calcfreq:
         subq.b  #1,$1B(a5)  ; Update modulation steps
         move.b  $1A(a5),d6  ; Get modulation delta
         ext.w   d6
@@ -427,7 +432,7 @@ sub_71DC6:				; XREF: sub_71CCA; sub_72850
         move.w  d6,$1C(a5)  ; Store it
         add.w   $10(a5),d6  ; Add note frequency to it
  
-@locret:
+.locret:
         rts
 ; End of function sub_71DC6
 
@@ -604,8 +609,10 @@ Sound_ChkValue:				; XREF: sub_71B4C
 		bls.w	Sound_A0toCF	; sound	$A0-$CF
 		cmpi.b	#$D0,d7
 		bcs.w	locret_71F8C
-		cmpi.b	#$E0,d7
+		cmpi.b	#$D1,d7
 		bcs.w	Sound_D0toDF	; sound	$D0-$DF
+		cmpi.b	#$DF,d7
+		blo.w	Sound_D1toDF	; sound	$D1-$DF
 		cmpi.b	#$E4,d7
 		bls.s	Sound_E0toE4	; sound	$E0-$E4
 
@@ -860,6 +867,37 @@ byte_721BA:	dc.b 6,	0, 1, 2, 4, 5, 6, 0
 byte_721C2:	dc.b $80, $A0, $C0, 0
 		even
 ; ===========================================================================
+Sound_D1toDF:
+		tst.b	$27(a6)
+		bne.w	loc_722C6
+		tst.b	4(a6)
+		bne.w	loc_722C6
+		tst.b	$24(a6)
+		bne.w	loc_722C6
+		clr.b	($FFFFC900).w
+		cmp.b	#$D1,d7		; is this the Spin Dash sound?
+		bne.s	.cont3	; if not, branch
+		move.w	d0,-(sp)
+		move.b	($FFFFC902).w,d0	; store extra frequency
+		tst.b	($FFFFC901).w	; is the Spin Dash timer active?
+		bne.s	.cont1		; if it is, branch
+		move.b	#-1,d0		; otherwise, reset frequency (becomes 0 on next line)
+		
+.cont1:
+		addq.b	#1,d0
+		cmp.b	#$C,d0		; has the limit been reached?
+		bcc.s	.cont2		; if it has, branch
+		move.b	d0,($FFFFC902).w	; otherwise, set new frequency
+		
+.cont2:
+		move.b	#1,($FFFFC900).w	; set flag
+		move.b	#60,($FFFFC901).w	; set timer
+		move.w	(sp)+,d0
+		
+.cont3:
+		movea.l	(Go_SoundIndex).l,a0
+		sub.b	#$A1,d7
+		bra.s	SoundEffects_Common
 ; ---------------------------------------------------------------------------
 ; Play normal sound effect
 ; ---------------------------------------------------------------------------
@@ -871,6 +909,7 @@ Sound_A0toCF:				; XREF: Sound_ChkValue
 		bne.w	loc_722C6
 		tst.b	$24(a6)
 		bne.w	loc_722C6
+		clr.b	($FFFFC900).w
 		cmpi.b	#$B5,d7		; is ring sound	effect played?
 		bne.s	Sound_notB5	; if not, branch
 		tst.b	$2B(a6)
@@ -890,6 +929,7 @@ Sound_notB5:
 Sound_notA7:
 		movea.l	(Go_SoundIndex).l,a0
 		subi.b	#$A0,d7
+SoundEffects_Common:
 		lsl.w	#2,d7
 		movea.l	(a0,d7.w),a3
 		movea.l	a3,a1
@@ -928,7 +968,8 @@ loc_72244:
 		move.b	d0,($C00011).l
 
 loc_7226E:
-		movea.l	dword_722EC(pc,d3.w),a5
+		lea	dword_722EC(pc),a5
+		movea.l	(a5,d3.w),a5
 		movea.l	a5,a2
 		moveq	#$B,d0
 
@@ -943,6 +984,14 @@ loc_72276:
 		add.l	a3,d0
 		move.l	d0,4(a5)
 		move.w	(a1)+,8(a5)
+		tst.b	($FFFFC900).w	; is the Spin Dash sound playing?
+		beq.s	.cont		; if not, branch
+		move.w	d0,-(sp)
+		move.b	($FFFFC902).w,d0
+		add.b	d0,8(a5)
+		move.w	(sp)+,d0
+		
+.cont:
 		move.b	#1,$E(a5)
 		move.b	d6,$D(a5)
 		tst.b	d4
@@ -2372,6 +2421,7 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundC7, SoundC8, SoundC9
 		dc.l SoundCA, SoundCB, SoundCC
 		dc.l SoundCD, SoundCE, SoundCF
+		dc.l SoundD1
 SoundD0Index:	dc.l SoundD0
 SoundA0:	incbin	sound\soundA0.bin
 		even
@@ -2470,6 +2520,8 @@ SoundCE:	incbin	sound\soundCE.bin
 SoundCF:	incbin	sound\soundCF.bin
 		even
 SoundD0:	incbin	sound\soundD0.bin
+		even
+SoundD1:	incbin	sound\soundD1.bin
 		even
 SegaPCM:	incbin	sound\segapcm.bin
 SegaPCM_End:	even
