@@ -433,16 +433,7 @@ loc_CD4:				; XREF: loc_C76
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		tst.b	($FFFFF767).w
-		beq.s	loc_D50
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr	(ProcessDMAQueue).l
 
 loc_D50:
 		move.w	#0,($A11100).l
@@ -508,16 +499,7 @@ loc_DAE:
 		move.w	($FFFFF640).w,(a5)
 		move.w	#0,($A11100).l
 		bsr.w	PalCycle_SS
-		tst.b	($FFFFF767).w
-		beq.s	loc_E64
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr	(ProcessDMAQueue).l
 
 loc_E64:
 		tst.w	($FFFFF614).w
@@ -640,16 +622,7 @@ loc_FAE:
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
 		move.w	#0,($A11100).l	; start	the Z80
-		tst.b	($FFFFF767).w
-		beq.s	loc_1060
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr	(ProcessDMAQueue).l
 
 loc_1060:
 		tst.w	($FFFFF614).w
@@ -1080,6 +1053,102 @@ loc_1432:
 		dbf	d2,loc_142C
 		rts	
 ; End of function ShowVDPGraphics
+
+; ---------------------------------------------------------------------------
+; Subroutine for queueing VDP commands (seems to only queue transfers to VRAM),
+; to be issued the next time ProcessDMAQueue is called.
+; Can be called a maximum of 18 times before the buffer needs to be cleared
+; by issuing the commands (this subroutine DOES check for overflow)
+; ---------------------------------------------------------------------------
+; In case you wish to use this queue system outside of the spin dash, this is the
+; registers in which it expects data in:
+; d1.l: Address to data (In 68k address space)
+; d2.w: Destination in VRAM
+; d3.w: Length of data
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_144E: DMA_68KtoVRAM: QueueCopyToVRAM: QueueVDPCommand: Add_To_DMA_Queue:
+QueueDMATransfer:
+		movea.l	($FFFFC8FC).w,a1
+		cmpa.w	#$C8FC,a1
+		beq.s	QueueDMATransfer_Done ; return if there's no more room in the buffer
+
+		; piece together some VDP commands and store them for later...
+		move.w	#$9300,d0 ; command to specify DMA transfer length & $00FF
+		move.b	d3,d0
+		move.w	d0,(a1)+ ; store command
+
+		move.w	#$9400,d0 ; command to specify DMA transfer length & $FF00
+		lsr.w	#8,d3
+		move.b	d3,d0
+		move.w	d0,(a1)+ ; store command
+
+		move.w	#$9500,d0 ; command to specify source address & $0001FE
+		lsr.l	#1,d1
+		move.b	d1,d0
+		move.w	d0,(a1)+ ; store command
+
+		move.w	#$9600,d0 ; command to specify source address & $01FE00
+		lsr.l	#8,d1
+		move.b	d1,d0
+		move.w	d0,(a1)+ ; store command
+
+		move.w	#$9700,d0 ; command to specify source address & $FE0000
+		lsr.l	#8,d1
+		move.b	d1,d0
+		move.w	d0,(a1)+ ; store command
+
+		andi.l	#$FFFF,d2 ; command to specify destination address and begin DMA
+		lsl.l	#2,d2
+		lsr.w	#2,d2
+		swap	d2
+		ori.l	#$40000080,d2 ; set bits to specify VRAM transfer
+		move.l	d2,(a1)+ ; store command
+
+		move.l	a1,($FFFFC8FC).w ; set the next free slot address
+		cmpa.w	#$C8FC,a1
+		beq.s	QueueDMATransfer_Done ; return if there's no more room in the buffer
+		move.w	#0,(a1) ; put a stop token at the end of the used part of the buffer
+; return_14AA:
+QueueDMATransfer_Done:
+		rts
+; End of function QueueDMATransfer
+
+
+; ---------------------------------------------------------------------------
+; Subroutine for issuing all VDP commands that were queued
+; (by earlier calls to QueueDMATransfer)
+; Resets the queue when it's done
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_14AC: CopyToVRAM: IssueVDPCommands: Process_DMA: Process_DMA_Queue:
+ProcessDMAQueue:
+		lea	($C00004).l,a5
+		lea	($FFFFC800).w,a1
+; loc_14B6:
+ProcessDMAQueue_Loop:
+		move.w	(a1)+,d0
+		beq.s	ProcessDMAQueue_Done ; branch if we reached a stop token
+		; issue a set of VDP commands...
+		move.w	d0,(a5)		; transfer length
+		move.w	(a1)+,(a5)	; transfer length
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; destination
+		move.w	(a1)+,(a5)	; destination
+		cmpa.w	#$C8FC,a1
+		bne.s	ProcessDMAQueue_Loop ; loop if we haven't reached the end of the buffer
+; loc_14CE:
+ProcessDMAQueue_Done:
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
+		rts
+; End of function ProcessDMAQueue
 
 ; ==============================================================================
 ; ------------------------------------------------------------------------------
@@ -3281,6 +3350,8 @@ Level_ClrVars3:
 		move.w	#$8720,(a6)
 		move.w	#$8ADF,($FFFFF624).w
 		move.w	($FFFFF624).w,(a6)
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
 		bne.s	Level_LoadPal	; if not, branch
 		move.w	#$8014,(a6)
@@ -4443,6 +4514,8 @@ loc_47D4:
 		lea	(Nem_TitleCard).l,a0 ; load title card patterns
 		bsr.w	NemDec
 		jsr	Hud_Base
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
 		move	#$2300,sr
 		moveq	#$11,d0
 		bsr.w	PalLoad2	; load results screen pallet
@@ -25374,177 +25447,281 @@ Obj01_Drowned:
 
 
 Sonic_Animate:				; XREF: Obj01_Control; et al
-		lea	(SonicAniData).l,a1
-		moveq	#0,d0
-		move.b	$1C(a0),d0
-		cmp.b	$1D(a0),d0	; is animation set to restart?
-		beq.s	SAnim_Do	; if not, branch
-		move.b	d0,$1D(a0)	; set to "no restart"
-		move.b	#0,$1B(a0)	; reset	animation
-		move.b	#0,$1E(a0)	; reset	frame duration
-
-SAnim_Do:
-		add.w	d0,d0
-		adda.w	(a1,d0.w),a1	; jump to appropriate animation	script
-		move.b	(a1),d0
-		bmi.s	SAnim_WalkRun	; if animation is walk/run/roll/jump, branch
-		move.b	$22(a0),d1
-		andi.b	#1,d1
-		andi.b	#$FC,1(a0)
-		or.b	d1,1(a0)
-		subq.b	#1,$1E(a0)	; subtract 1 from frame	duration
-		bpl.s	SAnim_Delay	; if time remains, branch
-		move.b	d0,$1E(a0)	; load frame duration
-
-SAnim_Do2:
-		moveq	#0,d1
-		move.b	$1B(a0),d1	; load current frame number
-		move.b	1(a1,d1.w),d0	; read sprite number from script
-		cmp.b	#$FD,d0
-		bhs.s	SAnim_End_FF
-
-SAnim_Next:
-		move.b	d0,$1A(a0)	; load sprite number
-		addq.b	#1,$1B(a0)	; next frame number
-
-SAnim_Delay:
-		rts	
-; ===========================================================================
-
-SAnim_End_FF:
-		addq.b	#1,d0		; is the end flag = $FF	?
-		bne.s	SAnim_End_FE	; if not, branch
-		move.b	#0,$1B(a0)	; restart the animation
-		move.b	1(a1),d0	; read sprite number
-		bra.s	SAnim_Next
-; ===========================================================================
-
-SAnim_End_FE:
-		addq.b	#1,d0		; is the end flag = $FE	?
-		bne.s	SAnim_End_FD	; if not, branch
-		move.b	2(a1,d1.w),d0	; read the next	byte in	the script
-		sub.b	d0,$1B(a0)	; jump back d0 bytes in	the script
-		sub.b	d0,d1
-		move.b	1(a1,d1.w),d0	; read sprite number
-		bra.s	SAnim_Next
-; ===========================================================================
-
-SAnim_End_FD:
-		addq.b	#1,d0		; is the end flag = $FD	?
-		bne.s	SAnim_End	; if not, branch
-		move.b	2(a1,d1.w),$1C(a0) ; read next byte, run that animation
-
-SAnim_End:
-		rts	
-; ===========================================================================
-
-SAnim_WalkRun:				; XREF: SAnim_Do
-		subq.b	#1,$1E(a0)	; subtract 1 from frame	duration
-		bpl.s	SAnim_Delay	; if time remains, branch
-		addq.b	#1,d0		; is animation walking/running?
-		bne.w	SAnim_RollJump	; if not, branch
-		moveq	#0,d1
-		move.b	$26(a0),d0	; get Sonic's angle
-		move.b	$22(a0),d2
-		andi.b	#1,d2		; is Sonic mirrored horizontally?
-		bne.s	loc_13A70	; if yes, branch
-		not.b	d0		; reverse angle
-
-loc_13A70:
-		addi.b	#$10,d0		; add $10 to angle
-		bpl.s	loc_13A78	; if angle is $0-$7F, branch
-		moveq	#3,d1
-
-loc_13A78:
-		andi.b	#$FC,1(a0)
-		eor.b	d1,d2
-		or.b	d2,1(a0)
-		btst	#5,$22(a0)
-		bne.w	SAnim_Push
-		lsr.b	#4,d0		; divide angle by $10
-		andi.b	#6,d0		; angle	must be	0, 2, 4	or 6
-		move.w	$14(a0),d2	; get Sonic's speed
-		bpl.s	loc_13A9C
-		neg.w	d2
-
-loc_13A9C:
-		lea	(SonAni_Run).l,a1 ; use	running	animation
-		cmpi.w	#$600,d2	; is Sonic at running speed?
-		bcc.s	loc_13AB4	; if yes, branch
-		lea	(SonAni_Walk).l,a1 ; use walking animation
-		move.b	d0,d1
-		lsr.b	#1,d1
-		add.b	d1,d0
-
-loc_13AB4:
-		add.b	d0,d0
-		move.b	d0,d3
-		neg.w	d2
-		addi.w	#$800,d2
-		bpl.s	loc_13AC2
-		moveq	#0,d2
-
-loc_13AC2:
-		lsr.w	#8,d2
-		move.b	d2,$1E(a0)	; modify frame duration
-		bsr.w	SAnim_Do2
-		add.b	d3,$1A(a0)	; modify frame number
-		rts	
-; ===========================================================================
-
-SAnim_RollJump:				; XREF: SAnim_WalkRun
-		addq.b	#1,d0		; is animation rolling/jumping?
-		bne.s	SAnim_Push	; if not, branch
-		move.w	$14(a0),d2	; get Sonic's speed
-		bpl.s	loc_13ADE
-		neg.w	d2
-
-loc_13ADE:
-		lea	(SonAni_Roll2).l,a1 ; use fast animation
-		cmpi.w	#$600,d2	; is Sonic moving fast?
-		bcc.s	loc_13AF0	; if yes, branch
-		lea	(SonAni_Roll).l,a1 ; use slower	animation
-
-loc_13AF0:
-		neg.w	d2
-		addi.w	#$400,d2
-		bpl.s	loc_13AFA
-		moveq	#0,d2
-
-loc_13AFA:
-		lsr.w	#8,d2
-		move.b	d2,$1E(a0)	; modify frame duration
-		move.b	$22(a0),d1
-		andi.b	#1,d1
-		andi.b	#$FC,1(a0)
-		or.b	d1,1(a0)
-		bra.w	SAnim_Do2
-; ===========================================================================
-
-SAnim_Push:				; XREF: SAnim_RollJump
-		move.w	$14(a0),d2	; get Sonic's speed
-		bmi.s	loc_13B1E
-		neg.w	d2
-
-loc_13B1E:
-		addi.w	#$800,d2
-		bpl.s	loc_13B26
-		moveq	#0,d2
-
-loc_13B26:
-		lsr.w	#6,d2
-		move.b	d2,$1E(a0)	; modify frame duration
-		lea	(SonAni_Push).l,a1
-		move.b	$22(a0),d1
-		andi.b	#1,d1
-		andi.b	#$FC,1(a0)
-		or.b	d1,1(a0)
-		bra.w	SAnim_Do2
+        lea     (Sonic_AnimateData), a1 ; loc_10CB4
+        moveq	#0,d0
+        move.b  $1C(a0), d0
+        cmp.b   $1D(a0), d0
+        beq.s   loc_10ADA
+        move.b  d0, $1D(a0)
+        move.b  #$00, $1B(a0)
+        move.b  #$00, $1E(a0)
+        bclr    #$5, $22(a0)
+loc_10ADA:
+        add.w   d0,d0
+        adda.w  $00(a1,d0), a1
+        move.b  (a1), d0
+        bmi.s   loc_10B4A
+        move.b  $22(a0),d1
+        andi.b  #$1,d1
+        andi.b  #$FC, $1(a0)
+        or.b    d1, $1(a0)
+        subq.b  #$1, $1E(a0) 
+        bpl.s   loc_10B18
+        move.b  d0, $1E(a0)             
+loc_10B00:        
+        moveq	#0,d1
+        move.b  $1B(a0),d1
+        move.b  $1(a1,d1), d0
+        cmpi.b  #$F0,d0
+        bcc.s   loc_10B1A
+loc_10B10:        
+        move.b  d0, $1A(a0)
+        addq.b  #$1, $1B(a0)
+loc_10B18:        
+        rts
+loc_10B1A:
+        addq.b  #$1,d0
+        bne.s   loc_10B2A
+        move.b  #$00, $1B(a0)
+        move.b  $1(a1), d0
+        bra.s   loc_10B10
+loc_10B2A:
+        addq.b  #$1,d0
+        bne.s   loc_10B3E
+        move.b  $2(a1,d1), d0
+        sub.b   d0, $1B(a0)
+        sub.b   d0,d1
+        move.b  $1(a1,d1), d0
+        bra.s   loc_10B10
+loc_10B3E:
+        addq.b  #$1,d0
+        bne.s   loc_10B48
+        move.b  $2(a1,d1), $1C(a0)
+loc_10B48: 
+        rts            
+loc_10B4A: 
+        subq.b  #$1, $1E(a0)
+        bpl.s   loc_10B18
+        addq.b  #$1,d0
+        bne     loc_10C3E
+        moveq	#0,d0
+        move.b  $27(a0), d0
+        bne     loc_10BD8
+        moveq	#0,d1
+        move.b  $26(a0), d0
+        move.b  $22(a0),d2
+        andi.b  #$1,d2
+        bne.s   loc_10B72
+        not.b  d0
+loc_10B72:
+        addi.b  #$10,d0
+        bpl.s   loc_10B7A
+        moveq   #$3,d1
+loc_10B7A:
+        andi.b  #$FC, $1(a0)
+        eor.b   d1,d2
+        or.b    d2, $1(a0)
+        btst    #$5, $22(a0)
+        bne     loc_10C82
+        lsr.b   #$4,d0
+        andi.b  #$6,d0
+        move.w  $14(a0),d2
+        bpl.s   loc_10B9E
+        neg.w   d2
+loc_10B9E:
+        lea     (Sonic_Animate_Run), a1 ; loc_10D00
+        cmpi.w  #$600,d2
+        bcc.s   loc_10BB0
+        lea     (Sonic_Animate_Walk), a1 ; loc_10CF2
+loc_10BB0:
+        move.b  d0,d1
+        lsr.b   #$1,d1
+        add.b   d1,d0
+        add.b   d0,d0
+        add.b   d0,d0
+        move.b  d0,d3
+        neg.w   d2
+        addi.w  #$800,d2
+        bpl.s   loc_10BC6
+        moveq	#0,d2
+loc_10BC6:
+        lsr.w   #$8,d2
+        lsr.w   #$1,d2
+        move.b  d2, $1E(a0)
+        bsr     loc_10B00
+        add.b   d3, $1A(a0)
+        rts    
+loc_10BD8:
+        move.b  $27(a0), d0
+        moveq	#0,d1
+        move.b  $22(a0),d2
+        andi.b  #$1,d2
+        bne.s   loc_10C06
+        andi.b  #$FC, $1(a0)
+        addi.b  #$B,d0
+        divu.w  #$16,d0
+        addi.b  #$9B,d0
+        move.b  d0, $1A(a0)
+        move.b  #$00, $1E(a0)
+        rts
+loc_10C06:
+        andi.b  #$FC, $1(a0)
+        tst.b   $29(a0)
+        beq.s   loc_10C1E
+        ori.b   #$1, $1(a0)
+        addi.b  #$B,d0
+        bra.s   loc_10C2A
+loc_10C1E:
+        ori.b   #$3, $1(a0)
+        neg.b   d0
+        addi.b  #$8F,d0
+loc_10C2A:
+        divu.w  #$16,d0
+        addi.b  #$9B,d0
+        move.b  d0, $1A(a0)
+        move.b  #$00, $1E(a0)
+        rts 
+loc_10C3E:
+        addq.b  #$1,d0
+        bne.s   loc_10C82
+        move.w  $14(a0),d2
+        bpl.s   loc_10C4A
+        neg.w   d2
+loc_10C4A:
+        lea     (Sonic_Animate_Roll2), a1 ; loc_10D18
+        cmpi.w  #$600,d2
+        bcc.s   loc_10C5C
+        lea     (Sonic_Animate_Roll), a1 ; loc_10D0E
+loc_10C5C:
+        neg.w   d2
+        addi.w  #$400,d2
+        bpl.s   loc_10C66
+        moveq	#0,d2
+loc_10C66:
+        lsr.w   #$8,d2
+        move.b  d2, $1E(a0)
+        move.b  $22(a0),d1
+        andi.b  #$1,d1
+        andi.b  #$FC, $1(a0)
+        or.b    d1, $1(a0)
+        bra     loc_10B00
+loc_10C82:        
+        move.w  $14(a0),d2
+        bmi.s   loc_10C8A
+        neg.w   d2
+loc_10C8A:
+        addi.w  #$800,d2
+        bpl.s   loc_10C92
+        moveq	#0,d2
+loc_10C92:
+        lsr.w   #$6,d2
+        move.b  d2, $1E(a0)
+        lea     (Sonic_Animate_Push), a1 ; loc_10D22
+        move.b  $22(a0),d1
+        andi.b  #$1,d1
+        andi.b  #$FC, $1(a0)
+        or.b    d1, $1(a0)
+        bra     loc_10B00
 ; End of function Sonic_Animate
 
 ; ===========================================================================
+Sonic_AnimateData:
 SonicAniData:
-	include "_anim\Sonic.asm"
+        dc.w    Sonic_Animate_Walk-SonicAniData        ; loc_10CF2
+        dc.w    Sonic_Animate_Run-SonicAniData         ; loc_10D00
+        dc.w    Sonic_Animate_Roll-SonicAniData        ; loc_10D0E
+        dc.w    Sonic_Animate_Roll2-SonicAniData       ; loc_10D18 
+        dc.w    Sonic_Animate_Push-SonicAniData        ; loc_10D22
+        dc.w    Sonic_Animate_Wait-SonicAniData        ; loc_10D30
+        dc.w    Sonic_Animate_Balance-SonicAniData     ; loc_10D59
+        dc.w    Sonic_Animate_LookUp-SonicAniData      ; loc_10D5D
+        dc.w    Sonic_Animate_Duck-SonicAniData        ; loc_10D62
+        dc.w    Sonic_Animate_Spindash-SonicAniData    ; loc_10D67
+        dc.w    Sonic_Animate_WallRecoil1-SonicAniData ; loc_10D74
+        dc.w    Sonic_Animate_WallRecoil2-SonicAniData ; loc_10D77
+        dc.w    Sonic_Animate_0x0C-SonicAniData        ; loc_10D7D
+        dc.w    Sonic_Animate_Stop-SonicAniData        ; loc_10D81
+        dc.w    Sonic_Animate_Float1-SonicAniData      ; loc_10D8C
+        dc.w    Sonic_Animate_Float2-SonicAniData      ; loc_10D90
+        dc.w    Sonic_Animate_0x10-SonicAniData        ; loc_10D97
+        dc.w    Sonic_Animate_S1LzHang-SonicAniData    ; loc_10D9B
+        dc.w    Sonic_Animate_Unused_0x12-SonicAniData ; loc_10D9F
+        dc.w    Sonic_Animate_Unused_0x13-SonicAniData ; loc_10DA5
+        dc.w    Sonic_Animate_Unused_0x14-SonicAniData ; loc_10DAA
+        dc.w    Sonic_Animate_Bubble-SonicAniData      ; loc_10DAD
+        dc.w    Sonic_Animate_Death1-SonicAniData      ; loc_10DB4
+        dc.w    Sonic_Animate_Drown-SonicAniData       ; loc_10DB7
+        dc.w    Sonic_Animate_Death2-SonicAniData      ; loc_10DBA
+        dc.w    Sonic_Animate_Unused_0x19-SonicAniData ; loc_10DBD
+        dc.w    Sonic_Animate_Hurt-SonicAniData        ; loc_10DC6
+        dc.w    Sonic_Animate_S1LzSlide-SonicAniData   ; loc_10DC9
+        dc.w    Sonic_Animate_0x1C-SonicAniData        ; loc_10DCD
+        dc.w    Sonic_Animate_Float3-SonicAniData      ; loc_10DD1
+        dc.w    Sonic_Animate_0x1E-SonicAniData        ; loc_10DD8
+Sonic_Animate_Walk: ; loc_10CF2:
+        dc.b    $FF, $10, $11, $12, $13, $14, $15, $16, $17, $C, $D, $E, $F, $FF
+Sonic_Animate_Run: ; loc_10D00:
+        dc.b    $FF, $3C, $3D, $3E, $3F, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+Sonic_Animate_Roll: ; loc_10D0E:
+        dc.b    $FE, $6C, $70, $6D, $70, $6E, $70, $6F, $70, $FF
+Sonic_Animate_Roll2: ; loc_10D18:
+        dc.b    $FE, $6C, $70, $6D, $70, $6E, $70, $6F, $70, $FF
+Sonic_Animate_Push: ; loc_10D22:
+        dc.b    $FD, $77, $78, $79, $7A, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+Sonic_Animate_Wait: ; loc_10D30:        
+        dc.b    $7, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1
+        dc.b    $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $1, $2
+        dc.b    $3, $3, $3, $4, $4, $5, $5, $FE, $4
+Sonic_Animate_Balance: ; loc_10D59:         
+        dc.b    $7, $89, $8A, $FF
+Sonic_Animate_LookUp: ; loc_10D5D:        
+        dc.b    $5, $6, $7, $FE, $1
+Sonic_Animate_Duck: ; loc_10D62:          
+        dc.b    $5, $7F, $80, $FE, $1
+Sonic_Animate_Spindash: ; loc_10D67:        
+        dc.b    $00, $71, $72, $71, $73, $71, $74, $71, $75, $71, $76, $71, $FF 
+Sonic_Animate_WallRecoil1: ; loc_10D74:        
+        dc.b    $3F, $82, $FF
+Sonic_Animate_WallRecoil2: ; loc_10D77:
+        dc.b    $7, $8, $8, $9, $FD, $5
+Sonic_Animate_0x0C: ; loc_10D7D:        
+        dc.b    $7, $9, $FD, $5
+Sonic_Animate_Stop: ; loc_10D81:         
+        dc.b    $3, $81, $82, $83, $84, $85, $86, $87, $88, $FE, $2
+Sonic_Animate_Float1: ; loc_10D8C:         
+        dc.b    $7, $94, $96, $FF
+Sonic_Animate_Float2: ; loc_10D90:        
+        dc.b    $7, $91, $92, $93, $94, $95, $FF
+Sonic_Animate_0x10: ; loc_10D97:        
+        dc.b    $2F, $7E, $FD, $00
+Sonic_Animate_S1LzHang: ; loc_10D9B:        
+        dc.b    $5, $8F, $90, $FF
+Sonic_Animate_Unused_0x12: ; loc_10D9F:        
+        dc.b    $F, $43, $43, $43, $FE, $1
+Sonic_Animate_Unused_0x13: ; loc_10DA5:        
+        dc.b    $F, $43, $44, $FE, $1
+Sonic_Animate_Unused_0x14: ; loc_10DAA:        
+        dc.b    $3F, $49, $FF
+Sonic_Animate_Bubble: ; loc_10DAD:         
+        dc.b    $B, $97, $97, $12, $13, $FD, $00
+Sonic_Animate_Death1: ; loc_10DB4:         
+        dc.b    $20, $9A, $FF
+Sonic_Animate_Drown: ; loc_10DB7:        
+        dc.b    $20, $99, $FF
+Sonic_Animate_Death2: ; loc_10DBA:         
+        dc.b    $20, $98, $FF
+Sonic_Animate_Unused_0x19: ; loc_10DBD: 
+        dc.b    $3, $4E, $4F, $50, $51, $52, $00, $FE, $1
+Sonic_Animate_Hurt: ; loc_10DC6:        
+        dc.b    $40, $8D, $FF
+Sonic_Animate_S1LzSlide: ; loc_10DC9:          
+        dc.b    $9, $8D, $8E, $FF
+Sonic_Animate_0x1C: ; loc_10DCD:        
+        dc.b    $77, $00, $FD, $00
+Sonic_Animate_Float3: ; loc_10DD1:        
+        dc.b    $3, $91, $92, $93, $94, $95, $FF
+Sonic_Animate_0x1E: ; loc_10DD8:        
+        dc.b    $3, $3C, $FD, $00
 
 ; ---------------------------------------------------------------------------
 ; Sonic	pattern	loading	subroutine
@@ -25562,32 +25739,30 @@ LoadSonicDynPLC:			; XREF: Obj01_Control; et al
 		lea	(SonicDynPLC).l,a2
 		add.w	d0,d0
 		adda.w	(a2,d0.w),a2
-		moveq	#0,d1
-		move.b	(a2)+,d1	; read "number of entries" value
-		subq.b	#1,d1
+		moveq	#0,d5
+		move.b	(a2)+,d5
+		subq.w	#1,d5
 		bmi.s	locret_13C96
-		lea	($FFFFC800).w,a3
-		move.b	#1,($FFFFF767).w
+		move.w	#$F000,d4
+		move.l	#Art_Sonic,d6
 
 SPLC_ReadEntry:
-		moveq	#0,d2
-		move.b	(a2)+,d2
-		move.w	d2,d0
-		lsr.b	#4,d0
-		lsl.w	#8,d2
-		move.b	(a2)+,d2
-		andi.w	#$0FFF,d2
-		lsl.l	#5,d2
-		lea	(Art_Sonic).l,a1
-		adda.l	d2,a1
-
-SPLC_LoadTile:
-		movem.l	(a1)+,d2-d6/a4-a6
-		movem.l	d2-d6/a4-a6,(a3)
-		lea	$20(a3),a3	; next tile
-		dbf	d0,SPLC_LoadTile ; repeat for number of	tiles
-
-		dbf	d1,SPLC_ReadEntry ; repeat for number of entries
+		moveq	#0,d1
+		move.b	(a2)+,d1
+		lsl.w	#8,d1
+		move.b	(a2)+,d1
+		move.w	d1,d3
+		lsr.w	#8,d3
+		andi.w	#$F0,d3
+		addi.w	#$10,d3
+		andi.w	#$FFF,d1
+		lsl.l	#5,d1
+		add.l	d6,d1
+		move.w	d4,d2
+		add.w	d3,d4
+		add.w	d3,d4
+		jsr	(QueueDMATransfer).l
+		dbf	d5,SPLC_ReadEntry	; repeat for number of entries
 
 locret_13C96:
 		rts	
