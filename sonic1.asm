@@ -33,7 +33,7 @@ Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
 		dc.l ErrorTrap,	ErrorTrap, ErrorTrap, ErrorTrap
 		dc.l ErrorTrap,	ErrorTrap, ErrorTrap, ErrorTrap
 		dc.b 'SEGA GENESIS    ' ; Hardware system ID
-		dc.b '(C)SEGA 1991.APR' ; Release date
+		dc.b 'REPMOLD JAN.2021' ; Release date
 		dc.b 'SONIC THE               HEDGEHOG                ' ; Domestic name
 		dc.b 'SONIC THE               HEDGEHOG                ' ; International name
 		dc.b 'GM 00001009-00'   ; Serial/version number
@@ -260,8 +260,9 @@ GameClrRAM:
 
 MainGameLoop:
 		move.b	($FFFFF600).w,d0 ; load	Game Mode
-		andi.w	#$1C,d0
-		jsr	GameModeArray(pc,d0.w) ; jump to apt location in ROM
+		andi.w	#$7C,d0
+		move.l	GameModeArray(pc,d0.w),a0	; same system of the Sonic 3 GameMode
+		jsr	(a0)				; jump to apt location in ROM
 		bra.s	MainGameLoop
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -269,15 +270,16 @@ MainGameLoop:
 ; ---------------------------------------------------------------------------
 
 GameModeArray:
-		bra.w	SegaScreen	; Sega Screen ($00)
-		bra.w	TitleScreen	; Title	Screen ($04)
-		bra.w	Level		; Demo Mode ($08)
-		bra.w	Level		; Normal Level ($0C)
-		bra.w	SpecialStage	; Special Stage	($10)
-		bra.w	ContinueScreen	; Continue Screen ($14)
-		bra.w	EndingSequence	; End of game sequence ($18)
-		bra.w	Credits		; Credits ($1C)
-		rts
+		dc.l	SegaScreen	; Sega Screen ($00)
+		dc.l	TitleScreen	; Title	Screen ($04)
+		dc.l	Level		; Demo Mode ($08)
+		dc.l	Level		; Normal Level ($0C)
+		dc.l	SpecialStage	; Special Stage	($10)
+		dc.l	ContinueScreen	; Continue Screen ($14)
+		dc.l	EndingSequence	; End of game sequence ($18)
+		dc.l	Credits		; Credits ($1C)
+		nop
+		nop
 ; ===========================================================================
 
 CheckSumError:
@@ -314,7 +316,7 @@ loc_B3E:
 
 loc_B42:
 		move.b	($FFFFF62A).w,d0
-		move.b	#0,($FFFFF62A).w
+		clr.b	($FFFFF62A).w
 		move.w	#1,($FFFFF644).w
 		andi.w	#$3E,d0
 		move.w	off_B6E(pc,d0.w),d0
@@ -330,7 +332,7 @@ loc_B5E:				; XREF: loc_B88
 loc_B64:				; XREF: loc_D50
 		addq.l	#1,($FFFFFE0C).w
 		movem.l	(sp)+,d0-a6
-		rte	
+		rte
 ; ===========================================================================
 off_B6E:	dc.w loc_B88-off_B6E, loc_C32-off_B6E
 		dc.w loc_C44-off_B6E, loc_C5E-off_B6E
@@ -405,7 +407,7 @@ loc_C44:				; XREF: off_B6E
 		bsr.w	sub_6886
 		bsr.w	sub_1642
 		tst.w	($FFFFF614).w
-		beq.w	locret_C5C
+		beq.s	locret_C5C
 		subq.w	#1,($FFFFF614).w
 
 locret_C5C:
@@ -525,7 +527,7 @@ loc_DAE:
 
 loc_E64:
 		tst.w	($FFFFF614).w
-		beq.w	locret_E70
+		beq.s	locret_E70
 		subq.w	#1,($FFFFF614).w
 
 locret_E70:
@@ -629,7 +631,7 @@ loc_FAE:
 
 loc_1060:
 		tst.w	($FFFFF614).w
-		beq.w	locret_106C
+		beq.s	locret_106C
 		subq.w	#1,($FFFFF614).w
 
 locret_106C:
@@ -976,7 +978,7 @@ loc_1404:				; XREF: PauseGame
 		move.b	#$80,($FFFFF003).w
 
 Unpause:				; XREF: PauseGame
-		move.w	#0,($FFFFF63A).w ; unpause the game
+		clr.w	($FFFFF63A).w ; unpause the game
 
 Pause_DoNothing:			; XREF: PauseGame
 		rts	
@@ -2543,9 +2545,6 @@ SegaScreen:				; XREF: GameModeArray
 		andi.b	#$BF,d0
 		move.w	d0,($C00004).l
 		bsr.w	ClearScreen
-		;move.l	#$40000000,($C00004).l
-		;lea	(Nem_SegaLogo).l,a0 ; load Sega	logo patterns
-		;bsr.w	NemDec
 		lea	(Twiz_SegaLogo).l,a0			; load compressed art data address
 		move.w	#$0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
@@ -2661,15 +2660,15 @@ Title_ClrPallet:
 		jsr	BuildSprites
 		bsr.w	Pal_FadeTo
 		move	#$2700,sr
-		move.l	#$40000001,($C00004).l
-		lea	(Nem_TitleFg).l,a0 ; load title	screen patterns
-		bsr.w	NemDec
-		move.l	#$60000001,($C00004).l
-		lea	(Nem_TitleSonic).l,a0 ;	load Sonic title screen	patterns
-		bsr.w	NemDec
-		move.l	#$62000002,($C00004).l
-		lea	(Nem_TitleTM).l,a0 ; load "TM" patterns
-		bsr.w	NemDec
+		lea	(Twiz_TitleFg).l,a0			; load compressed art data address
+		move.w	#$4000,d0				; set VRAM address to decompress to ($4000)
+		jsr	TwimDec					; decompress and dump to VRAM
+		lea	(Twiz_TitleSonic).l,a0			; load compressed art data address
+		move.w	#$6000,d0				; set VRAM address to decompress to ($6000)
+		jsr	TwimDec					; decompress and dump to VRAM
+		lea	(Twiz_TitleTM).l,a0			; load compressed art data address
+		move.w	#$A200,d0				; set VRAM address to decompress to ($A200)
+		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($C00000).l,a6
 		move.l	#$50000003,4(a6)
 		lea	(Art_Text).l,a5
@@ -2910,7 +2909,7 @@ PlayLevel:				; XREF: ROM:00003246j ...
 		move.b	d0,($FFFFFE18).w ; clear continues
 		move.b	#$E0,d0
 		bsr.w	PlaySound_Special ; fade out music
-		rts	
+		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Level	select - level pointers
@@ -2946,7 +2945,7 @@ loc_33B6:				; XREF: loc_33E4
 		cmpi.w	#$1C00,d0
 		bcs.s	loc_33E4
 		move.b	#0,($FFFFF600).w ; set screen mode to 00 (level)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_33E4:				; XREF: Demo
@@ -2981,7 +2980,7 @@ Demo_Level:
 		move.w	d0,($FFFFFE20).w ; clear rings
 		move.l	d0,($FFFFFE22).w ; clear time
 		move.l	d0,($FFFFFE26).w ; clear score
-		rts	
+		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Levels used in demos
@@ -3025,8 +3024,7 @@ LevSel_Down:
 
 LevSel_Refresh:
 		move.w	d0,($FFFFFF82).w ; set new selection
-		bsr.s	LevSelTextLoad	; refresh text
-		rts
+		bra.s	LevSelTextLoad	; refresh text
 ; ===========================================================================
 
 LevSel_SndTest:				; XREF: LevSelControls
@@ -3042,27 +3040,27 @@ LevSel_SndTest:				; XREF: LevSelControls
 		beq.s	LevSel_Right	; if not, branch
 		subq.w	#1,d0		; subtract 1 from sound	test
 		bcc.s	LevSel_Right
-		moveq	#$4F,d0		; if sound test	moves below 0, set to $4F
-		
+		moveq	#$7F,d0		; if sound test	moves below 0, set to $7F
+
 LevSel_A:
 		btst	#6,d1		; is A button pressed?
 		beq.s	LevSel_Right	; if not, branch
 		add.w	#16,d0		; add $10 to sound test
-		cmpi.w	#$50,d0	        ; addition by Shadow05 to stop the sound test from going above $D0
+		cmpi.w	#$80,d0	        ; addition by Shadow05 to stop the sound test from going above $D0
 		bcs.s	LevSel_Refresh2
-		moveq	#0,d0		; if sound test	moves above $4F, set to	0
+		moveq	#0,d0		; if sound test	moves above $7F, set to	0
 
 LevSel_Right:
 		btst	#3,d1		; is right pressed?
 		beq.s	LevSel_Refresh2	; if not, branch
 		addq.w	#1,d0		; add 1	to sound test
-		cmpi.w	#$50,d0
+		cmpi.w	#$80,d0
 		bcs.s	LevSel_Refresh2
-		moveq	#0,d0		; if sound test	moves above $4F, set to	0
+		moveq	#0,d0		; if sound test	moves above $7F, set to	0
 
 LevSel_Refresh2:
 		move.w	d0,($FFFFFF84).w ; set sound test number
-		bsr.s	LevSelTextLoad	; refresh text
+		bra.s	LevSelTextLoad	; refresh text
 
 LevSel_NoMove:
 		rts	
@@ -3187,7 +3185,7 @@ LevelMenuText:
         dc.b    "SCRAP BRAIN ZONE   ACT 1"
         dc.b    "                   ACT 2"
         dc.b    "                   ACT 3"
-        dc.b    "FINAL ZONE              "
+        dc.b    "FINAL BOSS              "
         dc.b    "SPECIAL STAGE           "
         dc.b    "SOUND TEST              "
         even
@@ -30385,16 +30383,9 @@ Obj8A_Main:				; XREF: Obj8A_Index
 		move.b	#0,1(a0)
 		move.b	#0,$18(a0)
 		cmpi.b	#4,($FFFFF600).w ; is the scene	number 04 (title screen)?
-		bne.s	Obj8A_Display	; if not, branch
+		jne	DisplaySprite	; if not, branch
 		move.w	#$A6,2(a0)
 		move.b	#$A,$1A(a0)	; display "SONIC TEAM PRESENTS"
-		tst.b	($FFFFFFE3).w	; is hidden credits cheat on?
-		beq.s	Obj8A_Display	; if not, branch
-		cmpi.b	#$72,($FFFFF604).w ; is	Start+A+C+Down being pressed?
-		bne.s	Obj8A_Display	; if not, branch
-		move.w	#$EEE,($FFFFFBC0).w ; 3rd pallet, 1st entry = white
-		move.w	#$880,($FFFFFBC2).w ; 3rd pallet, 2nd entry = cyan
-		jmp	DeleteObject
 ; ===========================================================================
 
 Obj8A_Display:				; XREF: Obj8A_Index
@@ -38373,11 +38364,11 @@ Eni_SegaLogo:	incbin	mapeni\segalogo.bin	; large Sega logo (mappings)
 		even
 Eni_Title:	incbin	mapeni\titlescr.bin	; title screen foreground (mappings)
 		even
-Nem_TitleFg:	incbin	artnem\titlefor.bin	; title screen foreground
+Twiz_TitleFg:	incbin	arttwiz\titlefor.bin	; title screen foreground
 		even
-Nem_TitleSonic:	incbin	artnem\titleson.bin	; Sonic on title screen
+Twiz_TitleSonic:	incbin	arttwiz\titleson.bin	; Sonic on title screen
 		even
-Nem_TitleTM:	incbin	artnem\titletm.bin	; TM on title screen
+Twiz_TitleTM:	incbin	arttwiz\titletm.bin	; TM on title screen
 		even
 Eni_JapNames:	incbin	mapeni\japcreds.bin	; Japanese credits (mappings)
 		even
