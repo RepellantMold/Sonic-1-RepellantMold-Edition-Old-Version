@@ -1587,7 +1587,7 @@ PalCycle_GHZ:				; XREF: PalCycle
 
 locret_1990:
 		rts	
-; End of function PalCycle_Title
+; End of function PalCycle_GHZ
 
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -1660,7 +1660,7 @@ byte_1A3C:	dc.b 1,	0, 0, 1, 0, 0, 1, 0
 ; ===========================================================================
 
 PalCycle_MZ:				; XREF: PalCycle
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -24250,11 +24250,6 @@ Obj01_Modes:	dc.w Obj01_MdNormal-Obj01_Modes
 		dc.w Obj01_MdJump-Obj01_Modes
 		dc.w Obj01_MdRoll-Obj01_Modes
 		dc.w Obj01_MdJump2-Obj01_Modes
-; ---------------------------------------------------------------------------
-; Music	to play	after invincibility wears off
-; ---------------------------------------------------------------------------
-MusicList2:	incbin	misc\muslist2.bin
-		even
 ; ===========================================================================
 
 Sonic_Display:				; XREF: loc_12C7E
@@ -24285,7 +24280,7 @@ Obj01_ChkInvin:
 		moveq	#5,d0		; play SBZ music
 
 Obj01_PlayMusic:
-		lea	(MusicList2).l,a1
+		lea	(MusicList).l,a1
 		move.b	(a1,d0.w),d0
 		jsr	(PlaySound).l	; play normal music
 
@@ -24620,6 +24615,8 @@ loc_13024:
 		beq.s	loc_13066
 		cmpi.b	#$80,d0
 		beq.s	loc_13060
+        	cmpi.w  #$C00,$10(a0)    	; Check if player is at running speed
+        	bge.s   Sonic_WallRecoil    	; If so, bonk
 		add.w	d1,$10(a0)
 		bset	#5,$22(a0)
 		move.w	#0,$14(a0)
@@ -24632,6 +24629,8 @@ loc_13060:
 ; ===========================================================================
 
 loc_13066:
+          	cmpi.w  #-$C00,$10(a0)    	; If player is at running speed to the left
+        	ble.s   Sonic_WallRecoil	; Bonk!
 		sub.w	d1,$10(a0)
 		bset	#5,$22(a0)
 		move.w	#0,$14(a0)
@@ -24644,6 +24643,26 @@ loc_13078:
 locret_1307C:
 		rts	
 ; End of function Sonic_Move
+
+
+Sonic_WallRecoil:   		; Routine to bounce Sonic off a wall when going too fast
+        move.b    #4,$24(a0)
+        bsr.w    Sonic_ResetOnFloor
+        bset    #1,$22(a0)  	; Set Sonic as in air
+        move.w    #$FE00,d0   	; Move recoil speed into d0 for later
+        tst.w    $10(a0) 	; Check if player is moving right
+        bpl.s    @cont  	; If so, branch
+        neg.w    d0  		; Negate recoil speed if facing left
+
+@cont
+        move.w    d0,$10(a0)  	; Move recoil speed into X speed
+        move.w    #$FC00,$12(a0); Vertical recoil speed
+        move.w    #0,$14(a0)  	; Clear inertia
+        move.b    #$A,$1C(a0) 	; Play recoil animation
+        move.b    #1,$25(a0)
+        move.w    #$A3,d0 	; Initiate bonk sound
+        jsr    (PlaySound_Special).l   ; Play bonk sound
+        rts ; Return
 
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
