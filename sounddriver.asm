@@ -2383,7 +2383,7 @@ Music8F:	include	sound\music8F.asm
 		even
 Music90:	incbin	sound\music90.smp
 		even
-Music91:	incbin	sound\music91.bin
+Music91:	include	sound\music91.asm
 		even
 Music92:	incbin	sound\music92.smp
 		even

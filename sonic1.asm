@@ -2803,7 +2803,7 @@ loc_317C:
 		cmpi.w	#$1C00,d0	; has Sonic object passed x-position $1C00?
 		bcs.s	Title_EnterCheat	; if not, branch
 		clr.b	($FFFFF600).w 	; go to Sega screen
-		rts	
+		rts
 ; ===========================================================================
 
 Title_EnterCheat:
@@ -2839,7 +2839,7 @@ loc_3210:				; XREF: Title_EnterCheat
 		beq.s	Title_CountC
 		cmpi.w	#9,($FFFFFFE4).w
 		beq.s	Title_CountC
-		move.w	#0,($FFFFFFE4).w
+		clr.w	($FFFFFFE4).w
 
 Title_CountC:
 		move.b	($FFFFF605).w,d0
@@ -2854,16 +2854,13 @@ loc_3230:
 		beq.w	loc_317C	; if not, branch
 
 Title_ChkLevSel:
-		moveq	#0,d0				; clear d0
-		move.b	d0,($FFFFFF32).w		; clear background strip 1 draw flags
-		move.b	d0,($FFFFFF34).w		; clear background strip 2 draw flags
-		move.b	d0,($FFFFFF30).w		; clear foreground strip draw flags
+		bsr.w	Pal_FadeFrom
+		move.b	#$E0,d0
+		bsr.w	PlaySound_Special ; fade out music
 		tst.b	($FFFFFFE0).w	; check	if level select	code is	on
 		beq.w	PlayLevel	; if not, play level
 		btst	#6,($FFFFF604).w ; check if A is pressed
 		beq.w	PlayLevel	; if not, play level
-		moveq	#2,d0
-		bsr.w	PalLoad2	; load level select pallet
 		lea	($FFFFCC00).w,a1
 		moveq	#0,d0
 		move.w	#$DF,d1
@@ -2874,15 +2871,12 @@ Title_ClrScroll:
 
 		move.l	d0,($FFFFF616).w
 		move	#$2700,sr
-		lea	($C00000).l,a6
-		move.l	#$60000003,($C00004).l
-		move.w	#$3FF,d1
-
-Title_ClrVram:
-		move.l	d0,(a6)
-		dbf	d1,Title_ClrVram ; fill	VRAM with 0
+		bsr.w	ClearScreen
 
 		bsr.w	LevSelTextLoad
+		moveq	#2,d0
+		bsr.w	PalLoad1	; load level select pallet
+		bsr.w	Pal_FadeTo
 
 ; ---------------------------------------------------------------------------
 ; Level	Select
@@ -2920,25 +2914,12 @@ LevSelBCPress:				; XREF: LevelSelect
 		bcs.s	LevelSelect	; if yes, branch
 
 LevSel_PlaySnd:
-		bsr.w	PlaySound_Special
+		move.b	d0,($FFFFF00C).w
 		bra.s	LevelSelect
 
 LevSelStartPress:				; XREF: LevelSelect
 		clr.b	($FFFFF600).w
-; ===========================================================================
-
-LevSel_Ending:				; XREF: LevelSelect
-		move.b	#$18,($FFFFF600).w ; set screen	mode to	$18 (Ending)
-		move.w	#$600,($FFFFFE10).w ; set level	to 0600	(Ending)
-		rts	
-; ===========================================================================
-
-LevSel_Credits:				; XREF: LevelSelect
-		move.b	#$1C,($FFFFF600).w ; set screen	mode to	$1C (Credits)
-		move.b	#$91,d0
-		bsr.w	PlaySound_Special ; play credits music
-		move.w	#0,($FFFFFFF4).w
-		rts	
+		rts
 ; ===========================================================================
 
 LevSel_Level_SS:			; XREF: LevelSelect
@@ -2954,7 +2935,7 @@ LevSel_Level_SS:			; XREF: LevelSelect
 		move.w	d0,($FFFFFE20).w ; clear rings
 		move.l	d0,($FFFFFE22).w ; clear time
 		move.l	d0,($FFFFFE26).w ; clear score
-		rts	
+		rts
 ; ===========================================================================
 
 LevSel_Level:				; XREF: LevSel_Level_SS
@@ -3029,7 +3010,7 @@ loc_33E4:				; XREF: Demo
 		addq.w	#1,($FFFFFFF2).w ; add 1 to demo number
 		cmpi.w	#4,($FFFFFFF2).w ; is demo number less than 4?
 		bcs.s	loc_3422	; if yes, branch
-		move.w	#0,($FFFFFFF2).w ; reset demo number to	0
+		clr.w	($FFFFFFF2).w ; reset demo number to	0
 
 loc_3422:
 		move.w	#1,($FFFFFFF0).w ; turn	demo mode on
