@@ -2455,34 +2455,6 @@ CalcSine:				; XREF: SS_BGAnimate; et al
 
 Sine_Data:	incbin	misc\sinewave.bin	; values for a 360º sine wave
 
-; ===========================================================================
-		movem.l	d1-d2,-(sp)
-		move.w	d0,d1
-		swap	d1
-		moveq	#0,d0
-		move.w	d0,d1
-		moveq	#7,d2
-
-loc_2C80:
-		rol.l	#2,d1
-		add.w	d0,d0
-		addq.w	#1,d0
-		sub.w	d0,d1
-		bcc.s	loc_2C9A
-		add.w	d0,d1
-		subq.w	#1,d0
-		dbf	d2,loc_2C80
-		lsr.w	#1,d0
-		movem.l	(sp)+,d1-d2
-		rts	
-; ===========================================================================
-
-loc_2C9A:
-		addq.w	#1,d0
-		dbf	d2,loc_2C80
-		lsr.w	#1,d0
-		movem.l	(sp)+,d1-d2
-		rts	
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -2571,9 +2543,12 @@ SegaScreen:				; XREF: GameModeArray
 		andi.b	#$BF,d0
 		move.w	d0,($C00004).l
 		bsr.w	ClearScreen
-		move.l	#$40000000,($C00004).l
-		lea	(Nem_SegaLogo).l,a0 ; load Sega	logo patterns
-		bsr.w	NemDec
+		;move.l	#$40000000,($C00004).l
+		;lea	(Nem_SegaLogo).l,a0 ; load Sega	logo patterns
+		;bsr.w	NemDec
+		lea	(Twiz_SegaLogo).l,a0			; load compressed art data address
+		move.w	#$0,d0					; set VRAM address to decompress to (0)
+		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($FF0000).l,a1
 		lea	(Eni_SegaLogo).l,a0 ; load Sega	logo mappings
 		move.w	#0,d0
@@ -2588,12 +2563,13 @@ SegaScreen:				; XREF: GameModeArray
 		moveq	#$27,d1
 		moveq	#$1B,d2
 		bsr.w	ShowVDPGraphics
-		tst.b   ($FFFFFFF8).w	; is console Japanese?
-		bmi.s   .loadpal
-		copyTilemap	$FF0A40,$C53A,2,1 ; hide "TM" with a white rectangle
-.loadpal:
-		moveq	#0,d0
-		bsr.w	PalLoad2	; load Sega logo pallet
+        	lea	($FFFFFB80).l,a3
+        	moveq	#$3F,d7
+ 
+ .loop:
+        	move.w	#$EEE,(a3)+    ; move data to RAM
+        	dbf	d7,.loop
+        	bsr.w	Pal_MakeFlash ; added to allow fade in
 		move.w	#-$A,($FFFFF632).w
 		move.w	#0,($FFFFF634).w
 		move.w	#0,($FFFFF662).w
@@ -2637,7 +2613,6 @@ TitleScreen:				; XREF: GameModeArray
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
 		move	#$2700,sr
-		bsr.w	SoundDriverLoad
 		lea	($C00004).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
@@ -2904,7 +2879,7 @@ LevSelStartPress:				; XREF: LevelSelect
 LevSel_Level_SS:			; XREF: LevelSelect
 		add.w	d0,d0
 		move.w	LSelectPointers(pc,d0.w),d0 ; load level number
-		bmi.w	LevelSelect
+		bmi.s	LevelSelect
 		cmpi.w	#$700,d0	; check	if level is 0700 (Special Stage)
 		bne.s	LevSel_Level	; if not, branch
 		move.b	#$10,($FFFFF600).w ; set screen	mode to	$10 (Special Stage)
@@ -38392,7 +38367,7 @@ MainLoadBlocks:
 ArtLoadCues:
 	include "_inc\Pattern load cues.asm"
 	even
-Nem_SegaLogo:	incbin	artnem\segalogo.bin	; large Sega logo
+Twiz_SegaLogo:	incbin	arttwiz\segalogo.bin	; large Sega logo
 		even
 Eni_SegaLogo:	incbin	mapeni\segalogo.bin	; large Sega logo (mappings)
 		even
@@ -39033,6 +39008,16 @@ ObjPos_SBZ1pf6:	incbin	objpos\sbz1pf6.bin
 ObjPos_End:	incbin	objpos\ending.bin
 		even
 ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
+
+; ---------------------------------------------------------------------------
+; Twizzler (Normal + Moduled) decompression algorithm
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+  		  include "compression/Twizzler.asm"
+  		  
 ; ---------------------------------------------------------------------------
 
 		include "sounddriver.asm"
