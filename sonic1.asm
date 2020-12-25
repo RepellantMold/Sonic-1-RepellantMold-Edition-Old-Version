@@ -940,7 +940,6 @@ PlaySound_Unk:
 
 
 PauseGame:				; XREF: Level_MainLoop; et al
-		nop	
 		tst.b	($FFFFFE12).w	; do you have any lives	left?
 		beq.s	Unpause		; if not, branch
 		tst.w	($FFFFF63A).w	; is game already paused?
@@ -960,7 +959,6 @@ loc_13CA:
 		btst	#6,($FFFFF605).w ; is button A pressed?
 		beq.s	Pause_ChkBC	; if not, branch
 		move.b	#4,($FFFFF600).w ; set game mode to 4 (title screen)
-		nop	
 		bra.s	loc_1404
 ; ===========================================================================
 
@@ -2722,12 +2720,12 @@ Title_LoadText:
 		move.w	(a5)+,(a6)
 		dbf	d1,Title_LoadText ; load uncompressed text patterns
 
-		move.b	#0,($FFFFFE30).w ; clear lamppost counter
-		move.w	#0,($FFFFFE08).w ; disable debug item placement	mode
-		move.w	#0,($FFFFFFF0).w ; disable debug mode
-		move.w	#0,($FFFFFFEA).w
-		move.w	#0,($FFFFFE10).w ; set level to	GHZ (00)
-		move.w	#0,($FFFFF634).w ; disable pallet cycling
+		clr.b	($FFFFFE30).w ; clear lamppost counter
+		clr.w	($FFFFFE08).w ; disable debug item placement	mode
+		clr.w	($FFFFFFF0).w ; disable debug mode
+		clr.w	($FFFFFFEA).w
+		clr.w	($FFFFFE10).w ; set level to	GHZ (00)
+		clr.w	($FFFFF634).w ; disable pallet cycling
 		bsr.w	LevelSizeLoad
 		bsr.w	DeformBgLayer
 		lea	($FFFFB000).w,a1
@@ -2763,7 +2761,7 @@ Title_LoadText:
 		bsr.w	PalLoad1
 		move.b	#$8A,d0		; play title screen music
 		bsr.w	PlaySound_Special
-		move.b	#0,($FFFFFFFA).w ; disable debug mode
+		clr.b	($FFFFFFFA).w ; disable debug mode
 		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
@@ -2803,22 +2801,13 @@ loc_317C:
 		addq.w	#2,d0
 		move.w	d0,($FFFFD008).w ; move	Sonic to the right
 		cmpi.w	#$1C00,d0	; has Sonic object passed x-position $1C00?
-		bcs.s	Title_ChkRegion	; if not, branch
-		move.b	#0,($FFFFF600).w ; go to Sega screen
+		bcs.s	Title_EnterCheat	; if not, branch
+		clr.b	($FFFFF600).w 	; go to Sega screen
 		rts	
 ; ===========================================================================
 
-Title_ChkRegion:
-		tst.b	($FFFFFFF8).w	; check	if the machine is US or	Japanese
-		bpl.s	Title_RegionJ	; if Japanese, branch
+Title_EnterCheat:
 		lea	(LevelSelectCode_US).l,a0 ; load US code
-		bra.s	Title_EnterCheat
-; ===========================================================================
-
-Title_RegionJ:				; XREF: Title_ChkRegion
-		lea	(LevelSelectCode_J).l,a0 ; load	J code
-
-Title_EnterCheat:			; XREF: Title_ChkRegion
 		move.w	($FFFFFFE4).w,d0
 		adda.w	d0,a0
 		move.b	($FFFFF605).w,d0 ; get button press
@@ -2906,21 +2895,25 @@ LevelSelect:
 		bsr.w	RunPLC_RAM
 		tst.l	($FFFFF680).w
 		bne.s	LevelSelect
-		andi.b	#$F0,($FFFFF605).w ; is	A, B, C, or Start pressed?
-		beq.s	LevelSelect	; if not, branch
 		move.w	($FFFFFF82).w,d0
 		cmpi.w	#$14,d0		; have you selected item $14 (sound test)?
-		bne.s	LevSel_Level_SS	; if not, go to	Level/SS subroutine
+		bne.s	LevSelLevCheckStart; if not, go to	Level/SS subroutine
+		cmpi.b	#$80,($FFFFF605).w ; is	Start pressed?
+		beq.s	LevSelStartPress	; if true, branch
+		cmpi.b	#$20,($FFFFF605).w ; is	B pressed?
+		beq.s	LevSelBCPress	; if not, branch
+		cmpi.b	#$10,($FFFFF605).w ; is	C pressed?
+		beq.s	LevSelBCPress	; if not, branch
+		bra.s	LevelSelect
+; ===========================================================================
+LevSelLevCheckStart:				; XREF: LevelSelect
+		andi.b	#$80,($FFFFF605).w ; is	Start pressed?
+		beq.s	LevelSelect	; if not, branch
+		bra.s	LevSel_Level_SS
+
+LevSelBCPress:				; XREF: LevelSelect
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
-		tst.b	($FFFFFFE3).w	; is Japanese Credits cheat on?
-		beq.s	LevSel_NoCheat	; if not, branch
-		cmpi.w	#$9F,d0		; is sound $9F being played?
-		beq.s	LevSel_Ending	; if yes, branch
-		cmpi.w	#$9E,d0		; is sound $9E being played?
-		beq.s	LevSel_Credits	; if yes, branch
-
-LevSel_NoCheat:
 		cmpi.w	#$94,d0		; is sound $80-$94 being played?
 		bcs.s	LevSel_PlaySnd	; if yes, branch
 		cmpi.w	#$A0,d0		; is sound $95-$A0 being played?
@@ -2929,6 +2922,9 @@ LevSel_NoCheat:
 LevSel_PlaySnd:
 		bsr.w	PlaySound_Special
 		bra.s	LevelSelect
+
+LevSelStartPress:				; XREF: LevelSelect
+		clr.b	($FFFFF600).w
 ; ===========================================================================
 
 LevSel_Ending:				; XREF: LevelSelect
@@ -2991,9 +2987,6 @@ LSelectPointers:
 ; Level	select codes
 ; ---------------------------------------------------------------------------
 LevelSelectCode_J:
-		incbin	misc\ls_jcode.bin
-		even
-
 LevelSelectCode_US:
 		incbin	misc\ls_ucode.bin
 		even
@@ -3105,14 +3098,24 @@ LevSel_SndTest:				; XREF: LevSelControls
 		cmpi.w	#$14,($FFFFFF82).w ; is	item $14 selected?
 		bne.s	LevSel_NoMove	; if not, branch
 		move.b	($FFFFF605).w,d1
-		andi.b	#$C,d1		; is left/right	pressed?
+		andi.b	#$4C,d1		; is left/right	pressed?
 		beq.s	LevSel_NoMove	; if not, branch
 		move.w	($FFFFFF84).w,d0
+		btst	#6,d1		; is A pressed?
+		bne.s	LevSel_A	; if not, branch
 		btst	#2,d1		; is left pressed?
 		beq.s	LevSel_Right	; if not, branch
 		subq.w	#1,d0		; subtract 1 from sound	test
 		bcc.s	LevSel_Right
 		moveq	#$4F,d0		; if sound test	moves below 0, set to $4F
+		
+LevSel_A:
+		btst	#6,d1		; is A button pressed?
+		beq.s	LevSel_Right	; if not, branch
+		add.w	#16,d0		; add $10 to sound test
+		cmpi.w	#$50,d0	        ; addition by Shadow05 to stop the sound test from going above $D0
+		bcs.s	LevSel_Refresh2
+		moveq	#0,d0		; if sound test	moves above $4F, set to	0
 
 LevSel_Right:
 		btst	#3,d1		; is right pressed?
@@ -3249,9 +3252,9 @@ LevelMenuText:
         dc.b    "SCRAP BRAIN ZONE   ACT 1"
         dc.b    "                   ACT 2"
         dc.b    "                   ACT 3"
-        dc.b    "FINAL ZONE              "             
-        dc.b    "SPECIAL STAGE           "          
-        dc.b    "SOUND TEST              "              
+        dc.b    "FINAL ZONE              "
+        dc.b    "SPECIAL STAGE           "
+        dc.b    "SOUND TEST              "
         even
 ; ---------------------------------------------------------------------------
 ; Music	playlist
@@ -3416,7 +3419,6 @@ loc_3946:
 		bset	#2,($FFFFF754).w
 		bsr.w	MainLoadBlockLoad ; load block mappings	and pallets
 		bsr.w	LoadTilesFromStart
-;		jsr	FloorLog_Unk
 		bsr.w	ColIndexLoad
 		bsr.w	LZWaterEffects
 		move.b	#1,($FFFFD000).w ; load	Sonic object
@@ -3543,6 +3545,8 @@ Level_MainLoop:
 		bsr.w	MoveSonicInDemo
 		bsr.w	LZWaterEffects
 		jsr	ObjectsLoad
+		tst.w	($FFFFFE02).w	; is the level set to restart?
+		bne.w	Level		; if yes, branch
 		tst.w	($FFFFFE08).w
 		bne.s	loc_3B10
 		cmpi.b	#6,($FFFFD024).w
@@ -3561,10 +3565,8 @@ loc_3B14:
 		bsr.w	SignpostArtLoad
 		cmpi.b	#8,($FFFFF600).w
 		beq.s	Level_ChkDemo	; if screen mode is 08 (demo), branch
-		tst.w	($FFFFFE02).w	; is the level set to restart?
-		bne.w	Level		; if yes, branch
 		cmpi.b	#$C,($FFFFF600).w
-		beq.w	Level_MainLoop	; if screen mode is $0C	(level), branch
+		beq.s	Level_MainLoop	; if screen mode is $0C	(level), branch
 		rts	
 ; ===========================================================================
 
@@ -3575,14 +3577,14 @@ Level_ChkDemo:				; XREF: Level_MainLoop
 		beq.s	Level_EndDemo	; if not, branch
 		cmpi.b	#8,($FFFFF600).w
 		beq.w	Level_MainLoop	; if screen mode is 08 (demo), branch
-		move.b	#0,($FFFFF600).w ; go to Sega screen
+		clr.b	($FFFFF600).w; go to Sega screen
 		rts	
 ; ===========================================================================
 
 Level_EndDemo:				; XREF: Level_ChkDemo
 		cmpi.b	#8,($FFFFF600).w ; is screen mode 08 (demo)?
 		bne.s	loc_3B88	; if not, branch
-		move.b	#0,($FFFFF600).w ; go to Sega screen
+		clr.b	($FFFFF600).w 	; go to Sega screen
 		tst.w	($FFFFFFF0).w	; is demo mode on?
 		bpl.s	loc_3B88	; if yes, branch
 		move.b	#$1C,($FFFFF600).w ; go	to credits
@@ -15471,7 +15473,7 @@ Obj39_ChgMode:				; XREF: Obj39_Wait
 		move.b	#$14,($FFFFF600).w ; set mode to $14 (continue screen)
 		tst.b	($FFFFFE18).w	; do you have any continues?
 		bne.s	Obj39_Display	; if yes, branch
-		move.b	#0,($FFFFF600).w ; set mode to 0 (Sega screen)
+		clr.b	($FFFFF600).w 	; set mode to 0 (Sega screen)
 		bra.s	Obj39_Display
 ; ===========================================================================
 
@@ -15646,7 +15648,7 @@ Obj3A_NextLevel:			; XREF: Obj3A_Index
 		move.w	d0,($FFFFFE10).w ; set level number
 		tst.w	d0
 		bne.s	Obj3A_ChkSS
-		move.b	#0,($FFFFF600).w ; set game mode to level (00)
+		clr.b	($FFFFF600).w 	; set game mode to level (00)
 		bra.w	DisplaySprite
 ; ===========================================================================
 
@@ -26218,7 +26220,7 @@ locret_13C96:
 
 ApplySpeedSettings:
 	moveq	#0,d0				; Quickly clear d0
-	tst.w	$34(a0)				; Does character have speedshoes?
+	tst.w	($FFFFD034).w			; Does character have speedshoes?
 	beq.s	.nospeedshoes			; If not, branch
 	addq.b	#6,d0				; Quickly add 6 to d0
 .nospeedshoes:
@@ -26640,8 +26642,6 @@ Obj38_Stars:				; XREF: Obj38_Index
 
 Obj38_StarTrail2:
 		move.b	d1,$30(a0)
-
-Obj38_StarTrail2a:
 		lea	($FFFFCB00).w,a1
 		lea	(a1,d0.w),a1
 		move.w	(a1)+,8(a0)
@@ -26650,10 +26650,6 @@ Obj38_StarTrail2a:
 		lea	(Ani_obj38).l,a1
 		jsr	AnimateSprite
 		jmp	DisplaySprite
-; ===========================================================================
-
-;Obj38_Delete2:				; XREF: Obj38_Stars
-;		jmp	DeleteObject
 ; ===========================================================================
 Ani_obj38:
 	include "_anim\obj38.asm"
@@ -27433,26 +27429,6 @@ loc_14C3C:
 		not.w	d1
 		rts	
 ; End of function FindWall2
-
-; ---------------------------------------------------------------------------
-; Unused floor/wall subroutine - logs something	to do with collision
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-FloorLog_Unk:				; XREF: Level
-		rts
-
-; End of function FloorLog_Unk
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-FloorLog_Unk2:				; XREF: FloorLog_Unk
-		rts
-
-; End of function FloorLog_Unk2
 
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -38393,9 +38369,7 @@ MainLoadBlocks:
 ; ---------------------------------------------------------------------------
 ArtLoadCues:
 	include "_inc\Pattern load cues.asm"
-
-		incbin	misc\padding.bin
-		even
+	even
 Nem_SegaLogo:	incbin	artnem\segalogo.bin	; large Sega logo
 		even
 Eni_SegaLogo:	incbin	mapeni\segalogo.bin	; large Sega logo (mappings)
@@ -38806,8 +38780,6 @@ Nem_CreditText:	incbin	artnem\credits.bin	; credits alphabet
 		even
 Nem_EndStH:	incbin	artnem\endtext.bin	; ending sequence "Sonic the Hedgehog" text
 		even
-		incbin	misc\padding2.bin
-		even
 ; ---------------------------------------------------------------------------
 ; Collision data
 ; ---------------------------------------------------------------------------
@@ -38865,63 +38837,53 @@ Art_SbzSmoke:	incbin	artunc\sbzsmoke.bin	; SBZ smoke in background
 ; ---------------------------------------------------------------------------
 ; Level	layout index
 ; ---------------------------------------------------------------------------
-Level_Index:	dc.w Level_GHZ1-Level_Index, Level_GHZbg-Level_Index, byte_68D70-Level_Index
-		dc.w Level_GHZ2-Level_Index, Level_GHZbg-Level_Index, byte_68E3C-Level_Index
-		dc.w Level_GHZ3-Level_Index, Level_GHZbg-Level_Index, byte_68F84-Level_Index
-		dc.w byte_68F88-Level_Index, byte_68F88-Level_Index, byte_68F88-Level_Index
-		dc.w Level_LZ1-Level_Index, Level_LZbg-Level_Index, byte_69190-Level_Index
-		dc.w Level_LZ2-Level_Index, Level_LZbg-Level_Index, byte_6922E-Level_Index
-		dc.w Level_LZ3-Level_Index, Level_LZbg-Level_Index, byte_6934C-Level_Index
-		dc.w Level_SBZ3-Level_Index, Level_LZbg-Level_Index, byte_6940A-Level_Index
+Level_Index:	dc.w Level_GHZ1-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_GHZ2-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_GHZ3-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_GHZ3-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_LZ1-Level_Index, Level_LZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_LZ2-Level_Index, Level_LZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_LZ3-Level_Index, Level_LZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SBZ3-Level_Index, Level_LZbg-Level_Index, byte_6A320-Level_Index
 		dc.w Level_MZ1-Level_Index, Level_MZ1bg-Level_Index, Level_MZ1-Level_Index
-		dc.w Level_MZ2-Level_Index, Level_MZ2bg-Level_Index, byte_6965C-Level_Index
-		dc.w Level_MZ3-Level_Index, Level_MZ3bg-Level_Index, byte_697E6-Level_Index
-		dc.w byte_697EA-Level_Index, byte_697EA-Level_Index, byte_697EA-Level_Index
-		dc.w Level_SLZ1-Level_Index, Level_SLZbg-Level_Index, byte_69B84-Level_Index
-		dc.w Level_SLZ2-Level_Index, Level_SLZbg-Level_Index, byte_69B84-Level_Index
-		dc.w Level_SLZ3-Level_Index, Level_SLZbg-Level_Index, byte_69B84-Level_Index
-		dc.w byte_69B84-Level_Index, byte_69B84-Level_Index, byte_69B84-Level_Index
-		dc.w Level_SYZ1-Level_Index, Level_SYZbg-Level_Index, byte_69C7E-Level_Index
-		dc.w Level_SYZ2-Level_Index, Level_SYZbg-Level_Index, byte_69D86-Level_Index
-		dc.w Level_SYZ3-Level_Index, Level_SYZbg-Level_Index, byte_69EE4-Level_Index
-		dc.w byte_69EE8-Level_Index, byte_69EE8-Level_Index, byte_69EE8-Level_Index
+		dc.w Level_MZ2-Level_Index, Level_MZ2bg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_MZ3-Level_Index, Level_MZ3bg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_MZ3-Level_Index, Level_MZ3bg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SLZ1-Level_Index, Level_SLZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SLZ2-Level_Index, Level_SLZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SLZ3-Level_Index, Level_SLZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SLZ3-Level_Index, Level_SLZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SYZ1-Level_Index, Level_SYZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SYZ2-Level_Index, Level_SYZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SYZ3-Level_Index, Level_SYZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SYZ3-Level_Index, Level_SYZbg-Level_Index, byte_6A320-Level_Index
 		dc.w Level_SBZ1-Level_Index, Level_SBZ1bg-Level_Index, Level_SBZ1bg-Level_Index
 		dc.w Level_SBZ2-Level_Index, Level_SBZ2bg-Level_Index, Level_SBZ2bg-Level_Index
-		dc.w Level_SBZ2-Level_Index, Level_SBZ2bg-Level_Index, byte_6A2F8-Level_Index
-		dc.w byte_6A2FC-Level_Index, byte_6A2FC-Level_Index, byte_6A2FC-Level_Index
+		dc.w Level_SBZ2-Level_Index, Level_SBZ2bg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_SBZ2-Level_Index, Level_SBZ2bg-Level_Index, byte_6A320-Level_Index
 		dc.w Level_End-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
 		dc.w Level_End-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
-		dc.w byte_6A320-Level_Index, byte_6A320-Level_Index, byte_6A320-Level_Index
-		dc.w byte_6A320-Level_Index, byte_6A320-Level_Index, byte_6A320-Level_Index
+		dc.w Level_End-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
+		dc.w Level_End-Level_Index, Level_GHZbg-Level_Index, byte_6A320-Level_Index
 
 Level_GHZ1:	incbin	levels\ghz1.bin
 		even
-byte_68D70:	dc.b 0,	0, 0, 0
 Level_GHZ2:	incbin	levels\ghz2.bin
 		even
-byte_68E3C:	dc.b 0,	0, 0, 0
 Level_GHZ3:	incbin	levels\ghz3.bin
 		even
 Level_GHZbg:	incbin	levels\ghzbg.bin
 		even
-byte_68F84:	dc.b 0,	0, 0, 0
-byte_68F88:	dc.b 0,	0, 0, 0
-
 Level_LZ1:	incbin	levels\lz1.bin
 		even
 Level_LZbg:	incbin	levels\lzbg.bin
 		even
-byte_69190:	dc.b 0,	0, 0, 0
 Level_LZ2:	incbin	levels\lz2.bin
 		even
-byte_6922E:	dc.b 0,	0, 0, 0
 Level_LZ3:	incbin	levels\lz3.bin
 		even
-byte_6934C:	dc.b 0,	0, 0, 0
 Level_SBZ3:	incbin	levels\sbz3.bin
 		even
-byte_6940A:	dc.b 0,	0, 0, 0
-
 Level_MZ1:	incbin	levels\mz1.bin
 		even
 Level_MZ1bg:	incbin	levels\mz1bg.bin
@@ -38930,14 +38892,10 @@ Level_MZ2:	incbin	levels\mz2.bin
 		even
 Level_MZ2bg:	incbin	levels\mz2bg.bin
 		even
-byte_6965C:	dc.b 0,	0, 0, 0
 Level_MZ3:	incbin	levels\mz3.bin
 		even
 Level_MZ3bg:	incbin	levels\mz3bg.bin
 		even
-byte_697E6:	dc.b 0,	0, 0, 0
-byte_697EA:	dc.b 0,	0, 0, 0
-
 Level_SLZ1:	incbin	levels\slz1.bin
 		even
 Level_SLZbg:	incbin	levels\slzbg.bin
@@ -38946,21 +38904,14 @@ Level_SLZ2:	incbin	levels\slz2.bin
 		even
 Level_SLZ3:	incbin	levels\slz3.bin
 		even
-byte_69B84:	dc.b 0,	0, 0, 0
-
 Level_SYZ1:	incbin	levels\syz1.bin
 		even
 Level_SYZbg:	incbin	levels\syzbg.bin
 		even
-byte_69C7E:	dc.b 0,	0, 0, 0
 Level_SYZ2:	incbin	levels\syz2.bin
 		even
-byte_69D86:	dc.b 0,	0, 0, 0
 Level_SYZ3:	incbin	levels\syz3.bin
 		even
-byte_69EE4:	dc.b 0,	0, 0, 0
-byte_69EE8:	dc.b 0,	0, 0, 0
-
 Level_SBZ1:	incbin	levels\sbz1.bin
 		even
 Level_SBZ1bg:	incbin	levels\sbz1bg.bin
@@ -38969,8 +38920,6 @@ Level_SBZ2:	incbin	levels\sbz2.bin
 		even
 Level_SBZ2bg:	incbin	levels\sbz2bg.bin
 		even
-byte_6A2F8:	dc.b 0,	0, 0, 0
-byte_6A2FC:	dc.b 0,	0, 0, 0
 Level_End:	incbin	levels\ending.bin
 		even
 byte_6A320:	dc.b 0,	0, 0, 0
@@ -38981,16 +38930,13 @@ byte_6A320:	dc.b 0,	0, 0, 0
 Art_BigRing:	incbin	artunc\bigring.bin
 		even
 
-		incbin	misc\padding3.bin
-		even
-
 ; ---------------------------------------------------------------------------
 ; Sprite locations index
 ; ---------------------------------------------------------------------------
 ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_GHZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_GHZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
+		dc.w ObjPos_GHZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_LZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_LZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_LZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
@@ -38998,19 +38944,19 @@ ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_MZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_MZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_MZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_MZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
+		dc.w ObjPos_MZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SLZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SLZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SLZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_SLZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
+		dc.w ObjPos_SLZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SYZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SYZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SYZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_SYZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
+		dc.w ObjPos_SYZ3-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SBZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_SBZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_FZ-ObjPos_Index, ObjPos_Null-ObjPos_Index
-		dc.w ObjPos_SBZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
+		dc.w ObjPos_SBZ2-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_End-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_End-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_End-ObjPos_Index, ObjPos_Null-ObjPos_Index
@@ -39090,8 +39036,6 @@ ObjPos_End:	incbin	objpos\ending.bin
 		even
 ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 ; ---------------------------------------------------------------------------
-		incbin	misc\padding4.bin
-		even
 
 		include "sounddriver.asm"
 		
