@@ -95,7 +95,7 @@ loc_71BA8:
 		jsr	sub_7267C(pc)
 
 loc_71BB2:
-		tst.w	$A(a6)		; is music or sound being played?
+		tst.l	$A(a6)		; is music or sound being played?
 		beq.s	loc_71BBC	; if not, branch
 		jsr	Sound_Play(pc)
 
@@ -395,6 +395,8 @@ locret_71DC4:
 
 
 sub_71DC6:				; XREF: sub_71CCA; sub_72850
+        btst    #1,(a5)     ; Is note playing?
+        bne.s   .dontreturn ; no - return
         btst    #3,(a5)     ; Is modulation active?
         beq.s   .dontreturn ; Return if not
         tst.b   $18(a5)     ; Has modulation wait expired?
@@ -603,12 +605,8 @@ Sound_ChkValue:				; XREF: sub_71B4C
 		move.b	#$80,9(a6)	; reset	music flag
 		cmpi.b	#$9F,d7
 		bls.w	Sound_81to9F	; music	$81-$9F
-		cmpi.b	#$A0,d7
-		bcs.w	locret_71F8C
 		cmpi.b	#$CF,d7
 		bls.w	Sound_A0toCF	; sound	$A0-$CF
-		cmpi.b	#$D0,d7
-		bcs.w	locret_71F8C
 		cmpi.b	#$D1,d7
 		bcs.w	Sound_D0toDF	; sound	$D0-$DF
 		cmpi.b	#$DF,d7
@@ -937,6 +935,7 @@ SoundEffects_Common:
 		move.w	(a1)+,d1
 		add.l	a3,d1
 		move.b	(a1)+,d5
+		moveq	#0,d7
 		move.b	(a1)+,d7
 		subq.b	#1,d7
 		moveq	#$30,d6
@@ -1057,6 +1056,7 @@ Sound_D0toDF:				; XREF: Sound_ChkValue
 		add.l	a3,d0
 		move.l	d0,$20(a6)
 		move.b	(a1)+,d5
+		moveq	#0,d7
 		move.b	(a1)+,d7
 		subq.b	#1,d7
 		moveq	#$30,d6
@@ -1142,6 +1142,7 @@ loc_723EA:
 		bne.s	loc_72416
 		tst.b	$340(a6)
 		bpl.s	loc_72416
+		movea.l	a5,a3
 		lea	$340(a6),a5
 		movea.l	$20(a6),a1
 		bra.s	loc_72428
@@ -1348,7 +1349,7 @@ Sound_E4:				; XREF: Sound_ChkValue; Sound_ExIndex; sub_72504
 		moveq	#0,d1
 		jsr	sub_7272E(pc)
 		movea.l	a6,a0
-		move.w	#$E3,d0
+		move.w	#$F3,d0
 
 loc_725B6:
 		clr.l	(a0)+
@@ -1367,7 +1368,7 @@ sub_725CA:				; XREF: Sound_ChkValue
 		move.b	$27(a6),d2
 		move.b	$2A(a6),d3
 		move.b	$26(a6),d4
-		move.w	$A(a6),d5
+		move.l	$A(a6),d5
 		move.w	#$87,d0
 
 loc_725E4:
@@ -1554,21 +1555,14 @@ sub_72722:				; XREF: sub_71E18; sub_72C4E; sub_72CB4
 
 
 sub_7272E:				; XREF: loc_71E6A
-		move.b	($A04000).l,d2
-		btst	#7,d2
-		bne.s	sub_7272E
-		move.b	d0,($A04000).l
-		nop	
-		nop	
-		nop	
-
-loc_72746:
-		move.b	($A04000).l,d2
-		btst	#7,d2
-		bne.s	loc_72746
-
-		move.b	d1,($A04001).l
-		rts	
+		lea	($A04000).l,a0
+.loop:  	btst	#7,(a0)
+        	bne.s	.loop
+        	move.b	d0,(a0)
+.loop1:		btst    #7,(a0)
+        	bne.s	.loop1
+        	move.b	d1,1(a0)
+		rts
 ; End of function sub_7272E
 
 ; ===========================================================================
@@ -1582,21 +1576,14 @@ loc_7275A:				; XREF: sub_72722
 
 
 sub_72764:				; XREF: loc_71E6A; Sound_ChkValue; sub_7256A; sub_72764
-		move.b	($A04000).l,d2
-		btst	#7,d2
-		bne.s	sub_72764
-		move.b	d0,($A04002).l
-		nop	
-		nop	
-		nop	
-
-loc_7277C:
-		move.b	($A04000).l,d2
-		btst	#7,d2
-		bne.s	loc_7277C
-
-		move.b	d1,($A04003).l
-		rts	
+        	lea 	($A04000).l,a0
+.loop:		btst	#7,(a0)
+        	bne.s	.loop
+        	move.b	d0,2(a0)
+.loop1:		btst	#7,(a0)
+        	bne.s	.loop1
+        	move.b	d1,3(a0)
+        	rts
 ; End of function sub_72764
 
 ; ===========================================================================

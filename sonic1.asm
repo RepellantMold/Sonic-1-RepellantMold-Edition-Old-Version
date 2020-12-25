@@ -140,24 +140,60 @@ SetupValues:	dc.w $8000		; XREF: PortA_Ok
 		dc.l $C00000
 		dc.l $C00004		; address for VDP registers
 
-		dc.b 4,	$14, $30, $3C	; values for VDP registers
-		dc.b 7,	$6C, 0,	0
-		dc.b 0,	0, $FF,	0
-		dc.b $81, $37, 0, 1
-		dc.b 1,	0, 0, $FF
-		dc.b $FF, 0, 0,	$80
+		dc.b 4			; VDP $80 - 8-colour mode
+		dc.b $14		; VDP $81 - Megadrive mode, DMA enable
+		dc.b ($C000>>10)	; VDP $82 - foreground nametable address
+		dc.b ($F000>>10)	; VDP $83 - window nametable address
+		dc.b ($E000>>13)	; VDP $84 - background nametable address
+		dc.b ($D800>>9)		; VDP $85 - sprite table address
+		dc.b 0			; VDP $86 - unused
+		dc.b 0			; VDP $87 - background colour
+		dc.b 0			; VDP $88 - unused
+		dc.b 0			; VDP $89 - unused
+		dc.b 255		; VDP $8A - HBlank register
+		dc.b 0			; VDP $8B - full screen scroll
+		dc.b $81		; VDP $8C - 40 cell display
+		dc.b ($DC00>>10)	; VDP $8D - hscroll table address
+		dc.b 0			; VDP $8E - unused
+		dc.b 1			; VDP $8F - VDP increment
+		dc.b 1			; VDP $90 - 64 cell hscroll size
+		dc.b 0			; VDP $91 - window h position
+		dc.b 0			; VDP $92 - window v position
+		dc.w $FFFF		; VDP $93/94 - DMA length
+		dc.w 0			; VDP $95/96 - DMA source
+		dc.b $80		; VDP $97 - DMA fill VRAM
+		dc.l $40000080		; VRAM address 0
 
-		dc.l $40000080
+		dc.b $AF		; xor	a
+		dc.b $01, $D9, $1F	; ld	bc,1fd9h
+		dc.b $11, $27, $00	; ld	de,0027h
+		dc.b $21, $26, $00	; ld	hl,0026h
+		dc.b $F9		; ld	sp,hl
+		dc.b $77		; ld	(hl),a
+		dc.b $ED, $B0		; ldir
+		dc.b $DD, $E1		; pop	ix
+		dc.b $FD, $E1		; pop	iy
+		dc.b $ED, $47		; ld	i,a
+		dc.b $ED, $4F		; ld	r,a
+		dc.b $D1		; pop	de
+		dc.b $E1		; pop	hl
+		dc.b $F1		; pop	af
+		dc.b $08		; ex	af,af'
+		dc.b $D9		; exx
+		dc.b $C1		; pop	bc
+		dc.b $D1		; pop	de
+		dc.b $E1		; pop	hl
+		dc.b $F1		; pop	af
+		dc.b $F9		; ld	sp,hl
+		dc.b $F3		; di
+		dc.b $ED, $56		; im1
+		dc.b $36, $E9		; ld	(hl),E9h
+		dc.b $E9		; jp	(hl)
 
-		dc.b $AF, 1, $D9, $1F, $11, $27, 0, $21, $26, 0, $F9, $77 ; Z80	instructions
-		dc.b $ED, $B0, $DD, $E1, $FD, $E1, $ED,	$47, $ED, $4F
-		dc.b $D1, $E1, $F1, 8, $D9, $C1, $D1, $E1, $F1,	$F9, $F3
-		dc.b $ED, $56, $36, $E9, $E9
-
-		dc.w $8104		; value	for VDP	display	mode
-		dc.w $8F02		; value	for VDP	increment
-		dc.l $C0000000		; value	for CRAM write mode
-		dc.l $40000010
+		dc.w $8104		; VDP display mode
+		dc.w $8F02		; VDP increment
+		dc.l $C0000000		; CRAM write mode
+		dc.l $40000010		; VSRAM address 0
 
 		dc.b $9F, $BF, $DF, $FF	; values for PSG channel volumes
 ; ===========================================================================
@@ -309,11 +345,11 @@ loc_B88:				; XREF: loc_B10; off_B6E
 		cmpi.b	#$8C,($FFFFF600).w
 		beq.s	loc_B9A
 		cmpi.b	#$C,($FFFFF600).w
-		bne.w	loc_B5E
+		bne.s	loc_B5E
 
 loc_B9A:
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ ?
-		bne.w	loc_B5E		; if not, branch
+		bne.s	loc_B5E		; if not, branch
 		move.w	($C00004).l,d0
 		btst	#6,($FFFFFFF8).w
 		beq.s	loc_BBA
@@ -324,11 +360,8 @@ loc_BB6:
 
 loc_BBA:
 		move.w	#1,($FFFFF644).w
-		move.w	#$100,($A11100).l
 
 loc_BC8:
-		btst	#0,($A11100).l
-		bne.s	loc_BC8
 		tst.b	($FFFFF64E).w
 		bne.s	loc_BFE
 		lea	($C00004).l,a5
@@ -352,7 +385,6 @@ loc_BFE:				; XREF: loc_BC8
 
 loc_C22:				; XREF: loc_BC8
 		move.w	($FFFFF624).w,(a5)
-		move.w	#0,($A11100).l
 		bra.w	loc_B5E
 ; ===========================================================================
 
@@ -361,7 +393,7 @@ loc_C32:				; XREF: off_B6E
 
 loc_C36:				; XREF: off_B6E
 		tst.w	($FFFFF614).w
-		beq.w	locret_C42
+		beq.s	locret_C42
 		subq.w	#1,($FFFFF614).w
 
 locret_C42:
@@ -390,11 +422,7 @@ loc_C64:				; XREF: off_B6E
 		beq.w	loc_DA6		; if yes, branch
 
 loc_C6E:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
 loc_C76:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_C76		; if not, branch
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_CB0
@@ -436,7 +464,6 @@ loc_CD4:				; XREF: loc_C76
 		jsr	(ProcessDMAQueue).l
 
 loc_D50:
-		move.w	#0,($A11100).l
 		movem.l	($FFFFF700).w,d0-d7
 		movem.l	d0-d7,($FFFFFF10).w
 		movem.l	($FFFFF754).w,d0-d1
@@ -460,7 +487,7 @@ Demo_Time:				; XREF: loc_D50; PalToCRAM
 		jsr	HudUpdate
 		bsr.w	sub_165E
 		tst.w	($FFFFF614).w	; is there time	left on	the demo?
-		beq.w	Demo_TimeEnd	; if not, branch
+		beq.s	Demo_TimeEnd	; if not, branch
 		subq.w	#1,($FFFFF614).w ; subtract 1 from time	left
 
 Demo_TimeEnd:
@@ -470,11 +497,7 @@ Demo_TimeEnd:
 ; ===========================================================================
 
 loc_DA6:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
 loc_DAE:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_DAE		; if not, branch
 		bsr.w	ReadJoypads
 		lea	($C00004).l,a5
 		move.l	#$94009340,(a5)
@@ -497,7 +520,6 @@ loc_DAE:
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		move.w	#0,($A11100).l
 		bsr.w	PalCycle_SS
 		jsr	(ProcessDMAQueue).l
 
@@ -511,11 +533,7 @@ locret_E70:
 ; ===========================================================================
 
 loc_E72:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
 loc_E7A:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_E7A		; if not, branch
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_EB4
@@ -556,19 +574,9 @@ loc_EEE:
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		tst.b	($FFFFF767).w
-		beq.s	loc_F54
-		lea	($C00004).l,a5
-		move.l	#$94019370,(a5)
-		move.l	#$96E49500,(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7000,(a5)
-		move.w	#$83,($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		move.b	#0,($FFFFF767).w
+		jsr	(ProcessDMAQueue).l
 
 loc_F54:
-		move.w	#0,($A11100).l	; start	the Z80
 		movem.l	($FFFFF700).w,d0-d7
 		movem.l	d0-d7,($FFFFFF10).w
 		movem.l	($FFFFF754).w,d0-d1
@@ -594,11 +602,7 @@ loc_F9A:				; XREF: off_B6E
 ; ===========================================================================
 
 loc_FA6:				; XREF: off_B6E
-		move.w	#$100,($A11100).l ; stop the Z80
-
 loc_FAE:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_FAE		; if not, branch
 		bsr.w	ReadJoypads
 		lea	($C00004).l,a5
 		move.l	#$94009340,(a5)
@@ -621,7 +625,6 @@ loc_FAE:
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		move.w	#0,($A11100).l	; start	the Z80
 		jsr	(ProcessDMAQueue).l
 
 loc_1060:
@@ -636,11 +639,7 @@ locret_106C:
 
 
 sub_106E:				; XREF: loc_C32; et al
-		move.w	#$100,($A11100).l ; stop the Z80
-
 loc_1076:
-		btst	#0,($A11100).l	; has Z80 stopped?
-		bne.s	loc_1076	; if not, branch
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_10B0
@@ -678,8 +677,7 @@ loc_10D4:				; XREF: sub_106E
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		move.w	#0,($A11100).l	; start	the Z80
-		rts	
+		rts
 ; End of function sub_106E
 
 ; ---------------------------------------------------------------------------
@@ -698,38 +696,9 @@ PalToCRAM:
 		lea	($C00000).l,a1
 		lea	($FFFFFA80).w,a0 ; load	pallet from RAM
 		move.l	#$C0000000,4(a1) ; set VDP to CRAM write
+		rept 32
 		move.l	(a0)+,(a1)	; move pallet to CRAM
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
-		move.l	(a0)+,(a1)
+		endr
 		move.w	#$8ADF,4(a1)
 		movem.l	(sp)+,a0-a1
 	;	tst.b	($FFFFF64F).w
@@ -756,17 +725,11 @@ locret_119C:
 
 
 JoypadInit:				; XREF: GameClrRAM
-		move.w	#$100,($A11100).l ; stop the Z80
-
-Joypad_WaitZ80:
-		btst	#0,($A11100).l	; has the Z80 stopped?
-		bne.s	Joypad_WaitZ80	; if not, branch
 		moveq	#$40,d0
 		move.b	d0,($A10009).l	; init port 1 (joypad 1)
 		move.b	d0,($A1000B).l	; init port 2 (joypad 2)
 		move.b	d0,($A1000D).l	; init port 3 (extra)
-		move.w	#0,($A11100).l	; start	the Z80
-		rts	
+		rts
 ; End of function JoypadInit
 
 ; ---------------------------------------------------------------------------
@@ -784,14 +747,10 @@ ReadJoypads:
 
 Joypad_Read:
 		move.b	#0,(a1)
-		nop	
-		nop	
 		move.b	(a1),d0
 		lsl.b	#2,d0
 		andi.b	#$C0,d0
 		move.b	#$40,(a1)
-		nop	
-		nop	
 		move.b	(a1),d1
 		andi.b	#$3F,d1
 		or.b	d1,d0
@@ -814,47 +773,56 @@ VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
 		lea	(VDPSetupArray).l,a2
 		moveq	#$12,d7
 
-VDP_Loop:
+	.setreg:
 		move.w	(a2)+,(a0)
-		dbf	d7,VDP_Loop	; set the VDP registers
+		dbf	d7,.setreg			; set the VDP registers
 
 		move.w	(VDPSetupArray+2).l,d0
 		move.w	d0,($FFFFF60C).w
-		move.w	#$8ADF,($FFFFF624).w
+		move.w	#$8A00+223,($FFFFF624).w	; H-INT every 224th scanline
 		moveq	#0,d0
-		move.l	#$C0000000,($C00004).l ; set VDP to CRAM write
+		move.l	#$C0000000,($C00004).l 		; set VDP to CRAM write
 		move.w	#$3F,d7
 
-VDP_ClrCRAM:
+	.clrCRAM:
 		move.w	d0,(a1)
-		dbf	d7,VDP_ClrCRAM	; clear	the CRAM
+		dbf	d7,.clrCRAM	; clear	the CRAM
 
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
 		move.l	d1,-(sp)
-		lea	($C00004).l,a5
-		move.w	#$8F01,(a5)
-		move.l	#$94FF93FF,(a5)
-		move.w	#$9780,(a5)
-		move.l	#$40000080,(a5)
-		move.w	#0,($C00000).l	; clear	the screen
+		fillVRAM	0,$FFFF,0
 
-loc_128E:
+	.waitforDMA:
 		move.w	(a5),d1
-		btst	#1,d1
-		bne.s	loc_128E
+		btst	#1,d1		; is DMA (fillVRAM) still running?
+		bne.s	.waitforDMA	; if yes, branch
 
-		move.w	#$8F02,(a5)
+		move.w	#$8F02,(a5)	; set VDP increment size
 		move.l	(sp)+,d1
 		rts	
 ; End of function VDPSetupGame
 
 ; ===========================================================================
-VDPSetupArray:	dc.w $8004, $8134, $8230, $8328	; XREF: VDPSetupGame
-		dc.w $8407, $857C, $8600, $8700
-		dc.w $8800, $8900, $8A00, $8B00
-		dc.w $8C81, $8D3F, $8E00, $8F02
-		dc.w $9001, $9100, $9200
+VDPSetupArray:	dc.w $8004		; 8-colour mode
+		dc.w $8134		; enable V.interrupts, enable DMA
+		dc.w $8200+($C000>>10) 	; set foreground nametable address
+		dc.w $8300+($A000>>10)	; set window nametable address
+		dc.w $8400+($E000>>13) 	; set background nametable address
+		dc.w $8500+($F800>>9) 	; set sprite table address
+		dc.w $8600		; unused
+		dc.w $8700		; set background colour (palette entry 0)
+		dc.w $8800		; unused
+		dc.w $8900		; unused
+		dc.w $8A00		; default H.interrupt register
+		dc.w $8B00		; full-screen vertical scrolling
+		dc.w $8C81		; 40-cell display mode
+		dc.w $8D00+($FC00>>10) 	; set background hscroll address
+		dc.w $8E00		; unused
+		dc.w $8F02		; set VDP increment size
+		dc.w $9001		; 64-cell hscroll size
+		dc.w $9100		; window horizontal position
+		dc.w $9200		; window vertical position
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	clear the screen
@@ -864,49 +832,40 @@ VDPSetupArray:	dc.w $8004, $8134, $8230, $8328	; XREF: VDPSetupGame
 
 
 ClearScreen:
-		lea	($C00004).l,a5
-		move.w	#$8F01,(a5)
-		move.l	#$940F93FF,(a5)
-		move.w	#$9780,(a5)
-		move.l	#$40000083,(a5)
-		move.w	#0,($C00000).l
+		fillVRAM	0,$FFF,$C000 ; clear foreground namespace
 
-loc_12E6:
+	.wait1:
 		move.w	(a5),d1
 		btst	#1,d1
-		bne.s	loc_12E6
+		bne.s	.wait1
 
 		move.w	#$8F02,(a5)
-		lea	($C00004).l,a5
-		move.w	#$8F01,(a5)
-		move.l	#$940F93FF,(a5)
-		move.w	#$9780,(a5)
-		move.l	#$60000083,(a5)
-		move.w	#0,($C00000).l
+		fillVRAM	0,$FFF,$E000 ; clear background namespace
 
-loc_1314:
+	.wait2:
 		move.w	(a5),d1
 		btst	#1,d1
-		bne.s	loc_1314
+		bne.s	.wait2
 
 		move.w	#$8F02,(a5)
-		move.l	#0,($FFFFF616).w
-		move.l	#0,($FFFFF61A).w
+		clr.l	($FFFFF616).w
+		clr.l	($FFFFF61A).w
+
 		lea	($FFFFF800).w,a1
 		moveq	#0,d0
-		move.w	#$A0,d1
+		move.w	#($280/4)-1,d1	; This should be ($280/4)-1, leading to a slight bug (first bit of v_pal_water is cleared)
 
-loc_133A:
+	.clearsprites:
 		move.l	d0,(a1)+
-		dbf	d1,loc_133A
+		dbf	d1,.clearsprites ; clear sprite table (in RAM)
 
 		lea	($FFFFCC00).w,a1
 		moveq	#0,d0
-		move.w	#$100,d1
+		move.w	#($400/4)-1,d1	; This should be ($400/4)-1, leading to a slight bug (first bit of the Sonic object's RAM is cleared)
 
-loc_134A:
+	.clearhscroll:
 		move.l	d0,(a1)+
-		dbf	d1,loc_134A
+		dbf	d1,.clearhscroll ; clear hscroll table (in RAM)
 		rts	
 ; End of function ClearScreen
 
@@ -918,17 +877,12 @@ loc_134A:
 
 
 SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
-		nop	
 		move.w	#$100,($A11100).l ; stop the Z80
 		move.w	#$100,($A11200).l ; reset the Z80
 		lea	(Kos_Z80).l,a0	; load sound driver
 		lea	($A00000).l,a1
 		bsr.w	KosDec		; decompress
 		move.w	#0,($A11200).l
-		nop	
-		nop	
-		nop	
-		nop	
 		move.w	#$100,($A11200).l ; reset the Z80
 		move.w	#0,($A11100).l	; start	the Z80
 		rts	
@@ -946,6 +900,10 @@ PlaySound:
 		rts	
 ; End of function PlaySound
 
+PlaySoundLocal:
+	       	tst.b	1(a0)
+		bpl.s	notvisible	; rts
+
 ; ---------------------------------------------------------------------------
 ; Subroutine to	play a special sound/music (E0-E4)
 ;
@@ -961,6 +919,7 @@ PlaySound:
 
 PlaySound_Special:
 		move.b	d0,($FFFFF00B).w
+notvisible:
 		rts	
 ; End of function PlaySound_Special
 
@@ -1564,7 +1523,7 @@ RunPLC_Loop:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-  		  include "compression/enigma.asm"
+  		  include "compression/Enigma.asm"
 
 ; ---------------------------------------------------------------------------
 ; Kosinski decompression algorithm
@@ -1573,7 +1532,16 @@ RunPLC_Loop:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-  		  include "compression/kosinski.asm"
+  		  include "compression/Kosinski.asm"
+  		  
+; ---------------------------------------------------------------------------
+; Comper decompression algorithm
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+  		  include "compression/Comper.asm"
 
 ; ---------------------------------------------------------------------------
 ; Pallet cycling routine loading subroutine
@@ -1606,15 +1574,8 @@ PalCycle:	dc.w PalCycle_GHZ-PalCycle
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-PalCycle_Title:				; XREF: TitleScreen
-		lea	(Pal_TitleCyc).l,a0
-		bra.s	loc_196A
-; ===========================================================================
-
 PalCycle_GHZ:				; XREF: PalCycle
 		lea	(Pal_GHZCyc).l,a0
-
-loc_196A:				; XREF: PalCycle_Title
 		subq.w	#1,($FFFFF634).w
 		bpl.s	locret_1990
 		move.w	#5,($FFFFF634).w
@@ -1837,7 +1798,6 @@ locret_1B64:
 ; End of function PalCycle_SBZ
 
 ; ===========================================================================
-Pal_TitleCyc:	incbin	pallet\c_title.bin
 Pal_GHZCyc:	incbin	pallet\c_ghz.bin
 Pal_LZCyc1:	incbin	pallet\c_lz_wat.bin	; waterfalls pallet
 Pal_LZCyc2:	incbin	pallet\c_lz_bel.bin	; conveyor belt pallet
@@ -2646,6 +2606,10 @@ SegaScreen:				; XREF: GameModeArray
 		moveq	#$27,d1
 		moveq	#$1B,d2
 		bsr.w	ShowVDPGraphics
+		tst.b   ($FFFFFFF8).w	; is console Japanese?
+		bmi.s   .loadpal
+		copyTilemap	$FF0A40,$C53A,2,1 ; hide "TM" with a white rectangle
+.loadpal:
 		moveq	#0,d0
 		bsr.w	PalLoad2	; load Sega logo pallet
 		move.w	#-$A,($FFFFF632).w
@@ -2833,7 +2797,7 @@ loc_317C:
 		jsr	ObjectsLoad
 		bsr.w	DeformBgLayer
 		jsr	BuildSprites
-		bsr.w	PalCycle_Title
+		bsr.w	PalCycle_GHZ
 		bsr.w	RunPLC_RAM
 		move.w	($FFFFD008).w,d0
 		addq.w	#2,d0
@@ -3226,7 +3190,7 @@ LevSel_ChgSnd:				; XREF: LevSelTextLoad
 		andi.w	#$F,d0
 		cmpi.b	#$A,d0
 		bcs.s	loc_3580
-		addi.b	#7,d0
+		addi.b	#4,d0
 
 loc_3580:
 		add.w	d3,d0
@@ -3251,18 +3215,44 @@ loc_3588:
 ; ===========================================================================
 
 loc_3598:				; XREF: LevSel_ChgLine
-		add.w	d3,d0
-		move.w	d0,(a6)
-		dbf	d2,loc_3588
-		rts	
+		cmp.w   #$40, d0    	; Check for $40 (End of ASCII number area)
+                blt.s   .notText    	; If this is not an ASCII text character, branch
+                sub.w   #$3,d0      	; Subtract an extra 3 (Compensate for missing characters in the font)
+    .notText:
+                sub.w   #$30,d0     	; Subtract #$33 (Convert to S2 font from ASCII)
+                add.w   d3,d0       	; combine char with VRAM setting
+                move.w  d0,(a6)     	; send to VRAM
+                dbf     d2,loc_3588
+		rts
 ; End of function LevSel_ChgLine
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Level	select menu text
 ; ---------------------------------------------------------------------------
-LevelMenuText:	incbin	misc\menutext.bin
-		even
+LevelMenuText:
+        dc.b    "GREEN HILL ZONE    ACT 1"
+        dc.b    "                   ACT 2"
+        dc.b    "                   ACT 3"
+        dc.b    "LABYRINTH ZONE     ACT 1"
+        dc.b    "                   ACT 2"
+        dc.b    "                   ACT 3"
+        dc.b    "MARBLE ZONE        ACT 1"
+        dc.b    "                   ACT 2"
+        dc.b    "                   ACT 3"
+        dc.b    "STAR LIGHT ZONE    ACT 1"
+        dc.b    "                   ACT 2"
+        dc.b    "                   ACT 3"
+        dc.b    "SPRING YARD ZONE   ACT 1"
+        dc.b    "                   ACT 2"
+        dc.b    "                   ACT 3"
+        dc.b    "SCRAP BRAIN ZONE   ACT 1"
+        dc.b    "                   ACT 2"
+        dc.b    "                   ACT 3"
+        dc.b    "FINAL ZONE              "             
+        dc.b    "SPECIAL STAGE           "          
+        dc.b    "SOUND TEST              "              
+        even
 ; ---------------------------------------------------------------------------
 ; Music	playlist
 ; ---------------------------------------------------------------------------
@@ -10295,12 +10285,6 @@ Obj18_Delete:				; XREF: Obj18_Index
 		bra.w	DeleteObject
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
-; Sprite mappings - unused
-; ---------------------------------------------------------------------------
-Map_obj18x:
-	include "_maps\obj18x.asm"
-
-; ---------------------------------------------------------------------------
 ; Sprite mappings - GHZ	platforms
 ; ---------------------------------------------------------------------------
 Map_obj18:
@@ -10318,13 +10302,6 @@ Map_obj18a:
 Map_obj18b:
 	include "_maps\obj18slz.asm"
 
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Object 19 - blank
-; ---------------------------------------------------------------------------
-
-Obj19:					; XREF: Obj_Index
-		rts	
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - swinging ball on a chain from GHZ boss
@@ -12186,7 +12163,7 @@ Obj23_ChkCancel:			; XREF: Obj23_Main
 		movea.l	$3C(a0),a1
 		cmpi.b	#$27,0(a1)	; has Buzz Bomber been destroyed?
 		beq.s	Obj23_Delete	; if yes, branch
-		rts	
+		rts
 ; End of function Obj23_ChkCancel
 
 ; ===========================================================================
@@ -12203,7 +12180,7 @@ Obj23_FromBuzz:				; XREF: Obj23_Index
 		move.w	($FFFFF72E).w,d0
 		addi.w	#$E0,d0
 		cmp.w	$C(a0),d0	; has object moved below the level boundary?
-		bcs.s	Obj23_Delete	; if yes, branch
+		bcs.w	DeleteObject	; if yes, branch
 		rts	
 ; ===========================================================================
 
@@ -12214,8 +12191,7 @@ Obj23_Explode:				; XREF: Obj23_FromBuzz
 ; ===========================================================================
 
 Obj23_Delete:				; XREF: Obj23_Index
-		bsr.w	DeleteObject
-		rts	
+		bra.w	DeleteObject
 ; ===========================================================================
 
 Obj23_FromNewt:				; XREF: Obj23_Index
@@ -12226,8 +12202,7 @@ Obj23_FromNewt:				; XREF: Obj23_Index
 Obj23_Animate2:				; XREF: Obj23_Main
 		lea	(Ani_obj23).l,a1
 		bsr.w	AnimateSprite
-		bsr.w	DisplaySprite
-		rts	
+		bra.w	DisplaySprite
 ; ===========================================================================
 Ani_obj22:
 	include "_anim\obj22.asm"
@@ -12359,7 +12334,7 @@ Obj25_Animate:				; XREF: Obj25_Index
 		andi.w	#$FF80,d1
 		sub.w	d1,d0
 		cmpi.w	#$280,d0
-		bhi.s	Obj25_Delete
+		bhi.w	DeleteObject
 		rts	
 ; ===========================================================================
 
@@ -12391,20 +12366,18 @@ CollectRing:				; XREF: Obj25_Collect
 		ori.b	#1,($FFFFFE1D).w ; update the rings counter
 		move.w	#$B5,d0		; play ring sound
 		cmpi.w	#100,($FFFFFE20).w ; do	you have < 100 rings?
-		bcs.s	Obj25_PlaySnd	; if yes, branch
+		jcs	PlaySound_Special	; if yes, branch
 		bset	#1,($FFFFFE1B).w ; update lives	counter
 		beq.s	loc_9CA4
 		cmpi.w	#200,($FFFFFE20).w ; do	you have < 200 rings?
-		bcs.s	Obj25_PlaySnd	; if yes, branch
+		jcs	PlaySound_Special	; if yes, branch
 		bset	#2,($FFFFFE1B).w ; update lives	counter
-		bne.s	Obj25_PlaySnd
+		jne	PlaySound_Special
 
 loc_9CA4:
 		addq.b	#1,($FFFFFE12).w ; add 1 to the	number of lives	you have
 		addq.b	#1,($FFFFFE1C).w ; add 1 to the	lives counter
 		move.w	#$88,d0		; play extra life music
-
-Obj25_PlaySnd:
 		jmp	(PlaySound_Special).l
 ; End of function CollectRing
 
@@ -12437,7 +12410,6 @@ Obj37_CountRings:			; XREF: Obj37_Index
 
 loc_9CDE:
 		subq.w	#1,d5
-	;	move.w	#$288,d4
 		lea 	SpillRingData,a3 ; load the address of the array in a3
 		bra.s	Obj37_MakeRings
 ; ===========================================================================
@@ -12456,16 +12428,8 @@ Obj37_MakeRings:			; XREF: Obj37_CountRings
 		move.l	#Map_obj25,4(a1)
 		move.w	#$27B2,2(a1)
 		move.b	#4,1(a1)
-	;	move.b	#3,$18(a1)
 		move.b	#$47,$20(a1)
 		move.b	#8,$19(a1)
-	;	move.b	#-1,($FFFFFEC6).w
-	;	tst.w	d4
-	;	bmi.s	loc_9D62
-	;	move.w	d4,d0
-	;	bsr.w	CalcSine
-	;	move.w	d4,d2
-	;	lsr.w	#8,d2
 		tst.b	($FFFFF64C).w		; Does the level have water?
 		beq.s	.skiphalvingvel		; If not, branch and skip underwater checks
 		move.w	($FFFFF646).w,d6	; Move water level to d6
@@ -12475,23 +12439,8 @@ Obj37_MakeRings:			; XREF: Obj37_CountRings
 		asr.w	d1			; Half d1. Makes the ring's y_vel bounce up/down slower
 
 .skiphalvingvel:
-	;	asl.w	d2,d0
-	;	asl.w	d2,d1
-	;	move.w	d0,d2
-	;	move.w	d1,d3
-	;	addi.b	#$10,d4
-	;	bcc.s	loc_9D62
-	;	subi.w	#$80,d4
-	;	bcc.s	loc_9D62
-	;	move.w	#$288,d4
-
-;loc_9D62:
-	  	move.w	(a3)+,$12(a1) ; move the data contained in the array to the y velocity and increment the address in a3
-		move.w	(a3)+,$10(a1) ; move the data contained in the array to the x velocity and increment the address in a3
-;		move.w	d2,$10(a1)
-;		move.w	d3,$12(a1)
-;		neg.w	d2
-;		neg.w	d4
+      		move.w  (a3)+,$10(a1)         ; move the data contained in the array to the x velocity and increment the address in a3
+		move.w  (a3)+,$12(a1)         ; move the data contained in the array to the y velocity and increment the address in a3
 		dbf	d5,Obj37_Loop	; repeat for number of rings (max 31)
 
 Obj37_ResetCounter:			; XREF: Obj37_Loop
@@ -12531,8 +12480,6 @@ Obj37_Bounce:				; XREF: Obj37_Index
 		neg.w	$12(a0)
 
 Obj37_ChkDel:				; XREF: Obj37_Bounce
-	;	tst.b	($FFFFFEC6).w
-	;	beq.s	Obj37_Delete
 		subq.b	#1,$1F(a0)	; Subtract 1
 		beq.s	Obj37_Delete		; If 0, delete
 		cmpi.w	#$FF00,($FFFFF72C).w		; is vertical wrapping enabled?
@@ -12549,10 +12496,6 @@ Obj37_ChkDel:				; XREF: Obj37_Bounce
 		
 Obj37_Display:
 		lea	($FFFFAC00+$180).w,a1
-	;	move.w	$18(a0),d0
-	;	lsr.w	#1,d0
-	;	andi.w	#$380,d0
-	;	adda.w	d0,a1
 		cmpi.w	#$7E,(a1)
 		bcc.s	.locret
 		addq.w	#2,(a1)
@@ -13005,9 +12948,8 @@ Obj2E_ChkShoes:
 		bne.s	Obj2E_ChkShield
 		move.b	#1,($FFFFFE2E).w ; speed up the	BG music
 		move.w	#$4B0,($FFFFD034).w ; time limit for the power-up
-		move.w	#$C00,($FFFFF760).w ; change Sonic's top speed
-		move.w	#$18,($FFFFF762).w
-		move.w	#$80,($FFFFF764).w
+		lea	($FFFFF760).w,a2	; Load Sonic_top_speed into a2
+		jsr	ApplySpeedSettings	; Fetch Speed settings
 		move.w	#$E2,d0
 		jmp	(PlaySound).l	; Speed	up the music
 ; ===========================================================================
@@ -14458,10 +14400,8 @@ loc_B872:
 		move.b	($FFFFFE0F).w,d0
 		andi.b	#$F,d0
 		bne.s	loc_B892
-		tst.b	1(a0)
-		bpl.s	loc_B892
 		move.w	#$C7,d0
-		jsr	(PlaySound_Special).l ;	play rising chain sound
+		jsr	(PlaySoundLocal).l ;	play rising chain sound
 
 loc_B892:
 		subi.w	#$80,$32(a0)
@@ -14510,10 +14450,8 @@ loc_B902:
 		move.b	($FFFFFE0F).w,d0
 		andi.b	#$F,d0
 		bne.s	loc_B91C
-		tst.b	1(a0)
-		bpl.s	loc_B91C
 		move.w	#$C7,d0
-		jsr	(PlaySound_Special).l ;	play rising chain sound
+		jsr	(PlaySoundLocal).l ;	play rising chain sound
 
 loc_B91C:
 		subi.w	#$80,$32(a0)
@@ -14537,10 +14475,8 @@ loc_B938:				; XREF: Obj31_Type01
 		move.w	#0,$12(a0)	; stop object falling
 		move.w	#1,$36(a0)
 		move.w	#$3C,$38(a0)
-		tst.b	1(a0)
-		bpl.s	loc_B97C
 		move.w	#$BD,d0
-		jsr	(PlaySound_Special).l ;	play stomping sound
+		jsr	(PlaySoundLocal).l ;	play stomping sound
 
 loc_B97C:
 		bra.w	Obj31_Restart
@@ -19429,12 +19365,6 @@ Map_obj40:
 	include "_maps\obj40.asm"
 
 ; ===========================================================================
-; ---------------------------------------------------------------------------
-; Object 4F - blank
-; ---------------------------------------------------------------------------
-
-Obj4F:					; XREF: Obj_Index
-		rts	
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -24263,9 +24193,8 @@ Obj01_Main:				; XREF: Obj01_Index
 		move.b	#2,$18(a0)
 		move.b	#$18,$19(a0)
 		move.b	#4,1(a0)
-		move.w	#$600,($FFFFF760).w ; Sonic's top speed
-		move.w	#$C,($FFFFF762).w ; Sonic's acceleration
-		move.w	#$80,($FFFFF764).w ; Sonic's deceleration
+		lea	($FFFFF760).w,a2	; Load Sonic_top_speed into a2
+		bsr.w	ApplySpeedSettings	; Fetch Speed settings
 		move.b	#5,$FFFFD1C0.w
 
 Obj01_Control:				; XREF: Obj01_Index
@@ -24420,9 +24349,8 @@ Obj01_InWater:
 		bsr.w	ResumeMusic
 		move.b	#$A,($FFFFD340).w ; load bubbles object	from Sonic's mouth
 		move.b	#$81,($FFFFD368).w
-		move.w	#$300,($FFFFF760).w ; change Sonic's top speed
-		move.w	#6,($FFFFF762).w ; change Sonic's acceleration
-		move.w	#$40,($FFFFF764).w ; change Sonic's deceleration
+		lea	($FFFFF760).w,a2	; Load Sonic_top_speed into a2
+		bsr.w	ApplySpeedSettings	; Fetch Speed settings
 		asr	$10(a0)
 		asr	$12(a0)
 		asr	$12(a0)
@@ -24436,9 +24364,8 @@ Obj01_OutWater:
 		bclr	#6,$22(a0)
 		beq.s	locret_12D80
 		bsr.w	ResumeMusic
-		move.w	#$600,($FFFFF760).w ; restore Sonic's speed
-		move.w	#$C,($FFFFF762).w ; restore Sonic's acceleration
-		move.w	#$80,($FFFFF764).w ; restore Sonic's deceleration
+		lea	($FFFFF760).w,a2	; Load Sonic_top_speed into a2
+		bsr.w	ApplySpeedSettings	; Fetch Speed settings
 		asl	$12(a0)
 		tst.w   $12(a0)	; <--
 		beq.w	locret_12D80
@@ -26281,6 +26208,44 @@ locret_13C96:
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
+; Subroutine to collect the right speed setting for a character
+; a0 must be character
+; a1 will be the result and have the correct speed settings
+; a2 is characters' speed
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+ApplySpeedSettings:
+	moveq	#0,d0				; Quickly clear d0
+	tst.w	$34(a0)				; Does character have speedshoes?
+	beq.s	.nospeedshoes			; If not, branch
+	addq.b	#6,d0				; Quickly add 6 to d0
+.nospeedshoes:
+	btst	#6,$22(a0)			; Is the character underwater?
+	beq.s	.notunderwater			; If not, branch
+	addi.b	#12,d0				; Add 12 to d0
+.notunderwater:
+	lea	Speedsettings(pc,d0.w),a1	; Load correct speed settings into a1
+	move.l	(a1)+,(a2)+			; Set character's new top speed and acceleration
+	move.w	(a1),(a2)			; Set character's deceleration
+	rts					; Finish subroutine
+; ===========================================================================
+; ----------------------------------------------------------------------------
+; Speed Settings Array
+
+; This array defines what speeds the character should be set to
+; ----------------------------------------------------------------------------
+;		top_speed	acceleration	deceleration	; #	; Comment
+Speedsettings:
+	dc.w	$600,		$C,		$80		; $00	; Normal
+	dc.w	$C00,		$18,		$80		; $08	; Normal Speedshoes
+	dc.w	$300,		$6,		$40		; $16	; Normal Underwater
+	dc.w	$600,		$C,		$40		; $24	; Normal Underwater Speedshoes
+; ===========================================================================
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
 ; Object 0A - drowning countdown numbers and small bubbles (LZ)
 ; ---------------------------------------------------------------------------
 
@@ -26355,10 +26320,6 @@ loc_13D44:
 		jmp	DisplaySprite
 ; ===========================================================================
 
-;Obj0A_Delete:
-;		jmp	DeleteObject
-; ===========================================================================
-
 Obj0A_Display:				; XREF: Obj0A_Index
 		bsr.s	Obj0A_ShowNumber
 		lea	(Ani_obj0A).l,a1
@@ -26386,10 +26347,6 @@ Obj0A_Display2:
 		tst.b	1(a0)
 		jpl	DeleteObject
 		jmp	DisplaySprite
-; ===========================================================================
-
-;Obj0A_Delete3:
-;		jmp	DeleteObject
 ; ===========================================================================
 
 Obj0A_ShowNumber:			; XREF: Obj0A_Wobble; Obj0A_Display
@@ -26506,10 +26463,6 @@ loc_13F86:
 		bne.s	loc_13FAC	; Make it jump straight to this location
 		move.b	#6,($FFFFD000+$24).w
 		rts
-; ===========================================================================
-
-;Obj0A_GoMakeItem:			; XREF: Obj0A_ReduceAir
-;		bra.s	Obj0A_MakeItem
 ; ===========================================================================
 
 loc_13FAC:
@@ -26663,11 +26616,7 @@ Obj38_Shield:				; XREF: Obj38_Index
 ; ===========================================================================
 
 Obj38_RmvShield:
-		rts	
-; ===========================================================================
-
-;Obj38_Delete:
-;		jmp	DeleteObject
+		rts
 ; ===========================================================================
 
 Obj38_Stars:				; XREF: Obj38_Index
@@ -26676,20 +26625,6 @@ Obj38_Stars:				; XREF: Obj38_Index
 		move.w	($FFFFF7A8).w,d0
 		move.b	$1C(a0),d1
 		subq.b	#1,d1
-	;	bra.s	Obj38_StarTrail
-; ===========================================================================
-	;	lsl.b	#4,d1
-	;	addq.b	#4,d1
-	;	sub.b	d1,d0
-	;	move.b	$30(a0),d1
-	;	sub.b	d1,d0
-	;	addq.b	#4,d1
-	;	andi.b	#$F,d1
-	;	move.b	d1,$30(a0)
-	;	bra.s	Obj38_StarTrail2a
-; ===========================================================================
-
-Obj38_StarTrail:			; XREF: Obj38_Stars
 		lsl.b	#3,d1
 		move.b	d1,d2
 		add.b	d1,d1
@@ -26720,98 +26655,6 @@ Obj38_StarTrail2a:
 ;Obj38_Delete2:				; XREF: Obj38_Stars
 ;		jmp	DeleteObject
 ; ===========================================================================
-; ---------------------------------------------------------------------------
-; Object 4A - special stage entry from beta
-; ---------------------------------------------------------------------------
-
-Obj4A:					; XREF: Obj_Index
-		moveq	#0,d0
-		move.b	$24(a0),d0
-		move.w	Obj4A_Index(pc,d0.w),d1
-		jmp	Obj4A_Index(pc,d1.w)
-; ===========================================================================
-Obj4A_Index:	dc.w Obj4A_Main-Obj4A_Index
-		dc.w Obj4A_RmvSonic-Obj4A_Index
-		dc.w Obj4A_LoadSonic-Obj4A_Index
-; ===========================================================================
-
-Obj4A_Main:				; XREF: Obj4A_Index
-		tst.l	($FFFFF680).w	; are pattern load cues	empty?
-		beq.s	Obj4A_Main2	; if yes, branch
-		rts	
-; ===========================================================================
-
-Obj4A_Main2:
-		addq.b	#2,$24(a0)
-		move.l	#Map_obj4A,4(a0)
-		move.b	#4,1(a0)
-		move.b	#1,$18(a0)
-		move.b	#$38,$19(a0)
-		move.w	#$541,2(a0)
-		move.w	#120,$30(a0)	; set time for Sonic's disappearance to 2 seconds
-
-Obj4A_RmvSonic:				; XREF: Obj4A_Index
-		move.w	($FFFFD008).w,8(a0)
-		move.w	($FFFFD00C).w,$C(a0)
-		move.b	($FFFFD022).w,$22(a0)
-		lea	(Ani_obj4A).l,a1
-		jsr	AnimateSprite
-		cmpi.b	#2,$1A(a0)
-		jne	DisplaySprite
-		tst.b	($FFFFD000).w
-		jeq	DisplaySprite
-		move.b	#0,($FFFFD000).w ; remove Sonic
-		move.w	#$A8,d0
-		jsr	(PlaySound_Special).l ;	play Special Stage "GOAL" sound
-
-;Obj4A_Display:
-		jmp	DisplaySprite
-; ===========================================================================
-
-Obj4A_LoadSonic:			; XREF: Obj4A_Index
-		subq.w	#1,$30(a0)	; subtract 1 from time
-		bne.s	Obj4A_Wait	; if time remains, branch
-		move.b	#1,($FFFFD000).w ; load	Sonic object
-		jmp	DeleteObject
-; ===========================================================================
-
-Obj4A_Wait:
-		rts	
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Object 08 - water splash (LZ)
-; ---------------------------------------------------------------------------
-
-Obj08:					; XREF: Obj_Index
-		moveq	#0,d0
-		move.b	$24(a0),d0
-		move.w	Obj08_Index(pc,d0.w),d1
-		jmp	Obj08_Index(pc,d1.w)
-; ===========================================================================
-Obj08_Index:	dc.w Obj08_Main-Obj08_Index
-		dc.w Obj08_Display-Obj08_Index
-		dc.w Obj08_Delete-Obj08_Index
-; ===========================================================================
-
-Obj08_Main:				; XREF: Obj08_Index
-		addq.b	#2,$24(a0)
-		move.l	#Map_obj08,4(a0)
-		ori.b	#4,1(a0)
-		move.b	#1,$18(a0)
-		move.b	#$10,$19(a0)
-		move.w	#$4259,2(a0)
-		move.w	($FFFFD008).w,8(a0) ; copy x-position from Sonic
-
-Obj08_Display:				; XREF: Obj08_Index
-		move.w	($FFFFF646).w,$C(a0) ; copy y-position from water height
-		lea	(Ani_obj08).l,a1
-		jsr	AnimateSprite
-		jmp	DisplaySprite
-; ===========================================================================
-
-Obj08_Delete:				; XREF: Obj08_Index
-		jmp	DeleteObject	; delete when animation	is complete
-; ===========================================================================
 Ani_obj38:
 	include "_anim\obj38.asm"
 
@@ -26820,24 +26663,6 @@ Ani_obj38:
 ; ---------------------------------------------------------------------------
 Map_obj38:
 	include "_maps\obj38.asm"
-
-Ani_obj4A:
-	include "_anim\obj4A.asm"
-
-; ---------------------------------------------------------------------------
-; Sprite mappings - special stage entry	from beta
-; ---------------------------------------------------------------------------
-Map_obj4A:
-	include "_maps\obj4A.asm"
-
-Ani_obj08:
-	include "_anim\obj08.asm"
-
-; ---------------------------------------------------------------------------
-; Sprite mappings - water splash (LZ)
-; ---------------------------------------------------------------------------
-Map_obj08:
-	include "_maps\obj08.asm"
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	change Sonic's angle & position as he walks along the floor
@@ -37093,12 +36918,6 @@ Obj09_NoGlass:
 ; End of function Obj09_ChkItems2
 
 ; ===========================================================================
-; ---------------------------------------------------------------------------
-; Object 10 - blank
-; ---------------------------------------------------------------------------
-
-Obj10:					; XREF: Obj_Index
-		rts	
 ; ---------------------------------------------------------------------------
 ; Subroutine to	animate	level graphics
 ; ---------------------------------------------------------------------------

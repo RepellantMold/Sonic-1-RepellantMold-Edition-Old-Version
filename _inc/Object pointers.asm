@@ -2,12 +2,12 @@
 ; Object pointers
 ; ---------------------------------------------------------------------------
 	dc.l Obj01, ObjectFall,	ObjectFall, ObjectFall
-	dc.l SpinDash_dust, ObjectFall, ObjectFall, Obj08
+	dc.l SpinDash_dust, ObjectFall, ObjectFall, ObjectFall
 	dc.l Obj09, Obj0A, Obj0B, Obj0C
-	dc.l Obj0D, Obj0E, Obj0F, Obj10
+	dc.l Obj0D, Obj0E, Obj0F, ObjectFall
 	dc.l Obj11, Obj12, Obj13, Obj14
 	dc.l Obj15, Obj16, Obj17, Obj18
-	dc.l Obj19, Obj1A, Obj1B, Obj1C
+	dc.l ObjectFall, Obj1A, Obj1B, Obj1C
 	dc.l Obj1D, Obj1E, Obj1F, Obj20
 	dc.l Obj21, Obj22, Obj23, Obj24
 	dc.l Obj25, Obj26, Obj27, Obj28
@@ -19,8 +19,8 @@
 	dc.l Obj3D, Obj3E, Obj3F, Obj40
 	dc.l Obj41, Obj42, Obj43, Obj44
 	dc.l Obj45, Obj46, Obj47, Obj48
-	dc.l Obj49, Obj4A, Obj4B, Obj4C
-	dc.l Obj4D, Obj4E, Obj4F, Obj50
+	dc.l Obj49, ObjectFall, Obj4B, Obj4C
+	dc.l Obj4D, Obj4E, ObjectFall, Obj50
 	dc.l Obj51, Obj52, Obj53, Obj54
 	dc.l Obj55, Obj56, Obj57, Obj58
 	dc.l Obj59, Obj5A, Obj5B, Obj5C
