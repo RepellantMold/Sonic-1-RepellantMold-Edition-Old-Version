@@ -953,7 +953,7 @@ loc_13BE:
 
 loc_13CA:
 		move.b	#$10,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		tst.b	($FFFFFFE1).w	; is slow-motion cheat on?
 		beq.s	Pause_ChkStart	; if not, branch
 		btst	#6,($FFFFF605).w ; is button A pressed?
@@ -1847,7 +1847,7 @@ Pal_ToBlack:
 
 loc_1DCE:
 		move.b	#$12,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.s	Pal_FadeIn
 		bsr.w	RunPLC_RAM
 		dbf	d4,loc_1DCE
@@ -1937,7 +1937,7 @@ Pal_FadeFrom:
 
 loc_1E5C:
 		move.b	#$12,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.s	Pal_FadeOut
 		bsr.w	RunPLC_RAM
 		dbf	d4,loc_1E5C
@@ -2032,7 +2032,7 @@ PalWhite_Loop:
 
 loc_1EF4:
 		move.b	#$12,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.s	Pal_WhiteToBlack
 		bsr.w	RunPLC_RAM
 		dbf	d4,loc_1EF4
@@ -2125,7 +2125,7 @@ Pal_MakeFlash:				; XREF: SpecialStage
 
 loc_1F86:
 		move.b	#$12,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.s	Pal_ToWhite
 		bsr.w	RunPLC_RAM
 		dbf	d4,loc_1F86
@@ -2411,22 +2411,6 @@ Pal_SpeContinue:incbin	pallet\sscontin.bin	; special stage results screen contin
 Pal_Ending:	incbin	pallet\ending.bin	; ending sequence pallets
 
 ; ---------------------------------------------------------------------------
-; Subroutine to	delay the program by ($FFFFF62A) frames
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-DelayProgram:				; XREF: PauseGame
-		move	#$2300,sr
-
-loc_29AC:
-		tst.b	($FFFFF62A).w
-		bne.s	loc_29AC
-		rts	
-; End of function DelayProgram
-
-; ---------------------------------------------------------------------------
 ; Subroutine to	generate a pseudo-random number	in d0
 ; ---------------------------------------------------------------------------
 
@@ -2620,19 +2604,19 @@ SegaScreen:				; XREF: GameModeArray
 
 Sega_WaitPallet:
 		move.b	#2,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	PalCycle_Sega
 		bne.s	Sega_WaitPallet
 
 		move.b	#$E1,d0
 		bsr.w	PlaySound_Special ; play "SEGA"	sound
 		move.b	#$14,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		move.w	#$1E,($FFFFF614).w
 
 Sega_WaitEnd:
 		move.b	#2,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		tst.w	($FFFFF614).w
 		beq.s	Sega_GotoTitle
 		andi.b	#$80,($FFFFF605).w ; is	Start button pressed?
@@ -2791,7 +2775,7 @@ Title_ClrObjRam2:
 
 loc_317C:
 		move.b	#4,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		jsr	ObjectsLoad
 		bsr.w	DeformBgLayer
 		jsr	BuildSprites
@@ -2872,7 +2856,6 @@ Title_ClrScroll:
 		move.l	d0,($FFFFF616).w
 		move	#$2700,sr
 		bsr.w	ClearScreen
-
 		bsr.w	LevSelTextLoad
 		moveq	#2,d0
 		bsr.w	PalLoad1	; load level select pallet
@@ -2883,8 +2866,8 @@ Title_ClrScroll:
 ; ---------------------------------------------------------------------------
 
 LevelSelect:
-		move.b	#4,($FFFFF62A).w
-		bsr.w	DelayProgram
+		move.b	#2,($FFFFF62A).w
+		waitvblank
 		bsr.w	LevSelControls
 		bsr.w	RunPLC_RAM
 		tst.l	($FFFFF680).w
@@ -2908,10 +2891,6 @@ LevSelLevCheckStart:				; XREF: LevelSelect
 LevSelBCPress:				; XREF: LevelSelect
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
-		cmpi.w	#$94,d0		; is sound $80-$94 being played?
-		bcs.s	LevSel_PlaySnd	; if yes, branch
-		cmpi.w	#$A0,d0		; is sound $95-$A0 being played?
-		bcs.s	LevelSelect	; if yes, branch
 
 LevSel_PlaySnd:
 		move.b	d0,($FFFFF00C).w
@@ -2982,7 +2961,7 @@ Demo:					; XREF: TitleScreen
 
 loc_33B6:				; XREF: loc_33E4
 		move.b	#4,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	DeformBgLayer
 		bsr.w	PalCycle_Load
 		bsr.w	RunPLC_RAM
@@ -3046,11 +3025,11 @@ LevSelControls:				; XREF: LevelSelect
 		move.b	($FFFFF605).w,d1
 		andi.b	#3,d1		; is up/down pressed and held?
 		bne.s	LevSel_UpDown	; if yes, branch
-		subq.w	#1,($FFFFFF80).w ; subtract 1 from time	to next	move
+		subq.b	#1,($FFFFFF80).w ; subtract 1 from time	to next	move
 		bpl.s	LevSel_SndTest	; if time remains, branch
 
 LevSel_UpDown:
-		move.w	#$B,($FFFFFF80).w ; reset time delay
+		move.b	#9,($FFFFFF80).w ; reset time delay
 		move.b	($FFFFF604).w,d1
 		andi.b	#3,d1		; is up/down pressed?
 		beq.s	LevSel_SndTest	; if not, branch
@@ -3071,8 +3050,8 @@ LevSel_Down:
 
 LevSel_Refresh:
 		move.w	d0,($FFFFFF82).w ; set new selection
-		bsr.w	LevSelTextLoad	; refresh text
-		rts	
+		bsr.s	LevSelTextLoad	; refresh text
+		rts
 ; ===========================================================================
 
 LevSel_SndTest:				; XREF: LevSelControls
@@ -3108,7 +3087,7 @@ LevSel_Right:
 
 LevSel_Refresh2:
 		move.w	d0,($FFFFFF84).w ; set sound test number
-		bsr.w	LevSelTextLoad	; refresh text
+		bsr.s	LevSelTextLoad	; refresh text
 
 LevSel_NoMove:
 		rts	
@@ -3130,7 +3109,7 @@ LevSelTextLoad:				; XREF: TitleScreen
 
 loc_34FE:				; XREF: LevSelTextLoad+26j
 		move.l	d4,4(a6)
-		bsr.w	LevSel_ChgLine
+		bsr.s	LevSel_ChgLine
 		addi.l	#$800000,d4
 		dbf	d1,loc_34FE
 		moveq	#0,d0
@@ -3148,7 +3127,7 @@ loc_34FE:				; XREF: LevSelTextLoad+26j
 		adda.w	d1,a1
 		move.w	#$C680,d3
 		move.l	d4,4(a6)
-		bsr.w	LevSel_ChgLine
+		bsr.s	LevSel_ChgLine
 		move.w	#$E680,d3
 		cmpi.w	#$14,($FFFFFF82).w
 		bne.s	loc_3550
@@ -3160,9 +3139,9 @@ loc_3550:
 		addi.w	#$80,d0
 		move.b	d0,d2
 		lsr.b	#4,d0
-		bsr.w	LevSel_ChgSnd
+		bsr.s	LevSel_ChgSnd
 		move.b	d2,d0
-		bsr.w	LevSel_ChgSnd
+		bsr.s	LevSel_ChgSnd
 		rts	
 ; End of function LevSelTextLoad
 
@@ -3381,7 +3360,7 @@ Level_PlayBgm:
 
 Level_TtlCard:
 		move.b	#$C,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		bsr.w	RunPLC_RAM
@@ -3490,7 +3469,7 @@ Level_Delay:
 
 Level_DelayLoop:
 		move.b	#8,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		dbf	d1,Level_DelayLoop
 
 		move.w	#$202F,($FFFFF626).w
@@ -3522,7 +3501,7 @@ Level_StartGame:
 Level_MainLoop:
 		bsr.w	PauseGame
 		move.b	#8,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		addq.w	#1,($FFFFFE04).w ; add 1 to level timer
 		bsr.w	MoveSonicInDemo
 		bsr.w	LZWaterEffects
@@ -3578,7 +3557,7 @@ loc_3B88:
 
 loc_3B98:
 		move.b	#8,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	MoveSonicInDemo
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -4432,7 +4411,7 @@ SS_NoDebug:
 SS_MainLoop:
 		bsr.w	PauseGame
 		move.b	#$A,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	MoveSonicInDemo
 		move.w	($FFFFF604).w,($FFFFF602).w
 		jsr	ObjectsLoad
@@ -4462,7 +4441,7 @@ SS_End:
 
 SS_EndLoop:
 		move.b	#$16,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	MoveSonicInDemo
 		move.w	($FFFFF604).w,($FFFFF602).w
 		jsr	ObjectsLoad
@@ -4517,7 +4496,7 @@ SS_EndClrObjRam:
 SS_NormalExit:
 		bsr.w	PauseGame
 		move.b	#$C,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		bsr.w	RunPLC_RAM
@@ -4883,7 +4862,7 @@ Cont_ClrObjRam:
 
 Cont_MainLoop:
 		move.b	#$16,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		cmpi.b	#6,($FFFFD024).w
 		bcc.s	loc_4DF2
 		move	#$2700,sr
@@ -5219,7 +5198,7 @@ End_LoadSonic:
 		clr.b	($FFFFFE1E).w
 		move.w	#1800,($FFFFF614).w
 		move.b	#$18,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
 		move.w	d0,($C00004).l
@@ -5233,7 +5212,7 @@ End_LoadSonic:
 End_MainLoop:
 		bsr.w	PauseGame
 		move.b	#$18,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		addq.w	#1,($FFFFFE04).w
 		bsr.w	End_MoveSonic
 		jsr	ObjectsLoad
@@ -5263,7 +5242,7 @@ loc_52DA:
 End_AllEmlds:				; XREF: loc_5334
 		bsr.w	PauseGame
 		move.b	#$18,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		addq.w	#1,($FFFFFE04).w
 		bsr.w	End_MoveSonic
 		jsr	ObjectsLoad
@@ -5657,7 +5636,7 @@ loc_5862:
 
 Cred_WaitLoop:
 		move.b	#4,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	RunPLC_RAM
 		tst.w	($FFFFF614).w	; have 2 seconds elapsed?
 		bne.s	Cred_WaitLoop	; if not, branch
@@ -5772,7 +5751,7 @@ TryAg_ClrPallet:
 TryAg_MainLoop:
 		bsr.w	PauseGame
 		move.b	#4,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		andi.b	#$80,($FFFFF605).w ; is	Start button pressed?
@@ -8275,7 +8254,7 @@ LoadZoneTiles:
 		jsr	(QueueDMATransfer).l	; Use d1, d2, and d3 to locate the decompressed art and ready for transfer to VRAM
 		move.w	d7,-(sp)		; Store d7 in the Stack
 		move.b	#$C,($FFFFF62A).w
-		bsr.w	DelayProgram
+		waitvblank
 		bsr.w	RunPLC_RAM
 		move.w	(sp)+,d7		; Restore d7 from the Stack
 		move.w	#$800,d3		; Force the DMA transfer length to be $1000/2 (the first cycle is dynamic because the art's DMA'd backwards)

@@ -33,6 +33,12 @@ MusicIndex:	dc.l Music81, Music82
 		dc.l Music8D, Music8E
 		dc.l Music8F, Music90
 		dc.l Music91, Music92
+		dc.l Music93, Music93
+		dc.l Music93, Music93
+		dc.l Music93, Music93
+		dc.l Music93, Music93
+		dc.l Music93, Music93
+		dc.l Music93, Music93
 		dc.l Music93
 ; ---------------------------------------------------------------------------
 ; Type of sound	being played ($90 = music; $70 = normal	sound effect)

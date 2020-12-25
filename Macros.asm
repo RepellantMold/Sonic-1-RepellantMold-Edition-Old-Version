@@ -197,6 +197,14 @@ disable_ints:	macro
 enable_ints:	macro
 		move	#$2300,sr
 		endm
+	
+waitvblank:	macro
+		move	#$2300,sr
+
+.wait\@:
+		tst.b	($FFFFF62A).w
+		bne.s	.wait\@
+		endm
 
 ; ---------------------------------------------------------------------------
 ; long conditional jumps
