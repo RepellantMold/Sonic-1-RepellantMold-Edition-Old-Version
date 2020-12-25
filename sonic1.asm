@@ -2755,7 +2755,7 @@ Title_LoadText:
 		moveq	#$15,d2
 		bsr.w	ShowVDPGraphics
 		move.l	#$40000000,($C00004).l
-		lea	(Nem_GHZ_1st).l,a0 ; load GHZ patterns
+		lea	(Nem_Title).l,a0 ; load GHZ patterns
 		bsr.w	NemDec
 		moveq	#1,d0		; load title screen pallet
 		bsr.w	PalLoad1
@@ -3417,6 +3417,7 @@ loc_3946:
 		bsr.w	LevelSizeLoad
 		bsr.w	DeformBgLayer
 		bset	#2,($FFFFF754).w
+		bsr.w	LoadZoneTiles	; load level art
 		bsr.w	MainLoadBlockLoad ; load block mappings	and pallets
 		bsr.w	LoadTilesFromStart
 		bsr.w	ColIndexLoad
@@ -5192,6 +5193,7 @@ End_LoadData:
 		bsr.w	LevelSizeLoad
 		bsr.w	DeformBgLayer
 		bset	#2,($FFFFF754).w
+		bsr.w	LoadZoneTiles	; load level art
 		bsr.w	MainLoadBlockLoad
 		bsr.w	LoadTilesFromStart
 		move.l	#Col_GHZ,($FFFFF796).w ; load collision	index
@@ -8259,6 +8261,47 @@ loc_72DA:
 locret_72EE:
 		rts	
 ; End of function sub_72BA
+
+LoadZoneTiles:
+		moveq	#0,d0			; Clear d0
+		move.b	($FFFFFE10).w,d0		; Load number of current zone to d0
+		lsl.w	#4,d0			; Multiply by $10, converting the zone ID into an offset
+		lea	(MainLoadBlocks).l,a2	; Load LevelHeaders's address into a2
+		lea	(a2,d0.w),a2		; Offset LevelHeaders by the zone-offset, and load the resultant address to a2
+		move.l	(a2)+,d0		; Move the first longword of data that a2 points to to d0, this contains the zone's first PLC ID and its art's address.
+						; The auto increment is pointless as a2 is overwritten later, and nothing reads from a2 before then
+		andi.l	#$FFFFFF,d0    		; Filter out the first byte, which contains the first PLC ID, leaving the address of the zone's art in d0
+		movea.l	d0,a0			; Load the address of the zone's art into a0 (source)
+		lea	($FF0000).l,a1		; Load v_256x256/StartOfRAM (in this context, an art buffer) into a1 (destination)
+		bsr.w	CompDec			; Decompress a0 to a1 (Comper compression)
+
+		move.w	a1,d3			; Move a word of a1 to d3, note that a1 doesn't exactly contain the address of v_256x256/StartOfRAM anymore, after KosDec, a1 now contains v_256x256/StartOfRAM + the size of the file decompressed to it, d3 now contains the length of the file that was decompressed
+		move.w	d3,d7			; Move d3 to d7, for use in seperate calculations
+
+		andi.w	#$FFF,d3		; Remove the high nibble of the high byte of the length of decompressed file, this nibble is how many $1000 bytes the decompressed art is
+		lsr.w	#1,d3			; Half the value of 'length of decompressed file', d3 becomes the 'DMA transfer length'
+
+		rol.w	#4,d7			; Rotate (left) length of decompressed file by one nibble
+		andi.w	#$F,d7			; Only keep the low nibble of low byte (the same one filtered out of d3 above), this nibble is how many $1000 bytes the decompressed art is
+
+@loop:		move.w	d7,d2			; Move d7 to d2, note that the ahead dbf removes 1 byte from d7 each time it loops, meaning that the following calculations will have different results each time
+		lsl.w	#7,d2
+		lsl.w	#5,d2			; Shift (left) d2 by $C, making it high nibble of the high byte, d2 is now the size of the decompressed file rounded down to the nearest $1000 bytes, d2 becomes the 'destination address'
+
+		move.l	#$FFFFFF,d1		; Fill d1 with $FF
+		move.w	d2,d1			; Move d2 to d1, overwriting the last word of $FF's with d2, this turns d1 into 'StartOfRAM'+'However many $1000 bytes the decompressed art is', d1 becomes the 'source address'
+
+		jsr	(QueueDMATransfer).l	; Use d1, d2, and d3 to locate the decompressed art and ready for transfer to VRAM
+		move.w	d7,-(sp)		; Store d7 in the Stack
+		move.b	#$C,($FFFFF62A).w
+		bsr.w	DelayProgram
+		bsr.w	RunPLC_RAM
+		move.w	(sp)+,d7		; Restore d7 from the Stack
+		move.w	#$800,d3		; Force the DMA transfer length to be $1000/2 (the first cycle is dynamic because the art's DMA'd backwards)
+		dbf	d7,@loop		; Loop for each $1000 bytes the decompressed art is
+
+		rts
+; End of function LoadZoneTiles
 
 ; ---------------------------------------------------------------------------
 ; Main Load Block loading subroutine
@@ -38427,21 +38470,9 @@ Art_Dust	incbin	artunc\spindust.bin
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - various
 ; ---------------------------------------------------------------------------
-Nem_Smoke:	incbin	artnem\xxxsmoke.bin	; unused smoke
-		even
-Nem_SyzSparkle:	incbin	artnem\xxxstars.bin	; unused stars
-		even
 Nem_Shield:	incbin	artnem\shield.bin	; shield
 		even
 Nem_Stars:	incbin	artnem\invstars.bin	; invincibility stars
-		even
-Nem_LzSonic:	incbin	artnem\xxxlzson.bin	; unused LZ Sonic holding his breath
-		even
-Nem_UnkFire:	incbin	artnem\xxxfire.bin	; unused fireball
-		even
-Nem_Warp:	incbin	artnem\xxxflash.bin	; unused entry to special stage flash
-		even
-Nem_Goggle:	incbin	artnem\xxxgoggl.bin	; unused goggles
 		even
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - walls of the special stage
@@ -38504,13 +38535,9 @@ Nem_Swing:	incbin	artnem\ghzswing.bin	; GHZ swinging platform
 		even
 Nem_Bridge:	incbin	artnem\ghzbridg.bin	; GHZ bridge
 		even
-Nem_GhzUnkBlock:incbin	artnem\xxxghzbl.bin	; unused GHZ block
-		even
 Nem_Ball:	incbin	artnem\ghzball.bin	; GHZ giant ball
 		even
 Nem_Spikes:	incbin	artnem\spikes.bin	; spikes
-		even
-Nem_GhzLog:	incbin	artnem\xxxghzlo.bin	; unused GHZ log
 		even
 Nem_SpikePole:	incbin	artnem\ghzlog.bin	; GHZ spiked log
 		even
@@ -38564,15 +38591,11 @@ Nem_MzSwitch:	incbin	artnem\mzswitch.bin	; MZ switch
 		even
 Nem_MzGlass:	incbin	artnem\mzglassy.bin	; MZ green glassy block
 		even
-Nem_GhzGrass:	incbin	artnem\xxxgrass.bin	; unused grass (GHZ or MZ?)
-		even
 Nem_MzFire:	incbin	artnem\mzfire.bin	; MZ fireballs
 		even
 Nem_Lava:	incbin	artnem\mzlava.bin	; MZ lava
 		even
 Nem_MzBlock:	incbin	artnem\mzblock.bin	; MZ green pushable block
-		even
-Nem_MzUnkBlock:	incbin	artnem\xxxmzblo.bin	; MZ unused background block
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - SLZ stuff
@@ -38643,8 +38666,6 @@ Nem_BallHog:	incbin	artnem\ballhog.bin	; ball hog
 Nem_Crabmeat:	incbin	artnem\crabmeat.bin	; crabmeat
 		even
 Nem_Buzz:	incbin	artnem\buzzbomb.bin	; buzz bomber
-		even
-Nem_UnkExplode:	incbin	artnem\xxxexplo.bin	; unused explosion
 		even
 Nem_Burrobot:	incbin	artnem\burrobot.bin	; burrobot
 		even
@@ -38730,39 +38751,39 @@ Nem_Squirrel:	incbin	artnem\squirrel.bin	; squirrel
 ; ---------------------------------------------------------------------------
 Blk16_GHZ:	incbin	map16\ghz.bin
 		even
-Nem_GHZ_1st:	incbin	artnem\8x8ghz1.bin	; GHZ primary patterns
+Nem_Title:	incbin	artnem\8x8title.bin	; Title patterns
 		even
-Nem_GHZ_2nd:	incbin	artnem\8x8ghz2.bin	; GHZ secondary patterns
+Comp_GHZ:	incbin	artcomp\8x8ghz.bin	; GHZ primary patterns
 		even
 Blk256_GHZ:	incbin	map256\ghz.bin
 		even
 Blk16_LZ:	incbin	map16\lz.bin
 		even
-Nem_LZ:		incbin	artnem\8x8lz.bin	; LZ primary patterns
+Comp_LZ:	incbin	artcomp\8x8lz.bin	; LZ primary patterns
 		even
 Blk256_LZ:	incbin	map256\lz.bin
 		even
 Blk16_MZ:	incbin	map16\mz.bin
 		even
-Nem_MZ:		incbin	artnem\8x8mz.bin	; MZ primary patterns
+Comp_MZ:	incbin	artcomp\8x8mz.bin	; MZ primary patterns
 		even
 Blk256_MZ:	incbin	map256\mz.bin
 		even
 Blk16_SLZ:	incbin	map16\slz.bin
 		even
-Nem_SLZ:	incbin	artnem\8x8slz.bin	; SLZ primary patterns
+Comp_SLZ:	incbin	artcomp\8x8slz.bin	; SLZ primary patterns
 		even
 Blk256_SLZ:	incbin	map256\slz.bin
 		even
 Blk16_SYZ:	incbin	map16\syz.bin
 		even
-Nem_SYZ:	incbin	artnem\8x8syz.bin	; SYZ primary patterns
+Comp_SYZ:	incbin	artcomp\8x8syz.bin	; SYZ primary patterns
 		even
 Blk256_SYZ:	incbin	map256\syz.bin
 		even
 Blk16_SBZ:	incbin	map16\sbz.bin
 		even
-Nem_SBZ:	incbin	artnem\8x8sbz.bin	; SBZ primary patterns
+Comp_SBZ:	incbin	artcomp\8x8sbz.bin	; SBZ primary patterns
 		even
 Blk256_SBZ:	incbin	map256\sbz.bin
 		even
@@ -38788,8 +38809,6 @@ Nem_EndEm:	incbin	artnem\endemera.bin	; ending sequence chaos emeralds
 Nem_EndSonic:	incbin	artnem\endsonic.bin	; ending sequence Sonic
 		even
 Nem_TryAgain:	incbin	artnem\tryagain.bin	; ending "try again" screen
-		even
-Nem_EndEggman:	incbin	artnem\xxxend.bin	; unused boss sequence on ending
 		even
 Kos_EndFlowers:	incbin	artkos\flowers.bin	; ending sequence animated flowers
 		even

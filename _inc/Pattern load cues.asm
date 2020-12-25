@@ -10,7 +10,7 @@
 	dc.w PLC_SYZ-ArtLoadCues, PLC_SYZ2-ArtLoadCues
 	dc.w PLC_SBZ-ArtLoadCues, PLC_SBZ2-ArtLoadCues
 	dc.w PLC_TitleCard-ArtLoadCues,	PLC_Boss-ArtLoadCues
-	dc.w PLC_Signpost-ArtLoadCues, PLC_Warp-ArtLoadCues
+	dc.w PLC_Signpost-ArtLoadCues, PLC_SpeStage-ArtLoadCues
 	dc.w PLC_SpeStage-ArtLoadCues, PLC_GHZAnimals-ArtLoadCues
 	dc.w PLC_LZAnimals-ArtLoadCues,	PLC_MZAnimals-ArtLoadCues
 	dc.w PLC_SLZAnimals-ArtLoadCues, PLC_SYZAnimals-ArtLoadCues
@@ -56,11 +56,7 @@ PLC_GameOver:	dc.w 0
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Green Hill
 ; ---------------------------------------------------------------------------
-PLC_GHZ:	dc.w $B
-		dc.l Nem_GHZ_1st	; GHZ main patterns
-		dc.w 0
-		dc.l Nem_GHZ_2nd	; GHZ secondary	patterns
-		dc.w $39A0
+PLC_GHZ:	dc.w 9
 		dc.l Nem_Stalk		; flower stalk
 		dc.w $6B00
 		dc.l Nem_PplRock	; purple rock
@@ -97,9 +93,7 @@ PLC_GHZ2:	dc.w 5
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Labyrinth
 ; ---------------------------------------------------------------------------
-PLC_LZ:		dc.w $B
-		dc.l Nem_LZ		; LZ main patterns
-		dc.w 0
+PLC_LZ:		dc.w $A
 		dc.l Nem_LzBlock1	; block
 		dc.w $3C00
 		dc.l Nem_LzBlock2	; blocks
@@ -122,7 +116,7 @@ PLC_LZ:		dc.w $B
 		dc.w $7980
 		dc.l Nem_Burrobot	; burrobot enemy
 		dc.w $94C0
-PLC_LZ2:	dc.w $C
+PLC_LZ2:	dc.w $B
 		dc.l Nem_LzPole		; pole that breaks
 		dc.w $7BC0
 		dc.l Nem_LzDoor2	; large	horizontal door
@@ -131,8 +125,6 @@ PLC_LZ2:	dc.w $C
 		dc.w $7EC0
 		dc.l Nem_Gargoyle	; gargoyle head
 		dc.w $5D20
-		dc.l Nem_LzSonic	; Sonic	holding	his breath
-		dc.w $8800
 		dc.l Nem_LzPlatfm	; rising platform
 		dc.w $89E0
 		dc.l Nem_Orbinaut	; orbinaut enemy
@@ -152,9 +144,7 @@ PLC_LZ2:	dc.w $C
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Marble
 ; ---------------------------------------------------------------------------
-PLC_MZ:		dc.w 9
-		dc.l Nem_MZ		; MZ main patterns
-		dc.w 0
+PLC_MZ:		dc.w 8
 		dc.l Nem_MzMetal	; metal	blocks
 		dc.w $6000
 		dc.l Nem_MzFire		; fireballs
@@ -187,9 +177,7 @@ PLC_MZ2:	dc.w 4
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Star Light
 ; ---------------------------------------------------------------------------
-PLC_SLZ:	dc.w 8
-		dc.l Nem_SLZ		; SLZ main patterns
-		dc.w 0
+PLC_SLZ:	dc.w 7
 		dc.l Nem_Bomb		; bomb enemy
 		dc.w $8000
 		dc.l Nem_Orbinaut	; orbinaut enemy
@@ -222,9 +210,7 @@ PLC_SLZ2:	dc.w 5
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Spring Yard
 ; ---------------------------------------------------------------------------
-PLC_SYZ:	dc.w 4
-		dc.l Nem_SYZ		; SYZ main patterns
-		dc.w 0
+PLC_SYZ:	dc.w 3
 		dc.l Nem_Crabmeat	; crabmeat enemy
 		dc.w $8000
 		dc.l Nem_Buzz		; buzz bomber enemy
@@ -233,15 +219,13 @@ PLC_SYZ:	dc.w 4
 		dc.w $8F60
 		dc.l Nem_Roller		; roller enemy
 		dc.w $9700
-PLC_SYZ2:	dc.w 7
+PLC_SYZ2:	dc.w 6
 		dc.l Nem_Bumper		; bumper
 		dc.w $7000
 		dc.l Nem_SyzSpike1	; large	spikeball
 		dc.w $72C0
 		dc.l Nem_SyzSpike2	; small	spikeball
 		dc.w $7740
-		dc.l Nem_Cater		; caterkiller enemy
-		dc.w $9FE0
 		dc.l Nem_LzSwitch	; switch
 		dc.w $A1E0
 		dc.l Nem_Spikes		; spikes
@@ -253,9 +237,7 @@ PLC_SYZ2:	dc.w 7
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Scrap Brain
 ; ---------------------------------------------------------------------------
-PLC_SBZ:	dc.w $B
-		dc.l Nem_SBZ		; SBZ main patterns
-		dc.w 0
+PLC_SBZ:	dc.w $A
 		dc.l Nem_Stomper	; moving platform and stomper
 		dc.w $5800
 		dc.l Nem_SbzDoor1	; door
@@ -337,12 +319,6 @@ PLC_Signpost:	dc.w 2
 		dc.w $96C0
 		dc.l Nem_BigFlash	; giant	ring flash effect
 		dc.w $8C40
-; ---------------------------------------------------------------------------
-; Pattern load cues - beta special stage warp effect
-; ---------------------------------------------------------------------------
-PLC_Warp:	dc.w 0
-		dc.l Nem_Warp
-		dc.w $A820
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - special stage
 ; ---------------------------------------------------------------------------
@@ -446,11 +422,7 @@ PLC_SpeStResult:dc.w 1
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - ending sequence
 ; ---------------------------------------------------------------------------
-PLC_Ending:	dc.w $E
-		dc.l Nem_GHZ_1st	; GHZ main patterns
-		dc.w 0
-		dc.l Nem_GHZ_2nd	; GHZ secondary	patterns
-		dc.w $39A0
+PLC_Ending:	dc.w $B
 		dc.l Nem_Stalk		; flower stalk
 		dc.w $6B00
 		dc.l Nem_EndFlower	; flowers
@@ -459,8 +431,6 @@ PLC_Ending:	dc.w $E
 		dc.w $78A0
 		dc.l Nem_EndSonic	; Sonic
 		dc.w $7C20
-		dc.l Nem_EndEggman	; Eggman's death (unused)
-		dc.w $A480
 		dc.l Nem_Rabbit		; rabbit
 		dc.w $AA60
 		dc.l Nem_Chicken	; chicken
