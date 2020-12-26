@@ -116,7 +116,22 @@ startZ80:	macro
 ; input: location to jump to if out of range, x-axis pos (obX(a0) by default)
 ; ---------------------------------------------------------------------------
 
-out_of_range:	macro exit,pos
+obRange:	macro exit,pos
+		if (narg=2)
+		move.w	pos,d0		; get object position (if specified as not obX)
+		else
+		move.w	obX(a0),d0	; get object position
+		endc
+		andi.w	#$FF80,d0	; round down to nearest $80
+		move.w	($FFFFF700).w,d1 ; get screen position
+		subi.w	#128,d1
+		andi.w	#$FF80,d1
+		sub.w	d1,d0
+		cmpi.w	#128+320+192,d0
+		bhi.w	exit		; if object moves out of range, branch
+		endm
+
+obRanges:	macro exit,pos
 		if (narg=2)
 		move.w	pos,d0		; get object position (if specified as not obX)
 		else
@@ -126,70 +141,32 @@ out_of_range:	macro exit,pos
 		move.w	($FFFFF700).w,d1 ; get screen position
 		subi.w	#128,d1
 		andi.w	#$FF80,d1
-		sub.w	d1,d0		; approx distance between object and screen
+		sub.w	d1,d0
 		cmpi.w	#128+320+192,d0
-		bhi.\0	exit
+		bhi.s	exit		; if object moves out of range, branch
 		endm
-
+		
 ; ---------------------------------------------------------------------------
 ; play a sound effect or music
-; input: track, terminate routine, branch or jump, move operand size
+; input: track, terminate routine (leave blank to not terminate)
 ; ---------------------------------------------------------------------------
 
-music:		macro track,terminate,branch,byte
-		  if OptimiseSound=1
-			move.b	#track,($FFFFF00A).l
-		    if terminate=1
-			rts
-		    endc
-		  else
-	 	    if byte=1
-			move.b	#track,d0
-		    else
-			move.w	#track,d0
-		    endc
-		    if branch=1
-		      if terminate=0
-			bsr.w	PlaySound
-		      else
-			bra.w	PlaySound
-		      endc
-		    else
-		      if terminate=0
-			jsr	(PlaySound).l
-		      else
-			jmp	(PlaySound).l
-		      endc
-		    endc
-		  endc
+music:		macro track,terminate
+		move.w	#track,d0
+		if (narg=1)
+		jsr	(PlaySound).l
+		else
+		jmp	(PlaySound).l
+		endc
 		endm
 
-sfx:		macro track,terminate,branch,byte
-		  if OptimiseSound=1
-			move.b	#track,($FFFFF00B).l
-		    if terminate=1
-			rts
-		    endc
-		  else
-	 	    if byte=1
-			move.b	#track,d0
-		    else
-			move.w	#track,d0
-		    endc
-		    if branch=1
-		      if terminate=0
-			bsr.w	PlaySound_Special
-		      else
-			bra.w	PlaySound_Special
-		      endc
-		    else
-		      if terminate=0
-			jsr	(PlaySound_Special).l
-		      else
-			jmp	(PlaySound_Special).l
-		      endc
-		    endc
-		  endc
+sfx:		macro track,terminate
+		move.w	#track,d0
+		if (narg=1)
+		jsr	(PlaySound_Special).l
+		else
+		jmp	(PlaySound_Special).l
+		endc
 		endm
 
 ; ---------------------------------------------------------------------------
@@ -220,49 +197,13 @@ disable_ints:	macro
 enable_ints:	macro
 		move	#$2300,sr
 		endm
-		
-; ---------------------------------------------------------------------------
-; Repeated code (originally labels)
-; ---------------------------------------------------------------------------
-
+	
 waitvblank:	macro
 		move	#$2300,sr
 
 .wait\@:
 		tst.b	($FFFFF62A).w
 		bne.s	.wait\@
-		endm
-		
-RNGcall:	macro
-		move.l	($FFFFF636).w,d1
-		bne.s	loc_\@
-		move.l	#$2A6D365A,d1
-loc_\@:		move.l	d1,d0
-		asl.l	#2,d1
-		add.l	d0,d1
-		asl.l	#3,d1
-		add.l	d0,d1
-		move.w	d1,d0
-		swap	d1
-		add.w	d1,d0
-		move.w	d0,d1
-		swap	d1
-		move.l	d1,($FFFFF636).w
-		endm
-		
-BossMove:	macro
-		move.l	$30(a0),d2
-		move.l	$38(a0),d3
-		move.w	$10(a0),d0
-		ext.l	d0
-		asl.l	#8,d0
-		add.l	d0,d2
-		move.w	$12(a0),d0
-		ext.l	d0
-		asl.l	#8,d0
-		add.l	d0,d3
-		move.l	d2,$30(a0)
-		move.l	d3,$38(a0)
 		endm
 
 ; ---------------------------------------------------------------------------
