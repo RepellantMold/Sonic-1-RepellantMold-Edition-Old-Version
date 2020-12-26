@@ -1124,7 +1124,7 @@ NemDec_RAM:
 ; ------------------------------------------------------------------------------
 NemDec:
 	movem.l	d0-a1/a3-a6,-(sp)
-	lea	$C00000,a4		; load VDP Data Port     
+	lea	$C00000,a4		; load VDP Data Port
 	lea	NemDec_WriteRowToVDP(pc),a3
 
 NemDec_Main:
@@ -1331,7 +1331,7 @@ loc_15A4:
 
 loc_15AC:
 		movem.l	(sp)+,a1-a2
-		rts	
+		rts
 ; End of function LoadPLC
 
 
@@ -1356,7 +1356,7 @@ loc_15D0:
 
 loc_15D8:
 		movem.l	(sp)+,a1-a2
-		rts	
+		rts
 ; End of function LoadPLC2
 
 ; ---------------------------------------------------------------------------
@@ -1373,7 +1373,7 @@ ClearPLC:				; XREF: LoadPLC2
 ClearPLC_Loop:
 		clr.l	(a2)+
 		dbf	d0,ClearPLC_Loop
-		rts	
+		rts
 ; End of function ClearPLC
 
 ; ---------------------------------------------------------------------------
@@ -1413,7 +1413,7 @@ loc_160E:
 		move.w	d2,($FFFFF6F8).w
 
 locret_1640:
-		rts	
+		rts
 ; End of function RunPLC_RAM
 
 
@@ -1475,7 +1475,7 @@ loc_16AA:				; XREF: sub_165E
 		move.l	d6,($FFFFF6F4).w
 
 locret_16DA:				; XREF: sub_1642
-		rts	
+		rts
 ; ===========================================================================
 
 loc_16DC:				; XREF: sub_165E
@@ -1485,7 +1485,7 @@ loc_16DC:				; XREF: sub_165E
 loc_16E2:				; XREF: sub_165E
 		move.l	6(a0),(a0)+
 		dbf	d0,loc_16E2
-		rts	
+		rts
 ; End of function sub_165E
 
 ; ---------------------------------------------------------------------------
@@ -1513,7 +1513,7 @@ RunPLC_Loop:
 		move.l	d0,($C00004).l	; put the VRAM address into VDP
 		bsr.w	NemDec		; decompress
 		dbf	d1,RunPLC_Loop	; loop for number of entries
-		rts	
+		rts
 ; End of function RunPLC_ROM
 
 ; ---------------------------------------------------------------------------
@@ -1533,7 +1533,7 @@ RunPLC_Loop:
 
 
   		  include "compression/Kosinski.asm"
-  		  
+
 ; ---------------------------------------------------------------------------
 ; Comper decompression algorithm
 ; ---------------------------------------------------------------------------
@@ -2545,7 +2545,7 @@ SegaScreen:				; XREF: GameModeArray
 		andi.b	#$BF,d0
 		move.w	d0,($C00004).l
 		bsr.w	ClearScreen
-		lea	(Twiz_SegaLogo).l,a0			; load compressed art data address
+		lea	(Twim_SegaLogo).l,a0			; load compressed art data address
 		move.w	#$0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($FF0000).l,a1
@@ -2660,13 +2660,13 @@ Title_ClrPallet:
 		jsr	BuildSprites
 		bsr.w	Pal_FadeTo
 		move	#$2700,sr
-		lea	(Twiz_TitleFg).l,a0			; load compressed art data address
+		lea	(Twim_TitleFg).l,a0			; load compressed art data address
 		move.w	#$4000,d0				; set VRAM address to decompress to ($4000)
 		jsr	TwimDec					; decompress and dump to VRAM
-		lea	(Twiz_TitleSonic).l,a0			; load compressed art data address
+		lea	(Twim_TitleSonic).l,a0			; load compressed art data address
 		move.w	#$6000,d0				; set VRAM address to decompress to ($6000)
 		jsr	TwimDec					; decompress and dump to VRAM
-		lea	(Twiz_TitleTM).l,a0			; load compressed art data address
+		lea	(Twim_TitleTM).l,a0			; load compressed art data address
 		move.w	#$A200,d0				; set VRAM address to decompress to ($A200)
 		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($C00000).l,a6
@@ -2687,12 +2687,12 @@ Title_LoadText:
 		bsr.w	LevelSizeLoad
 		bsr.w	DeformBgLayer
 		lea	($FFFFB000).w,a1
-		lea	(Blk16_GHZ).l,a0 ; load	GHZ 16x16 mappings
+		lea	(Blk16_TS).l,a0 ; load	TS 16x16 mappings
 		move.w	#0,d0
-		bsr.w	EniDec
-		lea	(Blk256_GHZ).l,a0 ; load GHZ 256x256 mappings
+		jsr	TwizDec
+		lea	(Blk256_TS).l,a0 ; load TS 256x256 mappings
 		lea	($FF0000).l,a1
-		bsr.w	KosDec
+		jsr	TwizDec
 		bsr.w	LevelLayoutLoad
 		bsr.w	Pal_FadeFrom
 		move	#$2700,sr
@@ -38358,17 +38358,17 @@ MainLoadBlocks:
 ArtLoadCues:
 	include "_inc\Pattern load cues.asm"
 	even
-Twiz_SegaLogo:	incbin	arttwiz\segalogo.bin	; large Sega logo
+Twim_SegaLogo:	incbin	arttwim\segalogo.bin	; large Sega logo
 		even
 Eni_SegaLogo:	incbin	mapeni\segalogo.bin	; large Sega logo (mappings)
 		even
 Eni_Title:	incbin	mapeni\titlescr.bin	; title screen foreground (mappings)
 		even
-Twiz_TitleFg:	incbin	arttwiz\titlefor.bin	; title screen foreground
+Twim_TitleFg:	incbin	arttwim\titlefor.bin	; title screen foreground
 		even
-Twiz_TitleSonic:	incbin	arttwiz\titleson.bin	; Sonic on title screen
+Twim_TitleSonic:	incbin	arttwim\titleson.bin	; Sonic on title screen
 		even
-Twiz_TitleTM:	incbin	arttwiz\titletm.bin	; TM on title screen
+Twim_TitleTM:	incbin	arttwim\titletm.bin	; TM on title screen
 		even
 Eni_JapNames:	incbin	mapeni\japcreds.bin	; Japanese credits (mappings)
 		even
@@ -38677,8 +38677,6 @@ Nem_Squirrel:	incbin	artnem\squirrel.bin	; squirrel
 ; ---------------------------------------------------------------------------
 Blk16_GHZ:	incbin	map16\ghz.bin
 		even
-Nem_Title:	incbin	artnem\8x8title.bin	; Title patterns
-		even
 Comp_GHZ:	incbin	artcomp\8x8ghz.bin	; GHZ primary patterns
 		even
 Blk256_GHZ:	incbin	map256\ghz.bin
@@ -38712,6 +38710,12 @@ Blk16_SBZ:	incbin	map16\sbz.bin
 Comp_SBZ:	incbin	artcomp\8x8sbz.bin	; SBZ primary patterns
 		even
 Blk256_SBZ:	incbin	map256\sbz.bin
+		even
+Blk16_TS:	incbin	map16\TS.twiz
+		even
+Nem_Title:	incbin	artnem\8x8title.bin	; Title patterns
+		even
+Blk256_TS:	incbin	map256\TS.twiz
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - bosses and ending sequence
