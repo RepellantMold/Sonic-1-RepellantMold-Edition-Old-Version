@@ -14,6 +14,10 @@
 
 	include "macros.asm"
     include   "Debugger.asm"
+    
+PLCQueueAdr: =  $FFFFF650   ; beginning of RAM allocated for PLC
+PLCQueue: = PLCQueueAdr+4   ; start of PLC queue
+PLCQueueEnd: =  $FFFFF700-$20   ; end of PLC queue, start of equates for PLC, for example last state of Nemesis decompression
 
 StartOfRom:
 Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
@@ -1337,7 +1341,7 @@ LoadPLC:
 		add.w	d0,d0
 		move.w	(a1,d0.w),d0
 		lea	(a1,d0.w),a1
-		lea	($FFFFF680).w,a2
+		lea	(PLCQueueAdr).w,a2
 
 loc_1598:
 		tst.l	(a2)
@@ -1371,7 +1375,7 @@ LoadPLC2:
 		move.w	(a1,d0.w),d0
 		lea	(a1,d0.w),a1
 		bsr.s	ClearPLC
-		lea	($FFFFF680).w,a2
+		lea	(PLCQueueAdr).w,a2
 		move.w	(a1)+,d0
 		bmi.s	loc_15D8
 
@@ -1393,8 +1397,8 @@ loc_15D8:
 
 
 ClearPLC:				; XREF: LoadPLC2
-		lea	($FFFFF680).w,a2
-		moveq	#$1F,d0
+		lea	(PLCQueueAdr).w,a2
+		moveq	#(((PLCQueueEnd+$20)-PLCQueueAdr)/4)-1,d0
 
 ClearPLC_Loop:
 		clr.l	(a2)+
@@ -1410,11 +1414,11 @@ ClearPLC_Loop:
 
 
 RunPLC_RAM:				; XREF: Pal_FadeTo
-		tst.l	($FFFFF680).w
+		tst.l	(PLCQueueAdr).w
 		beq.s	locret_1640
 		tst.w	($FFFFF6F8).w
 		bne.s	locret_1640
-		movea.l	($FFFFF680).w,a0
+		movea.l	(PLCQueueAdr).w,a0
 		lea	(loc_1502).l,a3
 		lea	($FFFFAA00).w,a1
 		move.w	(a0)+,d2
@@ -1429,7 +1433,7 @@ loc_160E:
 		move.b	(a0)+,d5
 		moveq	#$10,d6
 		moveq	#0,d0
-		move.l	a0,($FFFFF680).w
+		move.l	a0,(PLCQueueAdr).w
 		move.l	a3,($FFFFF6E0).w
 		move.l	d0,($FFFFF6E4).w
 		move.l	d0,($FFFFF6E8).w
@@ -1451,8 +1455,8 @@ sub_1642:				; XREF: loc_C44; loc_F54; loc_F9A
 		beq.w	locret_16DA
 		move.w	#9,($FFFFF6FA).w
 		moveq	#0,d0
-		move.w	($FFFFF684).w,d0
-		addi.w	#$120,($FFFFF684).w
+		move.w	(PLCQueue).w,d0
+		addi.w	#$120,(PLCQueue).w
 		bra.s	loc_1676
 ; End of function sub_1642
 
@@ -1465,8 +1469,8 @@ sub_165E:				; XREF: Demo_Time
 		beq.s	locret_16DA
 		move.w	#3,($FFFFF6FA).w
 		moveq	#0,d0
-		move.w	($FFFFF684).w,d0
-		addi.w	#$60,($FFFFF684).w
+		move.w	(PLCQueue).w,d0
+		addi.w	#$60,(PLCQueue).w
 
 loc_1676:				; XREF: sub_1642
 		lea	($C00004).l,a4
@@ -1476,7 +1480,7 @@ loc_1676:				; XREF: sub_1642
 		swap	d0
 		move.l	d0,(a4)
 		subq.w	#4,a4
-		movea.l	($FFFFF680).w,a0
+		movea.l	(PLCQueueAdr).w,a0
 		movea.l	($FFFFF6E0).w,a3
 		move.l	($FFFFF6E4).w,d0
 		move.l	($FFFFF6E8).w,d1
@@ -1492,7 +1496,7 @@ loc_16AA:				; XREF: sub_165E
 		beq.s	loc_16DC
 		subq.w	#1,($FFFFF6FA).w
 		bne.s	loc_16AA
-		move.l	a0,($FFFFF680).w
+		move.l	a0,(PLCQueueAdr).w
 		move.l	a3,($FFFFF6E0).w
 		move.l	d0,($FFFFF6E4).w
 		move.l	d1,($FFFFF6E8).w
@@ -1505,8 +1509,8 @@ locret_16DA:				; XREF: sub_1642
 ; ===========================================================================
 
 loc_16DC:				; XREF: sub_165E
-		lea	($FFFFF680).w,a0
-		moveq	#$15,d0
+		lea	(PLCQueueAdr).w,a0
+		moveq	#((PLCQueueEnd-4-PLCQueue)/4)-1,d0
 
 loc_16E2:				; XREF: sub_165E
 		move.l	6(a0),(a0)+
@@ -1653,7 +1657,7 @@ loc_19D8:
 		neg.w	d1
 
 loc_19F0:
-		move.w	($FFFFF650).w,d0
+		move.w	($FFFFFECA).w,d0
 		andi.w	#3,d0
 		add.w	d1,d0
 		cmpi.w	#3,d0
@@ -1665,7 +1669,7 @@ loc_19F0:
 		moveq	#2,d0
 
 loc_1A0A:
-		move.w	d0,($FFFFF650).w
+		move.w	d0,($FFFFFECA).w
 		add.w	d0,d0
 		move.w	d0,d1
 		add.w	d0,d0
@@ -1756,7 +1760,7 @@ PalCycle_SBZ:				; XREF: PalCycle
 		lea	(Pal_SBZCycList2).l,a2
 
 loc_1ADA:
-		lea	($FFFFF650).w,a1
+		lea	($FFFFFECA).w,a1
 		move.w	(a2)+,d1
 
 loc_1AE0:
@@ -2870,7 +2874,7 @@ LevelSelect:
 		waitvblank
 		bsr.w	LevSelControls
 		bsr.w	RunPLC_RAM
-		tst.l	($FFFFF680).w
+		tst.l	(PLCQueueAdr).w
 		bne.s	LevelSelect
 		move.w	($FFFFFF82).w,d0
 		cmpi.w	#$14,d0		; have you selected item $14 (sound test)?
@@ -3269,7 +3273,7 @@ Level_ClrObjRam:
 
 		lea	($FFFFF628).w,a1
 		moveq	#0,d0
-		move.w	#$15,d1
+		move.w	#((PLCQueueAdr-$FFFFF628)/4)-1,d1
 
 Level_ClrVars:
 		move.l	d0,(a1)+
@@ -3357,19 +3361,23 @@ Level_PlayBgm:
 		move.b	(a1,d0.w),d0	; add d0 to a1
 		bsr.w	PlaySound	; play music
 		move.b	#$34,($FFFFD080).w ; load title	card object
+        	move.w  #3,$FFFFFE04.w      ; set the timer (Fixes Title card bug)
 
 Level_TtlCard:
 		move.b	#$C,($FFFFF62A).w
 		waitvblank
-		jsr	ObjectsLoad
-		jsr	BuildSprites
-		bsr.w	RunPLC_RAM
-		move.w	($FFFFD108).w,d0
-		cmp.w	($FFFFD130).w,d0 ; has title card sequence finished?
-		bne.s	Level_TtlCard	; if not, branch
-		tst.l	($FFFFF680).w	; are there any	items in the pattern load cue?
-		bne.s	Level_TtlCard	; if yes, branch
-		jsr	Hud_Base
+        	jsr 	ObjectsLoad     ; run object code
+        	jsr 	BuildSprites        ; display sprites
+        	bsr.w   RunPLC_RAM      ; put PLC data to RAM
+        	move.w  ($FFFFD100+8).w,d0
+        	cmp.w   ($FFFFD100+$30).w,d0    ; has title card sequence finished?
+        	bne.s   Level_TtlCard       ; if not, branch
+        	move.w  ($FFFFD0C0+8).w,d0  ; fix for FZ crash and title card issue
+        	cmp.w   ($FFFFD0C0+$30).w,d0    ; has title card sequence finished?
+        	bne.s   Level_TtlCard       ; if not, branch
+        	subi.w  #1,$FFFFFE04.w      ; substract 1 from timer
+        	bne.s   Level_TtlCard       ; if timer is not 0, branch
+        	jsr 	Hud_Base
 
 loc_3946:
 		moveq	#3,d0
@@ -4503,7 +4511,7 @@ SS_NormalExit:
 		bsr.w	RunPLC_RAM
 		tst.w	($FFFFFE02).w
 		beq.s	SS_NormalExit
-		tst.l	($FFFFF680).w
+		tst.l	(PLCQueueAdr).w
 		bne.s	SS_NormalExit
 		move.w	#$CA,d0
 		bsr.w	PlaySound_Special ; play special stage exit sound
@@ -5105,7 +5113,7 @@ End_ClrObjRam:
 
 		lea	($FFFFF628).w,a1
 		moveq	#0,d0
-		move.w	#$15,d1
+		move.w	#((PLCQueueAdr-$FFFFF628)/4)-1,d1
 
 End_ClrRam:
 		move.l	d0,(a1)+
@@ -5642,7 +5650,7 @@ Cred_WaitLoop:
 		bsr.w	RunPLC_RAM
 		tst.w	($FFFFF614).w	; have 2 seconds elapsed?
 		bne.s	Cred_WaitLoop	; if not, branch
-		tst.l	($FFFFF680).w	; have level gfx finished decompressing?
+		tst.l	(PLCQueueAdr).w	; have level gfx finished decompressing?
 		bne.s	Cred_WaitLoop	; if not, branch
 		cmpi.w	#9,($FFFFFFF4).w ; have	the credits finished?
 		beq.w	TryAgainEnd	; if yes, branch
@@ -15423,7 +15431,7 @@ Obj39_Index:	dc.w Obj39_ChkPLC-Obj39_Index
 ; ===========================================================================
 
 Obj39_ChkPLC:				; XREF: Obj39_Index
-		tst.l	($FFFFF680).w	; are the pattern load cues empty?
+		tst.l	(PLCQueueAdr).w	; are the pattern load cues empty?
 		beq.s	Obj39_Main	; if yes, branch
 		rts	
 ; ===========================================================================
@@ -15510,7 +15518,7 @@ Obj3A_Index:	dc.w Obj3A_ChkPLC-Obj3A_Index
 ; ===========================================================================
 
 Obj3A_ChkPLC:				; XREF: Obj3A_Index
-		tst.l	($FFFFF680).w	; are the pattern load cues empty?
+		tst.l	(PLCQueueAdr).w	; are the pattern load cues empty?
 		beq.s	Obj3A_Main	; if yes, branch
 		rts	
 ; ===========================================================================
@@ -15753,7 +15761,7 @@ Obj7E_Index:	dc.w Obj7E_ChkPLC-Obj7E_Index
 ; ===========================================================================
 
 Obj7E_ChkPLC:				; XREF: Obj7E_Index
-		tst.l	($FFFFF680).w	; are the pattern load cues empty?
+		tst.l	(PLCQueueAdr).w	; are the pattern load cues empty?
 		beq.s	Obj7E_Main	; if yes, branch
 		rts	
 ; ===========================================================================
@@ -34065,7 +34073,7 @@ off_19E80:	dc.w loc_19E90-off_19E80, loc_19EA8-off_19E80
 ; ===========================================================================
 
 loc_19E90:				; XREF: off_19E80
-		tst.l	($FFFFF680).w
+		tst.l	(PLCQueueAdr).w
 		bne.s	loc_19EA2
 		cmpi.w	#$2450,($FFFFF700).w
 		bcs.s	loc_19EA2
