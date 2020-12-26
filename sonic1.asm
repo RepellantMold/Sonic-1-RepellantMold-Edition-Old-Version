@@ -1297,6 +1297,32 @@ NemDec4:
 	move.w	d7,(a6)+		; ~~ store entry
 	dbf	d5,.ItemShortCodeLoop	; repeat for required number of entries
 	bra.s	.ItemLoop
+	
+; ===============================================================
+; ---------------------------------------------------------------
+; uncompressed art to VRAM loader
+; ---------------------------------------------------------------
+; INPUT:
+;       a0      - Source Offset
+;   d0  - length in tiles
+; ---------------------------------------------------------------
+LoadUncArt:
+        move    #$2700,sr   ; disable interrupts
+        lea $C00000.l,a6    ; get VDP data port
+ 
+LoadArt_Loop:
+        move.l  (a0)+,(a6)  ; transfer 4 bytes
+        move.l  (a0)+,(a6)  ; transfer 4 more bytes
+        move.l  (a0)+,(a6)  ; and so on and so forth
+        move.l  (a0)+,(a6)  ;
+        move.l  (a0)+,(a6)  ;
+        move.l  (a0)+,(a6)  ;
+        move.l  (a0)+,(a6)  ; in total transfer 32 bytes
+        move.l  (a0)+,(a6)  ; which is 1 full tile
+ 
+        dbf d0, LoadArt_Loop; loop until d0 = 0
+        move    #$2300,sr   ; enable interrupts
+        rts
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	load pattern load cues
@@ -3213,9 +3239,10 @@ loc_37B6:
 		tst.w	($FFFFFFF0).w
 		bmi.s	Level_ClrRam
 		move	#$2700,sr
-		move.l	#$70000002,($C00004).l
-		lea	(Nem_TitleCard).l,a0 ; load title card patterns
-		bsr.w	NemDec
+	        move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+	        lea 	Nem_TitleCard,a0        ; load title card patterns
+	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
+        	jsr 	LoadUncArt          ; load uncompressed art
 		move	#$2300,sr
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
@@ -4436,9 +4463,10 @@ loc_47D4:
 		move.w	#$8407,(a6)
 		move.w	#$9001,(a6)
 		bsr.w	ClearScreen
-		move.l	#$70000002,($C00004).l
-		lea	(Nem_TitleCard).l,a0 ; load title card patterns
-		bsr.w	NemDec
+	        move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+	        lea 	Nem_TitleCard,a0        ; load title card patterns
+	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
+        	jsr 	LoadUncArt          ; load uncompressed art
 		jsr	Hud_Base
 		clr.w	($FFFFC800).w
 		move.l	#$FFFFC800,($FFFFC8FC).w
@@ -4797,9 +4825,10 @@ Cont_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Cont_ClrObjRam ; clear object RAM
 
-		move.l	#$70000002,($C00004).l
-		lea	(Nem_TitleCard).l,a0 ; load title card patterns
-		bsr.w	NemDec
+	        move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+	        lea 	Nem_TitleCard,a0        ; load title card patterns
+	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
+        	jsr 	LoadUncArt          ; load uncompressed art
 		move.l	#$60000002,($C00004).l
 		lea	(Nem_ContSonic).l,a0 ; load Sonic patterns
 		bsr.w	NemDec
@@ -18687,8 +18716,12 @@ GotThroughAct:				; XREF: Obj3E_EndAct
 		clr.b	($FFFFFE2D).w	; disable invincibility
 		clr.b	($FFFFFE1E).w	; stop time counter
 		move.b	#$3A,($FFFFD5C0).w
-		moveq	#$10,d0
-		jsr	(LoadPLC2).l	; load title card patterns
+        	move.l  a0,-(sp)            ; save object address to stack
+        	move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+        	lea 	Nem_TitleCard,a0        ; load title card patterns
+        	move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
+        	jsr 	LoadUncArt          ; load uncompressed art
+        	move.l  (sp)+,a0            ; get object address from stack
 		move.b	#1,($FFFFF7D6).w
 		moveq	#0,d0
 		move.b	($FFFFFE23).w,d0
@@ -38620,8 +38653,8 @@ Nem_Cater:	incbin	artnem\caterkil.bin	; caterkiller
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - various
 ; ---------------------------------------------------------------------------
-Nem_TitleCard:	incbin	artnem\ttlcards.bin	; title cards
-		even
+Nem_TitleCard:	incbin	artunc\ttlcards.bin	; title cards
+Nem_TitleCard_End:even
 Nem_Hud:	incbin	artnem\hud.bin		; HUD (rings, time, score)
 		even
 Nem_Lives:	incbin	artnem\lifeicon.bin	; life counter icon
