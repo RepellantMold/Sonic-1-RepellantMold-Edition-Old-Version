@@ -2660,9 +2660,9 @@ Title_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrObjRam ; fill object RAM ($D000-$EFFF) with	$0
 
-		move.l	#$40000000,($C00004).l
-		lea	(Nem_JapNames).l,a0 ; load Japanese credits
-		bsr.w	NemDec
+		lea	(Twim_JapNames).l,a0			; load compressed art data address
+		move.w	#0000,d0				; set VRAM address to decompress to ($A200)
+		jsr	TwimDec					; decompress and dump to VRAM
 		move.l	#$54C00000,($C00004).l
 		lea	(Nem_CreditText).l,a0 ;	load alphabet
 		bsr.w	NemDec
@@ -2742,9 +2742,10 @@ Title_LoadText:
 		moveq	#$21,d1
 		moveq	#$15,d2
 		bsr.w	ShowVDPGraphics
-		move.l	#$40000000,($C00004).l
-		lea	(Nem_Title).l,a0 ; load GHZ patterns
-		bsr.w	NemDec
+
+        	lea 	(Twim_Title).l,a0          ; load compressed art data address
+        	move.w  #0,d0               ; set VRAM address to decompress to (0)
+        	jsr 	TwimDec                 ; decompress and dump to VRAM
 		moveq	#1,d0		; load title screen pallet
 		bsr.w	PalLoad1
 		move.b	#$8A,d0		; play title screen music
@@ -24798,8 +24799,7 @@ locret_1314E:
 Sonic_RollSpeed:			; XREF: Obj01_MdRoll
 		move.w	($FFFFF760).w,d6
 		asl.w	#1,d6
-		move.w	($FFFFF762).w,d5
-		asr.w	#1,d5
+		moveq	#6,d5
 		move.w	($FFFFF764).w,d4
 		asr.w	#2,d4
 		tst.b	($FFFFF7CA).w
@@ -38399,21 +38399,21 @@ MainLoadBlocks:
 ArtLoadCues:
 	include "_inc\Pattern load cues.asm"
 	even
-Twim_SegaLogo:	incbin	arttwim\segalogo.bin	; large Sega logo
+Twim_SegaLogo:	incbin	arttwim\segalogo.twim	; large Sega logo
 		even
 Eni_SegaLogo:	incbin	mapeni\segalogo.bin	; large Sega logo (mappings)
 		even
 Eni_Title:	incbin	mapeni\titlescr.bin	; title screen foreground (mappings)
 		even
-Twim_TitleFg:	incbin	arttwim\titlefor.bin	; title screen foreground
+Twim_TitleFg:	incbin	arttwim\titlefor.twim	; title screen foreground
 		even
-Twim_TitleSonic:	incbin	arttwim\titleson.bin	; Sonic on title screen
+Twim_TitleSonic:incbin	arttwim\titleson.twim	; Sonic on title screen
 		even
-Twim_TitleTM:	incbin	arttwim\titletm.bin	; TM on title screen
+Twim_TitleTM:	incbin	arttwim\titletm.twim	; TM on title screen
 		even
 Eni_JapNames:	incbin	mapeni\japcreds.bin	; Japanese credits (mappings)
 		even
-Nem_JapNames:	incbin	artnem\japcreds.bin	; Japanese credits
+Twim_JapNames:	incbin	arttwim\japcreds.twim	; Japanese credits
 		even
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - Sonic
@@ -38754,7 +38754,7 @@ Blk256_SBZ:	incbin	map256\sbz.bin
 		even
 Blk16_TS:	incbin	map16\TS.twiz
 		even
-Nem_Title:	incbin	artnem\8x8title.bin	; Title patterns
+Twim_Title:	incbin	arttwim\8x8title.twim	; Title patterns
 		even
 Blk256_TS:	incbin	map256\TS.twiz
 		even
