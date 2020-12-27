@@ -25001,24 +25001,6 @@ locret_132D2:
 		rts	
 ; End of function Sonic_ChgJumpDir
 
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Unused subroutine to squash Sonic
-; ---------------------------------------------------------------------------
-		move.b	$26(a0),d0
-		addi.b	#$20,d0
-		andi.b	#$C0,d0
-		bne.s	locret_13302
-		bsr.w	Sonic_DontRunOnWalls
-		tst.w	d1
-		bpl.s	locret_13302
-		move.w	#0,$14(a0)	; stop Sonic moving
-		move.w	#0,$10(a0)
-		move.w	#0,$12(a0)
-		move.b	#$B,$1C(a0)	; use "warping"	animation
-
-locret_13302:
-		rts	
 ; ---------------------------------------------------------------------------
 ; Subroutine to	prevent	Sonic leaving the boundaries of	a level
 ; ---------------------------------------------------------------------------
