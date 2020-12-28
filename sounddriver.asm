@@ -10,6 +10,7 @@ Go_PSGIndex:	dc.l PSG_Index		; XREF: sub_72926
 PSG_Index:	dc.l PSG1, PSG2, PSG3
 		dc.l PSG4, PSG5, PSG6
 		dc.l PSG7, PSG8, PSG9
+		dc.l PSG0A, PSG0B, PSG0C, PSG0D
 PSG1:		incbin	sound\psg1.bin
 PSG2:		incbin	sound\psg2.bin
 PSG3:		incbin	sound\psg3.bin
@@ -19,6 +20,21 @@ PSG5:		incbin	sound\psg5.bin
 PSG7:		incbin	sound\psg7.bin
 PSG8:		incbin	sound\psg8.bin
 PSG9:		incbin	sound\psg9.bin
+PSG0A:		dc.b 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 1, 1, 1, 1, 1,	1, 1, 1
+		dc.b 1, 1, 1, 1, 1, 1, 1,	1, 1, 1, 1, 1, 1, 1, 1,	1, 1, 1
+		dc.b 1, 1, 1, 1, 2, 2, 2,	2, 2, 2, 2, 2, 2, 2, 3,	3, 3, 3
+		dc.b 3, 3, 3, 3, 3, 3, 4,	$80
+PSG0B:		dc.b 4, 4, 4, 3, 3, 3, 2,	2, 2, 1, 1, 1, 1, 1, 1,	1, 2, 2
+		dc.b 2, 2, 2, 3, 3, 3, 3,	3, 4, $80
+PSG0C:		dc.b 4, 4, 3, 3, 2, 2, 1,	1, 1, 1, 1, 1, 1, 1, 1,	1, 1, 1
+		dc.b 1, 1, 1, 1, 1, 1, 1,	1, 2, 2, 2, 2, 2, 2, 2,	2, 2, 2
+		dc.b 2, 2, 2, 2, 2, 2, 2,	2, 2, 2, 3, 3, 3, 3, 3,	3, 3, 3
+		dc.b 3, 3, 3, 3, 3, 3, 3,	3, 3, 3, 3, 3, 4, 4, 4,	4, 4, 4
+		dc.b 4, 4, 4, 4, 4, 4, 4,	4, 4, 4, 4, 4, 4, 4, 5,	5, 5, 5
+		dc.b 5, 5, 5, 5, 5, 5, 5,	5, 5, 5, 5, 5, 5, 5, 5,	5, 6, 6
+		dc.b 6, 6, 6, 6, 6, 6, 6,	6, 6, 6, 6, 6, 6, 6, 6,	6, 6, 6
+		dc.b 7, $80
+PSG0D:		dc.b 0, 1, 3, $80
 
 byte_71A94:	dc.b 7,	$72, $73, $26, $15, 8, $FF, 5
 ; ---------------------------------------------------------------------------
@@ -55,23 +71,10 @@ SoundTypes:	dc.b $90, $90, $90, $90, $90, $90, $90,	$90, $90, $90, $90, $90, $90
 
 
 sub_71B4C:				; XREF: loc_B10; PalToCRAM
-		move.w	#$100,($A11100).l ; stop the Z80
-	;	nop
-	;	nop
-	;	nop
-
-loc_71B5A:
-		btst	#0,($A11100).l
-		bne.s	loc_71B5A
-
+		stopZ80
 		btst	#7,($A01FFD).l
 		beq.s	loc_71B82
-		move.w	#0,($A11100).l	; start	the Z80
-	;	nop
-	;	nop
-	;	nop
-	;	nop
-	;	nop
+		startZ80
 		bra.s	sub_71B4C
 ; ===========================================================================
 
@@ -80,13 +83,13 @@ loc_71B82:
 		clr.b	$E(a6)
 		tst.b	3(a6)		; is music paused?
 		bne.w	loc_71E50	; if yes, branch
-        move.b    2(a6),d0        ; get tempo to d0
-        add.b    d0,1(a6)        ; add to accumulator
-        bcc.s    loc_71B9E        ; if carry clear, branch
+        	move.b  2(a6),d0        ; get tempo to d0
+        	add.b   d0,1(a6)        ; add to accumulator
+        	bcc.s   loc_71B9E        ; if carry clear, branch
 
 .ch =    $40+$E
     rept 10
-        addq.b    #1,.ch(a6)        ; add 1 to duration
+               	addq.b  #1,.ch(a6)        ; add 1 to duration
 .ch =        .ch+$30
     endr
 
@@ -180,13 +183,13 @@ loc_71C38:
 		jsr	sub_72850(pc)
 
 loc_71C44:
-		move.w	#0,($A11100).l	; start	the Z80
+		startZ80	; start	the Z80
 		btst 	#6,($FFFFFFF8).w; is Genesis/Megadrive PAL?
      		beq.s 	.end 		; if not, branch
       	     	cmpi.b 	#5,($FFFFFFBF).w; 5th frame?
        		bne.s 	.end 		; if not, branch
       	     	clr.b 	($FFFFFFBF).w 	; reset counter
-       		bra.w 	sub_71B4C 	; run sound driver again
+       		bra.w	sub_71B4C 	; run sound driver again
 .end:
       		addq.b 	#1,($FFFFFFBF).w; add 1 to frame count
 		rts
@@ -1988,7 +1991,7 @@ loc_72B78:
 		move.b	#$80,$24(a6)
 		move.b	#$28,$26(a6)
 		clr.b	$27(a6)
-		move.w	#0,($A11100).l
+		startZ80
 		addq.w	#8,sp
 		rts	
 ; ===========================================================================
@@ -2354,7 +2357,7 @@ loc_72E64:				; XREF: loc_72A64
 ; ===========================================================================
 Kos_Z80:	incbin	sound\snd.kos
 		even
-		
+
 		include "smps2asm.asm"
 
 Music81:	incbin	sound\music81.smp

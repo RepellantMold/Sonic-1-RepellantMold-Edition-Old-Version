@@ -12,49 +12,6 @@ align:	macro
 	endm
 
 ; ---------------------------------------------------------------------------
-; Set a VRAM address via the VDP control port.
-; input: 16-bit VRAM address, control port (default is ($C00004).l)
-; ---------------------------------------------------------------------------
-
-locVRAM:	macro loc,controlport
-		if (narg=1)
-		move.l	#($40000000+((loc&$3FFF)<<16)+((loc&$C000)>>14)),($C00004).l
-		else
-		move.l	#($40000000+((loc&$3FFF)<<16)+((loc&$C000)>>14)),controlport
-		endc
-		endm
-
-; ---------------------------------------------------------------------------
-; DMA copy data from 68K (ROM/RAM) to the VRAM
-; input: source, length, destination
-; ---------------------------------------------------------------------------
-
-writeVRAM:	macro
-		lea	($C00004).l,a5
-		move.l	#$94000000+(((\2>>1)&$FF00)<<8)+$9300+((\2>>1)&$FF),(a5)
-		move.l	#$96000000+(((\1>>1)&$FF00)<<8)+$9500+((\1>>1)&$FF),(a5)
-		move.w	#$9700+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
-		move.w	#$4000+(\3&$3FFF),(a5)
-		move.w	#$80+((\3&$C000)>>14),($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		endm
-
-; ---------------------------------------------------------------------------
-; DMA copy data from 68K (ROM/RAM) to the CRAM
-; input: source, length, destination
-; ---------------------------------------------------------------------------
-
-writeCRAM:	macro
-		lea	($C00004).l,a5
-		move.l	#$94000000+(((\2>>1)&$FF00)<<8)+$9300+((\2>>1)&$FF),(a5)
-		move.l	#$96000000+(((\1>>1)&$FF00)<<8)+$9500+((\1>>1)&$FF),(a5)
-		move.w	#$9700+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
-		move.w	#$C000+(\3&$3FFF),(a5)
-		move.w	#$80+((\3&$C000)>>14),($FFFFF640).w
-		move.w	($FFFFF640).w,(a5)
-		endm
-
-; ---------------------------------------------------------------------------
 ; DMA fill VRAM with a value
 ; input: value, length, destination
 ; ---------------------------------------------------------------------------
@@ -69,19 +26,6 @@ fillVRAM:	macro value,length,loc
 		endm
 
 ; ---------------------------------------------------------------------------
-; Copy a tilemap from 68K (ROM/RAM) to the VRAM without using DMA
-; input: source, destination, width [cells], height [cells]
-; ---------------------------------------------------------------------------
-
-copyTilemap:	macro source,loc,width,height
-		lea	(source).l,a1
-		move.l	#$40000000+((loc&$3FFF)<<16)+((loc&$C000)>>14),d0
-		moveq	#width,d1
-		moveq	#height,d2
-		bsr.w	ShowVDPGraphics
-		endm
-
-; ---------------------------------------------------------------------------
 ; stop the Z80
 ; ---------------------------------------------------------------------------
 
@@ -92,81 +36,11 @@ stopZ80:	macro
 		endm
 
 ; ---------------------------------------------------------------------------
-; reset the Z80
-; ---------------------------------------------------------------------------
-
-resetZ80:	macro
-		move.w	#$100,($A11200).l
-		endm
-
-resetZ80a:	macro
-		move.w	#0,($A11200).l
-		endm
-
-; ---------------------------------------------------------------------------
 ; start the Z80
 ; ---------------------------------------------------------------------------
 
 startZ80:	macro
 		move.w	#0,($A11100).l
-		endm
-		
-; ---------------------------------------------------------------------------
-; check if object moves out of range
-; input: location to jump to if out of range, x-axis pos (obX(a0) by default)
-; ---------------------------------------------------------------------------
-
-obRange:	macro exit,pos
-		if (narg=2)
-		move.w	pos,d0		; get object position (if specified as not obX)
-		else
-		move.w	obX(a0),d0	; get object position
-		endc
-		andi.w	#$FF80,d0	; round down to nearest $80
-		move.w	($FFFFF700).w,d1 ; get screen position
-		subi.w	#128,d1
-		andi.w	#$FF80,d1
-		sub.w	d1,d0
-		cmpi.w	#128+320+192,d0
-		bhi.w	exit		; if object moves out of range, branch
-		endm
-
-obRanges:	macro exit,pos
-		if (narg=2)
-		move.w	pos,d0		; get object position (if specified as not obX)
-		else
-		move.w	8(a0),d0	; get object position
-		endc
-		andi.w	#$FF80,d0	; round down to nearest $80
-		move.w	($FFFFF700).w,d1 ; get screen position
-		subi.w	#128,d1
-		andi.w	#$FF80,d1
-		sub.w	d1,d0
-		cmpi.w	#128+320+192,d0
-		bhi.s	exit		; if object moves out of range, branch
-		endm
-		
-; ---------------------------------------------------------------------------
-; play a sound effect or music
-; input: track, terminate routine (leave blank to not terminate)
-; ---------------------------------------------------------------------------
-
-music:		macro track,terminate
-		move.w	#track,d0
-		if (narg=1)
-		jsr	(PlaySound).l
-		else
-		jmp	(PlaySound).l
-		endc
-		endm
-
-sfx:		macro track,terminate
-		move.w	#track,d0
-		if (narg=1)
-		jsr	(PlaySound_Special).l
-		else
-		jmp	(PlaySound_Special).l
-		endc
 		endm
 
 ; ---------------------------------------------------------------------------
