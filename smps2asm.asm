@@ -29,6 +29,7 @@ enum	macro	num, lable
 ; PSG volume envelope equates
 	enum 0,   v00,v01,v02,v03,v04
 	enum v04+1, v05,v06,v07,v08,v09
+	enum v09+1, v0A,v0B,v0C,v0D
 ; ---------------------------------------------------------------------------------------------
 ; PSG modulation envelope equates
 	enum 0, 	  m00

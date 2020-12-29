@@ -2384,7 +2384,7 @@ Music8B:	incbin	sound\music8B.smp
 		even
 Music8C:	incbin	sound\music8C.smp
 		even
-Music8D:	incbin	sound\music8D.smp
+Music8D:	include	sound\music8D.asm
 		even
 Music8E:	incbin	sound\music8E.smp
 		even

@@ -351,17 +351,7 @@ loc_B9A:
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ ?
 		bne.s	loc_B5E		; if not, branch
 		move.w	($C00004).l,d0
-		btst	#6,($FFFFFFF8).w
-		beq.s	loc_BBA
-		move.w	#$700,d0
-
-loc_BB6:
-		dbf	d0,loc_BB6
-
-loc_BBA:
 		move.w	#1,($FFFFF644).w
-
-loc_BC8:
 		tst.b	($FFFFF64E).w
 		bne.s	loc_BFE
 		lea	($C00004).l,a5
@@ -2719,7 +2709,7 @@ Title_LoadText:
 		bsr.w	PalLoad1
 		move.b	#$8A,($FFFFF00B).w		; play title screen music
 		clr.b	($FFFFFFFA).w ; disable debug mode
-		move.w	#$178,($FFFFF614).w ; run title	screen for $178	frames
+		move.w	#-1,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
 		move.w	#$F,d1
@@ -3125,7 +3115,7 @@ LevelMenuText:
 ; ---------------------------------------------------------------------------
 MusicList:	incbin	misc\muslist1.bin
 		even
-		
+
 ; ---------------------------------------------------------------------------
 ; Demo mode
 ; ---------------------------------------------------------------------------
@@ -3406,7 +3396,7 @@ loc_39E8:
 		tst.w	($FFFFFFF0).w	; is demo mode on?
 		bpl.s	Level_Demo	; if yes, branch
 		lea	(Demo_EndIndex).l,a1 ; load ending demo	data
-		move.w	($FFFFFFF4).w,d0
+		move.b	($FFFFFFF4).w,d0
 		subq.w	#1,d0
 		lsl.w	#2,d0
 		movea.l	(a1,d0.w),a1
@@ -3418,7 +3408,7 @@ Level_Demo:
 		tst.w	($FFFFFFF0).w
 		bpl.s	Level_ChkWaterPal
 		move.w	#540,($FFFFF614).w
-		cmpi.w	#4,($FFFFFFF4).w
+		cmpi.b	#4,($FFFFFFF4).w
 		bne.s	Level_ChkWaterPal
 		move.w	#510,($FFFFF614).w
 
@@ -3472,7 +3462,7 @@ Level_MainLoop:
 		move.b	#8,($FFFFF62A).w
 		waitvblank
 		addq.w	#1,($FFFFFE04).w ; add 1 to level timer
-		bsr.w	MoveSonicInDemo
+		;bsr.w	MoveSonicInDemo
 		bsr.w	LZWaterEffects
 		jsr	ObjectsLoad
 		tst.w	($FFFFFE02).w	; is the level set to restart?
@@ -3527,7 +3517,7 @@ loc_3B88:
 loc_3B98:
 		move.b	#8,($FFFFF62A).w
 		waitvblank
-		bsr.w	MoveSonicInDemo
+		;bsr.w	MoveSonicInDemo
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		jsr	ObjPosLoad
@@ -3972,77 +3962,6 @@ byte_3FCF:	dc.b 0			; XREF: LZWaterSlides
 
 
 MoveSonicInDemo:			; XREF: Level_MainLoop; et al
-		tst.w	($FFFFFFF0).w	; is demo mode on?
-		bne.s	MoveDemo_On	; if yes, branch
-		rts	
-; ===========================================================================
-
-; This is an unused subroutine for recording a demo
-
-MoveDemo_Record:
-		lea	($80000).l,a1
-		move.w	($FFFFF790).w,d0
-		adda.w	d0,a1
-		move.b	($FFFFF604).w,d0
-		cmp.b	(a1),d0
-		bne.s	loc_3FFA
-		addq.b	#1,1(a1)
-		cmpi.b	#$FF,1(a1)
-		beq.s	loc_3FFA
-		rts	
-; ===========================================================================
-
-loc_3FFA:				; XREF: MoveDemo_Record
-		move.b	d0,2(a1)
-		move.b	#0,3(a1)
-		addq.w	#2,($FFFFF790).w
-		andi.w	#$3FF,($FFFFF790).w
-		rts
-; ===========================================================================
-
-MoveDemo_On:				; XREF: MoveSonicInDemo
-		tst.b	($FFFFF604).w
-		bpl.s	loc_4022
-		tst.w	($FFFFFFF0).w
-		bmi.s	loc_4022
-		move.b	#4,($FFFFF600).w
-
-loc_4022:
-		lea	(Demo_Index).l,a1
-		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
-		cmpi.b	#$10,($FFFFF600).w
-		bne.s	loc_4038
-		moveq	#6,d0
-
-loc_4038:
-		lsl.w	#2,d0
-		movea.l	(a1,d0.w),a1
-		tst.w	($FFFFFFF0).w
-		bpl.s	loc_4056
-		lea	(Demo_EndIndex).l,a1
-		move.w	($FFFFFFF4).w,d0
-		subq.w	#1,d0
-		lsl.w	#2,d0
-		movea.l	(a1,d0.w),a1
-
-loc_4056:
-		move.w	($FFFFF790).w,d0
-		adda.w	d0,a1
-		move.b	(a1),d0
-		lea	($FFFFF604).w,a0
-		move.b	d0,d1
-		move.b	-2(a0),d2
-		eor.b	d2,d0
-		move.b	d1,(a0)+
-		and.b	d1,d0
-		move.b	d0,(a0)+
-		subq.b	#1,($FFFFF792).w
-		bcc.s	locret_407E
-		move.b	3(a1),($FFFFF792).w
-		addq.w	#2,($FFFFF790).w
-
-locret_407E:
 		rts
 ; End of function MoveSonicInDemo
 
@@ -4262,10 +4181,10 @@ Signpost_Exit:
 ; End of function SignpostArtLoad
 
 ; ===========================================================================
-Demo_GHZ:	incbin	demodata\i_ghz.bin
-Demo_MZ:	incbin	demodata\i_mz.bin
-Demo_SYZ:	incbin	demodata\i_syz.bin
-Demo_SS:	incbin	demodata\i_ss.bin
+Demo_GHZ:;	incbin	demodata\i_ghz.bin
+Demo_MZ:;	incbin	demodata\i_mz.bin
+Demo_SYZ:;	incbin	demodata\i_syz.bin
+Demo_SS:;	incbin	demodata\i_ss.bin
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
@@ -4376,7 +4295,7 @@ SS_MainLoop:
 		bsr.w	PauseGame
 		move.b	#$A,($FFFFF62A).w
 		waitvblank
-		bsr.w	MoveSonicInDemo
+		;bsr.w	MoveSonicInDemo
 		move.w	($FFFFF604).w,($FFFFF602).w
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -4406,7 +4325,7 @@ SS_End:
 SS_EndLoop:
 		move.b	#$16,($FFFFF62A).w
 		waitvblank
-		bsr.w	MoveSonicInDemo
+		;bsr.w	MoveSonicInDemo
 		move.w	($FFFFF604).w,($FFFFF602).w
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -5576,6 +5495,7 @@ Cred_ClrPallet:
 		move.b	#$8A,($FFFFD080).w ; load credits object
 		jsr	ObjectsLoad
 		jsr	BuildSprites
+		addq.w  #1,($FFFFFFF4).w ; remove this line and...
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
 		lsl.w	#4,d0
@@ -5597,8 +5517,6 @@ Cred_WaitLoop:
 		waitvblank
 		bsr.w	RunPLC_RAM
 		tst.w	($FFFFF614).w	; have 2 seconds elapsed?
-		bne.s	Cred_WaitLoop	; if not, branch
-		tst.l	(PLCQueueAdr).w	; have level gfx finished decompressing?
 		bne.s	Cred_WaitLoop	; if not, branch
 		cmpi.w	#9,($FFFFFFF4).w ; have	the credits finished?
 		beq.s	TryAgainEnd	; if yes, branch
@@ -5851,22 +5769,22 @@ Map_obj8B:
 ; ---------------------------------------------------------------------------
 ; Ending sequence demos
 ; ---------------------------------------------------------------------------
-Demo_EndGHZ1:	incbin	demodata\e_ghz1.bin
-		even
-Demo_EndMZ:	incbin	demodata\e_mz.bin
-		even
-Demo_EndSYZ:	incbin	demodata\e_syz.bin
-		even
-Demo_EndLZ:	incbin	demodata\e_lz.bin
-		even
-Demo_EndSLZ:	incbin	demodata\e_slz.bin
-		even
-Demo_EndSBZ1:	incbin	demodata\e_sbz1.bin
-		even
-Demo_EndSBZ2:	incbin	demodata\e_sbz2.bin
-		even
-Demo_EndGHZ2:	incbin	demodata\e_ghz2.bin
-		even
+Demo_EndGHZ1:	;incbin	demodata\e_ghz1.bin
+		;even
+Demo_EndMZ:	;incbin	demodata\e_mz.bin
+		;even
+Demo_EndSYZ:	;incbin	demodata\e_syz.bin
+		;even
+Demo_EndLZ:	;incbin	demodata\e_lz.bin
+		;even
+Demo_EndSLZ:	;incbin	demodata\e_slz.bin
+		;even
+Demo_EndSBZ1:	;incbin	demodata\e_sbz1.bin
+		;even
+Demo_EndSBZ2:	;incbin	demodata\e_sbz2.bin
+		;even
+Demo_EndGHZ2:	;incbin	demodata\e_ghz2.bin
+		;even
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	load level boundaries and start	locations
@@ -5930,12 +5848,12 @@ LevSz_StartLoc:				; XREF: LevelSizeLoad
 		lsl.b	#6,d0
 		lsr.w	#4,d0
 		lea	StartLocArray(pc,d0.w),a1 ; load Sonic's start location
-		tst.w	($FFFFFFF0).w	; is demo mode on?
-		bpl.s	LevSz_SonicPos	; if not, branch
-		move.w	($FFFFFFF4).w,d0
-		subq.w	#1,d0
-		lsl.w	#2,d0
-		lea	EndingStLocArray(pc,d0.w),a1 ; load Sonic's start location
+	;	tst.w	($FFFFFFF0).w	; is demo mode on?
+	;	bpl.s	LevSz_SonicPos	; if not, branch
+	;	move.w	($FFFFFFF4).w,d0
+	;	subq.w	#1,d0
+	;	lsl.w	#2,d0
+	;	lea	EndingStLocArray(pc,d0.w),a1 ; load Sonic's start location
 
 LevSz_SonicPos:
 		moveq	#0,d1
@@ -12777,19 +12695,24 @@ Obj2E_Main:				; XREF: Obj2E_Index
 
 Obj2E_Move:				; XREF: Obj2E_Index
 		tst.w	$12(a0)		; is object moving?
-		bpl.w	Obj2E_ChkEggman	; if not, branch
+		bpl.s	Obj2E_ChkEggman	; if not, branch
 		bsr.w	SpeedToPos
 		addi.w	#$18,$12(a0)	; reduce object	speed
 		rts	
 ; ===========================================================================
 
-Obj2E_ChkEggman:			; XREF: Obj2E_Move
-		addq.b	#2,$24(a0)
-		move.w	#29,$1E(a0)
-		move.b	$1C(a0),d0
-		cmpi.b	#1,d0		; does monitor contain Eggman?
-		bne.s	Obj2E_ChkSonic
-		rts			; Eggman monitor does nothing
+Obj2E_ChkEggman:    ; XREF: Obj2E_Move
+        addq.b    #2,$24(a0)
+        move.w    #29,$1E(a0)
+        move.b    $1C(a0),d0
+        cmpi.b    #1,d0; does monitor contain Eggman?
+        bne.s    Obj2E_ChkSonic ; if not, go and check for the next monitor type (1-up icon)
+        move.l    a0,a1 ; move a0 to a1, because Touch_ChkHurt wants the damaging object to be in a1
+        move.l    a0,-(sp) ; push a0 on the stack, and decrement stack pointer
+        lea    ($FFFFD000).w,a0 ; put Sonic's ram address in a0, because Touch_ChkHurt wants the damaged object to be in a0
+        jsr    Touch_ChkHurt ; run the Touch_ChkHurt routine
+        move.l    (sp)+,a0 ; pop the previous value of a0 from the stack, and increment stack pointer
+        rts ; The Eggman monitor now does something!
 ; ===========================================================================
 
 Obj2E_ChkSonic:
@@ -12990,7 +12913,7 @@ Obj0E_Delay:				; XREF: Obj0E_Index
 ; ===========================================================================
 
 Obj0E_Wait:				; XREF: Obj0E_Delay
-		rts	
+		rts
 ; ===========================================================================
 
 Obj0E_Move:				; XREF: Obj0E_Index
@@ -13002,15 +12925,11 @@ Obj0E_Move:				; XREF: Obj0E_Index
 Obj0E_Display:
 		bra.w	DisplaySprite
 ; ===========================================================================
-		rts	
-; ===========================================================================
 
 Obj0E_Animate:				; XREF: Obj0E_Index
 		lea	(Ani_obj0E).l,a1
 		bsr.w	AnimateSprite
 		bra.w	DisplaySprite
-; ===========================================================================
-		rts	
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 0F - "PRESS START BUTTON" and "TM" from title screen
@@ -13044,7 +12963,7 @@ Obj0F_Main:				; XREF: Obj0F_Index
 		move.w	#$F8,$A(a0)
 
 locret_A6F8:				; XREF: Obj0F_Index
-		rts	
+		rts
 ; ===========================================================================
 
 Obj0F_PrsStart:				; XREF: Obj0F_Index
@@ -13762,16 +13681,16 @@ loc_B238:				; XREF: Obj35_Index
 		add.w	$3C(a0),d0
 		move.w	d0,$C(a0)
 		cmpi.w	#$84,d1
-		bcc.s	loc_B2B0
+		bcc.s	Obj35_Animate
 		addi.l	#$10000,8(a0)
 		cmpi.w	#$80,d1
-		bcc.s	loc_B2B0
+		bcc.s	Obj35_Animate
 		move.l	8(a0),d0
 		addi.l	#$80000,d0
 		andi.l	#$FFFFF,d0
-		bne.s	loc_B2B0
+		bne.s	Obj35_Animate
 		bsr.w	SingleObjLoad2
-		bne.s	loc_B2B0
+		bne.s	Obj35_Animate
 		move.b	#$35,0(a1)
 		move.w	8(a0),8(a1)
 		move.w	d2,$2C(a1)
@@ -13779,8 +13698,6 @@ loc_B238:				; XREF: Obj35_Index
 		move.b	#1,$28(a1)
 		movea.l	$38(a0),a2
 		bsr.w	sub_B09C
-
-loc_B2B0:
 		bra.s	Obj35_Animate
 ; ===========================================================================
 
@@ -13826,12 +13743,8 @@ Obj30:					; XREF: Obj_Index
 		andi.w	#$FF80,d1
 		sub.w	d1,d0
 		cmpi.w	#$280,d0
-		bhi.w	Obj30_Delete
+		bhi.w	DeleteObject
 		bra.w	DisplaySprite
-; ===========================================================================
-
-Obj30_Delete:
-		bra.w	DeleteObject
 ; ===========================================================================
 Obj30_Index:	dc.w Obj30_Main-Obj30_Index
 		dc.w Obj30_Block012-Obj30_Index
@@ -22839,7 +22752,11 @@ locret_12106:
 
 Obj61_Type04:				; XREF: Obj61_TypeIndex
 		bsr.w	SpeedToPos
-		subq.w	#8,$12(a0)	; make object rise
+		cmpi.w	#-$200,$12(a0)
+		beq.s	.attopspeed
+		subq.w	#8,$12(a0)	; make block rise
+		
+	.attopspeed:
 		bsr.w	ObjHitCeiling
 		tst.w	d1
 		bpl.w	locret_12126
