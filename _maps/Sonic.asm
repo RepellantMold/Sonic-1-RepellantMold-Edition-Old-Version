@@ -1,950 +1,413 @@
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin:
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_014E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0150-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0172-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0184-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_01AE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_01D8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0202-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0224-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0246-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0258-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_026A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_027C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_029E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02C0-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02D2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02E4-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02FE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0318-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0332-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0354-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0376-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0390-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_03AA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_03C4-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_03DE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0400-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_042A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0454-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0476-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0498-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_04BA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_04DC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_04FE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0528-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_054A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_056C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_058E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05A8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05BA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05CC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05DE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05F8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0612-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_062C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_063E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0650-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0662-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0674-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_068E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_06B0-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_06D2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_06FC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_071E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0740-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0762-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0784-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_07A6-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_07C8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_07EA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_080C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_082E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0840-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0852-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0864-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0876-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0888-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_089A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08AC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08BE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08D0-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08E2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08F4-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0906-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0918-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_092A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_093C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_094E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0960-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0972-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0984-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0996-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09A8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09BA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09CC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09DE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09F0-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A02-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A14-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A26-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A38-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A4A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A5C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A6E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A80-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A92-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AA4-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AB6-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AC8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0ADA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AEC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AFE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B10-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B22-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B34-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B46-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B58-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B6A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B7C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B8E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B98-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BA2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BAC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BB6-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BC0-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BCA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BD4-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BDE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BE8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BF2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BFC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C16-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C30-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C4A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C64-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C86-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CA8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CCA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CE4-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CEE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CF8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D12-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D2C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D46-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D60-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D72-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D84-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D96-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DA8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DCA-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DDC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DF6-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E10-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E22-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E34-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E46-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E58-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E7A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E9C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0EBE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0ED8-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0EF2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F14-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F2E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F50-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F72-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F8C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FA6-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FC0-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FD2-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FDC-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FEE-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_1008-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_1022-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_103C-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_104E-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_1060-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-	dc.w	CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_107A-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_014E:	dc.b 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0150:	dc.b 4
-	dc.b $E4, 5, 0, 0, $F8
-	dc.b $EC, 3, 0, 4, $F0
-	dc.b $F4, 9, 0, 8, $F8
-	dc.b 4, 9, 0, $E, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0172:	dc.b 2
-	dc.b $EC, $B, 0, 0, $F0
-	dc.b $C, 9, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0184:	dc.b 5
-	dc.b $EC, 1, 0, 0, $F0
-	dc.b $EC, 5, 0, 2, $F8
-	dc.b $FC, 9, 0, 6, $F0
-	dc.b $C, 1, 0, $C, $F8
-	dc.b $C, 5, 0, $E, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_01AE:	dc.b 5
-	dc.b $EC, 1, 0, 0, $F0
-	dc.b $EC, 5, 0, 2, $F8
-	dc.b $FC, 9, 0, 6, $F0
-	dc.b $C, 1, 0, $C, $F8
-	dc.b $C, 5, 0, $E, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_01D8:	dc.b 5
-	dc.b $EC, 1, 0, 0, $F0
-	dc.b $EC, 5, 0, 2, $F8
-	dc.b $FC, 9, 0, 6, $F0
-	dc.b $C, 1, 0, $C, $F8
-	dc.b $C, 5, 0, $E, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0202:	dc.b 4
-	dc.b $E4, 5, 0, 0, $F8
-	dc.b $EC, 3, 0, 4, $F0
-	dc.b $F4, 9, 0, 8, $F8
-	dc.b 4, 9, 0, $E, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0224:	dc.b 4
-	dc.b $E4, 5, 0, 0, $F8
-	dc.b $EC, 3, 0, 4, $F0
-	dc.b $F4, 5, 0, 8, $F8
-	dc.b 4, 9, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0246:	dc.b 2
-	dc.b $F4, $B, 0, 0, $E1
-	dc.b 4, 5, 0, $C, $F9
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0258:	dc.b 2
-	dc.b $E4, $B, 0, 0, $EE
-	dc.b 4, $D, 0, $C, $EE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_026A:	dc.b 2
-	dc.b $E4, $B, 0, 0, $F0
-	dc.b 4, 5, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_027C:	dc.b 4
-	dc.b $E4, 7, 0, 0, $F0
-	dc.b 4, 5, 0, 8, $F0
-	dc.b $E4, 7, 8, 0, 0
-	dc.b 4, 5, 8, 8, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_029E:	dc.b 4
-	dc.b $EA, $D, 0, 0, $EC
-	dc.b $FA, 9, 0, 8, $EC
-	dc.b $FA, 7, 0, $E, 4
-	dc.b $A, 5, 0, $16, $EC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02C0:	dc.b 2
-	dc.b $EB, $D, 0, 0, $EC
-	dc.b $FB, $F, 0, 8, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02D2:	dc.b 2
-	dc.b $EC, $D, 0, 0, $EC
-	dc.b $FC, $F, 0, 8, $F3
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02E4:	dc.b 3
-	dc.b $EC, $D, 0, 0, $EC
-	dc.b $FC, $D, 0, 8, $F3
-	dc.b $C, 5, 0, $10, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_02FE:	dc.b 3
-	dc.b $EC, $D, 0, 0, $EC
-	dc.b $FC, $D, 0, 8, $F3
-	dc.b $C, 5, 0, $10, $F5
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0318:	dc.b 3
-	dc.b $EC, $D, 0, 0, $ED
-	dc.b $FC, $D, 0, 8, $ED
-	dc.b $C, 5, 0, $10, $F5
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0332:	dc.b 4
-	dc.b $EC, 9, 0, 0, $F4
-	dc.b $FC, $D, 0, 6, $EC
-	dc.b $FC, 1, 0, $E, $C
-	dc.b $C, 5, 0, $10, $EC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0354:	dc.b 4
-	dc.b $EC, 9, 0, 0, $F4
-	dc.b $FC, $D, 0, 6, $F3
-	dc.b $C, 1, 0, $E, $F3
-	dc.b $C, 5, 0, $10, 3
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0376:	dc.b 3
-	dc.b $ED, 9, 0, 0, $F4
-	dc.b $FD, 9, 0, 6, $F4
-	dc.b $D, $D, 0, $C, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0390:	dc.b 3
-	dc.b $ED, $D, 0, 0, $ED
-	dc.b $FD, $D, 0, 8, $ED
-	dc.b $D, 5, 0, $10, $FA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_03AA:	dc.b 3
-	dc.b $EC, $D, 0, 0, $EC
-	dc.b $FC, $D, 0, 8, $F3
-	dc.b $C, 5, 0, $10, $FA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_03C4:	dc.b 3
-	dc.b $EC, $D, 0, 0, $EC
-	dc.b $FC, $D, 0, 8, $F3
-	dc.b $C, 5, 0, $10, $F3
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_03DE:	dc.b 4
-	dc.b $EB, 9, 0, 0, $EB
-	dc.b $FB, $D, 0, 6, $EB
-	dc.b $F3, 5, 0, $E, 3
-	dc.b $B, 1, 0, $12, $FB
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0400:	dc.b 5
-	dc.b $EC, 9, 0, 0, $EC
-	dc.b $FC, $D, 0, 6, $EC
-	dc.b $EC, 1, 0, $E, 4
-	dc.b $FC, 1, 0, $10, $C
-	dc.b $C, 1, 0, $12, $FF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_042A:	dc.b 5
-	dc.b $ED, 9, 0, 0, $ED
-	dc.b $FD, $D, 0, 6, $ED
-	dc.b $ED, 1, 0, $E, 5
-	dc.b $FD, 1, 0, $10, $D
-	dc.b $D, 1, 0, $12, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0454:	dc.b 4
-	dc.b $EE, 9, 0, 0, $ED
-	dc.b $EE, 1, 0, 6, 5
-	dc.b $FE, $D, 0, 8, $ED
-	dc.b 6, 9, 0, $10, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0476:	dc.b 4
-	dc.b $EE, 9, 0, 0, $ED
-	dc.b $EE, 1, 0, 6, 5
-	dc.b $FE, $D, 0, 8, $ED
-	dc.b 6, 5, 0, $10, 5
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0498:	dc.b 4
-	dc.b $EE, 9, 0, 0, $ED
-	dc.b $FE, 9, 0, 6, $ED
-	dc.b $F6, 3, 0, $C, 5
-	dc.b $E, 1, 0, $10, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_04BA:	dc.b 4
-	dc.b $EC, 9, 0, 0, $ED
-	dc.b $F4, 5, 0, 6, 5
-	dc.b $FC, 9, 0, $A, $ED
-	dc.b $C, 1, 0, $10, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_04DC:	dc.b 4
-	dc.b $EC, 9, 0, 0, $ED
-	dc.b $F7, 5, 0, 6, 5
-	dc.b $FC, 9, 0, $A, $ED
-	dc.b $C, 1, 0, $10, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_04FE:	dc.b 5
-	dc.b $ED, 9, 0, 0, $EE
-	dc.b $ED, 1, 0, 6, 6
-	dc.b $FD, 9, 0, 8, $EF
-	dc.b $FD, 5, 0, $E, 7
-	dc.b $D, 1, 0, $12, $FF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0528:	dc.b 4
-	dc.b $EE, 9, 0, 0, $EE
-	dc.b $FE, 9, 0, 6, $EE
-	dc.b $F6, 1, 0, $C, 6
-	dc.b 6, 5, 0, $E, 6
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_054A:	dc.b 4
-	dc.b $EE, 9, 0, 0, $ED
-	dc.b $FE, 9, 0, 6, $ED
-	dc.b $F6, 1, 0, $C, 5
-	dc.b 6, 5, 0, $E, 5
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_056C:	dc.b 4
-	dc.b $ED, 9, 0, 0, $ED
-	dc.b $FD, 9, 0, 6, $ED
-	dc.b $ED, 3, 0, $C, 5
-	dc.b $D, 5, 0, $10, $FF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_058E:	dc.b 3
-	dc.b $F5, 7, 0, 0, $EA
-	dc.b $ED, $B, 0, 8, $FA
-	dc.b $D, 5, 0, $14, 2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05A8:	dc.b 2
-	dc.b $F5, 7, 0, 0, $EB
-	dc.b $EF, $B, 0, 8, $FB
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05BA:	dc.b 2
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $EE, $B, 0, 8, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05CC:	dc.b 2
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $EE, $B, 0, 8, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05DE:	dc.b 3
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $EF, 5, 0, 8, $FC
-	dc.b $FF, 9, 0, $C, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_05F8:	dc.b 3
-	dc.b $F4, 7, 0, 0, $EC
-	dc.b $EC, 5, 0, 8, $FC
-	dc.b $FC, 9, 0, $C, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0612:	dc.b 3
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $ED, 5, 0, 8, $FC
-	dc.b $FD, $B, 0, $C, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_062C:	dc.b 2
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $ED, $B, 0, 8, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_063E:	dc.b 2
-	dc.b $F5, 7, 0, 0, $ED
-	dc.b $ED, $B, 0, 8, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0650:	dc.b 2
-	dc.b $F4, 7, 0, 0, $ED
-	dc.b $F4, $B, 0, 8, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0662:	dc.b 2
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $EE, $B, 0, 8, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0674:	dc.b 3
-	dc.b $F5, 7, 0, 0, $EC
-	dc.b $EE, 5, 0, 8, $FC
-	dc.b $FE, 9, 0, $C, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_068E:	dc.b 4
-	dc.b $EE, 9, 0, 0, $F3
-	dc.b $FE, 7, 0, 6, $EB
-	dc.b $FE, $D, 0, $E, $FB
-	dc.b $E, 1, 0, $16, $FB
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_06B0:	dc.b 4
-	dc.b $ED, $D, 0, 0, $F4
-	dc.b $FD, 7, 0, 8, $EC
-	dc.b $FD, $D, 0, $10, $FC
-	dc.b $D, 1, 0, $18, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_06D2:	dc.b 5
-	dc.b $EC, $D, 0, 0, $F5
-	dc.b $EC, 1, 0, 8, $15
-	dc.b $FC, 7, 0, $A, $ED
-	dc.b $FC, 9, 0, $12, $FD
-	dc.b $C, 1, 0, $18, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_06FC:	dc.b 4
-	dc.b $EC, $D, 0, 0, $F6
-	dc.b $FC, 7, 0, 8, $EE
-	dc.b $FC, 9, 0, $10, $FE
-	dc.b $C, 1, 0, $16, $FE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_071E:	dc.b 4
-	dc.b $EC, $D, 0, 0, $F6
-	dc.b $FC, 7, 0, 8, $EE
-	dc.b $FC, 5, 0, $10, $FE
-	dc.b $C, 1, 0, $14, $FE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0740:	dc.b 4
-	dc.b $EC, 1, 0, 0, $F6
-	dc.b $F4, 9, 0, 2, $FE
-	dc.b $FC, 7, 0, 8, $EE
-	dc.b 4, 5, 0, $10, $FE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0762:	dc.b 4
-	dc.b $EC, 5, 0, 0, $F4
-	dc.b $FC, 7, 0, 4, $EC
-	dc.b $FC, $D, 0, $C, $FC
-	dc.b $C, 5, 0, $14, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0784:	dc.b 4
-	dc.b $EC, 5, 0, 0, $F4
-	dc.b $FC, 7, 0, 4, $EC
-	dc.b $FC, 9, 0, $C, $FC
-	dc.b $C, 1, 0, $12, $FC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_07A6:	dc.b 4
-	dc.b $EB, 9, 0, 0, $F5
-	dc.b $FB, 7, 0, 6, $ED
-	dc.b $FB, 9, 0, $E, $FD
-	dc.b $B, 1, 0, $14, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_07C8:	dc.b 4
-	dc.b $EB, $D, 0, 0, $F6
-	dc.b $FB, 7, 0, 8, $EE
-	dc.b $FB, 5, 0, $10, $FE
-	dc.b $B, 1, 0, $14, $FE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_07EA:	dc.b 4
-	dc.b $EC, $D, 0, 0, $F6
-	dc.b $FC, 7, 0, 8, $EE
-	dc.b $FC, 5, 0, $10, $FE
-	dc.b $C, 1, 0, $14, $FE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_080C:	dc.b 4
-	dc.b $EC, $D, 0, 0, $F5
-	dc.b $FC, 7, 0, 8, $ED
-	dc.b $FC, 9, 0, $10, $FD
-	dc.b $C, 1, 0, $16, $FD
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_082E:	dc.b 2
-	dc.b $F4, $F, 0, $10, $F0
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0840:	dc.b 2
-	dc.b $F4, $F, 0, $10, $F0
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0852:	dc.b 2
-	dc.b $F4, $F, 0, $10, $F0
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0864:	dc.b 2
-	dc.b $F4, $F, 0, $10, $F0
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0876:	dc.b 2
-	dc.b $F4, $F, 0, $10, $ED
-	dc.b $F1, $F, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0888:	dc.b 2
-	dc.b $F4, $F, 0, $10, $ED
-	dc.b $F1, $F, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_089A:	dc.b 2
-	dc.b $F4, $F, 0, $10, $ED
-	dc.b $F1, $F, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08AC:	dc.b 2
-	dc.b $F4, $F, 0, $10, $ED
-	dc.b $F1, $F, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08BE:	dc.b 2
-	dc.b $F4, $F, 0, $10, $EA
-	dc.b $F2, $F, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08D0:	dc.b 2
-	dc.b $F4, $F, 0, $10, $EA
-	dc.b $F2, $F, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08E2:	dc.b 2
-	dc.b $F4, $F, 0, $10, $EA
-	dc.b $F2, $F, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_08F4:	dc.b 2
-	dc.b $F4, $F, 0, $10, $EA
-	dc.b $F2, $F, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0906:	dc.b 2
-	dc.b $F6, $F, 0, $10, $F9
-	dc.b $EA, $F, 0, 0, $ED
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0918:	dc.b 2
-	dc.b $F6, $F, 0, $10, $F9
-	dc.b $EA, $F, 0, 0, $ED
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_092A:	dc.b 2
-	dc.b $F6, $F, 0, $10, $F9
-	dc.b $EA, $F, 0, 0, $ED
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_093C:	dc.b 2
-	dc.b $F6, $F, 0, $10, $F9
-	dc.b $EA, $F, 0, 0, $ED
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_094E:	dc.b 2
-	dc.b $F8, $F, 0, $10, $F7
-	dc.b $EA, $F, 0, 0, $EE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0960:	dc.b 2
-	dc.b $F8, $F, 0, $10, $F7
-	dc.b $EA, $F, 0, 0, $EE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0972:	dc.b 2
-	dc.b $F8, $F, 0, $10, $F7
-	dc.b $EA, $F, 0, 0, $EE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0984:	dc.b 2
-	dc.b $F8, $F, 0, $10, $F7
-	dc.b $EA, $F, 0, 0, $EE
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0996:	dc.b 2
-	dc.b $FA, $F, 0, $10, $F5
-	dc.b $EA, $F, 0, 0, $EF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09A8:	dc.b 2
-	dc.b $FA, $F, 0, $10, $F5
-	dc.b $EA, $F, 0, 0, $EF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09BA:	dc.b 2
-	dc.b $FA, $F, 0, $10, $F5
-	dc.b $EA, $F, 0, 0, $EF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09CC:	dc.b 2
-	dc.b $FA, $F, 0, $10, $F5
-	dc.b $EA, $F, 0, 0, $EF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09DE:	dc.b 2
-	dc.b $F0, $B, 0, $C, $FC
-	dc.b $F0, $B, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_09F0:	dc.b 2
-	dc.b $F0, $B, 0, $C, $FC
-	dc.b $F0, $B, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A02:	dc.b 2
-	dc.b $F0, $B, 0, $C, $FC
-	dc.b $F0, $B, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A14:	dc.b 2
-	dc.b $F0, $B, 0, $C, $FC
-	dc.b $F0, $B, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A26:	dc.b 2
-	dc.b $F3, $B, 0, $C, $FC
-	dc.b $EF, $B, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A38:	dc.b 2
-	dc.b $F3, $B, 0, $C, $FC
-	dc.b $EF, $B, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A4A:	dc.b 2
-	dc.b $F3, $B, 0, $C, $FC
-	dc.b $EF, $B, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A5C:	dc.b 2
-	dc.b $F3, $B, 0, $C, $FC
-	dc.b $EF, $B, 0, 0, $F1
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A6E:	dc.b 2
-	dc.b $F6, $B, 0, $C, $FC
-	dc.b $EE, $B, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A80:	dc.b 2
-	dc.b $F6, $B, 0, $C, $FC
-	dc.b $EE, $B, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0A92:	dc.b 2
-	dc.b $F6, $B, 0, $C, $FC
-	dc.b $EE, $B, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AA4:	dc.b 2
-	dc.b $F6, $B, 0, $C, $FC
-	dc.b $EE, $B, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AB6:	dc.b 2
-	dc.b $E7, $F, 0, $10, $F6
-	dc.b $F3, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AC8:	dc.b 2
-	dc.b $E7, $B, 0, $10, $FE
-	dc.b $F3, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0ADA:	dc.b 2
-	dc.b $E7, $F, 0, $10, $F6
-	dc.b $F3, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AEC:	dc.b 2
-	dc.b $E7, $B, 0, $10, $FE
-	dc.b $F3, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0AFE:	dc.b 2
-	dc.b $E9, $F, 0, $10, $F8
-	dc.b $F2, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B10:	dc.b 2
-	dc.b $E9, $B, 0, $10, 0
-	dc.b $F2, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B22:	dc.b 2
-	dc.b $E9, $F, 0, $10, $F8
-	dc.b $F2, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B34:	dc.b 2
-	dc.b $E9, $B, 0, $10, 0
-	dc.b $F2, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B46:	dc.b 2
-	dc.b $EB, $F, 0, $10, $FA
-	dc.b $F1, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B58:	dc.b 2
-	dc.b $EB, $B, 0, $10, 2
-	dc.b $F1, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B6A:	dc.b 2
-	dc.b $EB, $F, 0, $10, $FA
-	dc.b $F1, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B7C:	dc.b 2
-	dc.b $EB, $B, 0, $10, 2
-	dc.b $F1, $F, 0, 0, $EA
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B8E:	dc.b 1
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0B98:	dc.b 1
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BA2:	dc.b 1
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BAC:	dc.b 1
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BB6:	dc.b 1
-	dc.b $F0, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BC0:	dc.b 1
-	dc.b $F8, $F, 0, 0, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BCA:	dc.b 1
-	dc.b $F8, $F, 0, 0, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BD4:	dc.b 1
-	dc.b $F8, $F, 0, 0, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BDE:	dc.b 1
-	dc.b $F8, $F, 0, 0, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BE8:	dc.b 1
-	dc.b $F8, $F, 0, 0, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BF2:	dc.b 1
-	dc.b $F8, $F, 0, 0, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0BFC:	dc.b 3
-	dc.b $E5, 9, 0, 0, $F8
-	dc.b $F5, 9, 0, 6, $F8
-	dc.b 5, $D, 0, $C, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C16:	dc.b 3
-	dc.b $E5, 9, 0, 0, $F8
-	dc.b $F5, 9, 0, 6, $F8
-	dc.b 5, 9, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C30:	dc.b 3
-	dc.b $E5, 9, 0, 0, $F8
-	dc.b $F5, 9, 0, 6, $F8
-	dc.b 5, $D, 0, $C, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C4A:	dc.b 3
-	dc.b $E5, 9, 0, 0, $F8
-	dc.b $F5, 9, 0, 6, $F8
-	dc.b 5, 9, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C64:	dc.b 4
-	dc.b $E4, $B, 0, 0, $E8
-	dc.b $F4, 5, 0, $C, 0
-	dc.b 4, 1, $10, $10, $E8
-	dc.b 4, $D, 0, $12, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0C86:	dc.b 4
-	dc.b $E4, $B, 0, 0, $E8
-	dc.b $F4, 5, 0, $C, 0
-	dc.b 4, 1, $10, $10, $E8
-	dc.b 4, $D, 0, $12, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CA8:	dc.b 4
-	dc.b $E4, $B, 0, 0, $E8
-	dc.b $F4, 5, 0, $C, 0
-	dc.b 4, 1, $10, $10, $E8
-	dc.b 4, $D, 0, $12, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CCA:	dc.b 3
-	dc.b $E5, 3, 0, 0, $F0
-	dc.b $E5, 7, 0, 4, $F8
-	dc.b 5, 5, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CE4:	dc.b 1
-	dc.b $F4, $B, 0, 0, $F6
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CEE:	dc.b 1
-	dc.b $F4, $F, 0, 0, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0CF8:	dc.b 3
-	dc.b $F0, 7, 0, 0, $F0
-	dc.b $E8, 3, 0, 8, 0
-	dc.b 8, 5, 0, $C, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D12:	dc.b 3
-	dc.b $ED, 7, 0, 0, $F0
-	dc.b $E5, 3, 0, 8, 0
-	dc.b 5, 5, 0, $C, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D2C:	dc.b 3
-	dc.b $EE, $B, 0, 0, $F0
-	dc.b $FE, 1, 0, $C, 8
-	dc.b $E, 5, 0, $E, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D46:	dc.b 3
-	dc.b $ED, $B, 0, 0, $F0
-	dc.b $FD, 1, 0, $C, 8
-	dc.b $D, 5, 0, $E, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D60:	dc.b 2
-	dc.b $E4, $B, 0, 0, $F4
-	dc.b 4, $D, 0, $C, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D72:	dc.b 2
-	dc.b $E4, $B, 0, 0, $F8
-	dc.b 4, 9, 0, $C, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D84:	dc.b 2
-	dc.b $E4, $B, 0, 0, $F0
-	dc.b 4, $D, 0, $C, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0D96:	dc.b 2
-	dc.b $F4, $F, 0, 0, $E8
-	dc.b 4, 1, 0, $10, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DA8:	dc.b 4
-	dc.b $E4, 9, 0, 0, $F6
-	dc.b $F4, $D, 0, 6, $F2
-	dc.b 4, $D, 0, $E, $EE
-	dc.b 4, 1, 0, $16, $E
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DCA:	dc.b 2
-	dc.b $E4, $B, 0, 0, $F9
-	dc.b 4, $D, 0, $C, $EF
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DDC:	dc.b 3
-	dc.b $E4, 9, 0, 0, $FD
-	dc.b $F4, $D, 0, 6, $FB
-	dc.b 4, 5, 0, $E, 2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0DF6:	dc.b 3
-	dc.b $E4, 9, 0, 0, $FC
-	dc.b $F4, $D, 0, 6, $FA
-	dc.b 4, 5, 0, $E, 2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E10:	dc.b 2
-	dc.b $F8, 1, 0, 0, $EC
-	dc.b $F0, $F, 0, 2, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E22:	dc.b 2
-	dc.b $F0, 3, 0, 0, $EC
-	dc.b $F0, $F, 0, 4, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E34:	dc.b 2
-	dc.b $EC, $F, 0, 0, $E8
-	dc.b $EC, 7, 0, $10, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E46:	dc.b 2
-	dc.b $EC, $F, 0, 0, $E8
-	dc.b $EC, 7, 0, $10, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E58:	dc.b 4
-	dc.b $FC, 5, 0, 0, $EC
-	dc.b $F4, $D, 0, 4, $FC
-	dc.b 4, 1, 0, $C, $FC
-	dc.b 4, 5, 0, $E, 4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E7A:	dc.b 4
-	dc.b $F4, 9, 0, 0, $E8
-	dc.b 4, 5, 0, 6, $F0
-	dc.b $F4, 9, 8, 0, 0
-	dc.b 4, 5, 8, 6, 0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0E9C:	dc.b 4
-	dc.b $FC, 5, 8, 0, 4
-	dc.b $F4, $D, 8, 4, $E4
-	dc.b 4, 1, 8, $C, $FC
-	dc.b 4, 5, 8, $E, $EC
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0EBE:	dc.b 3
-	dc.b $F4, $D, 0, 0, $E4
-	dc.b 4, 9, 0, 8, $EC
-	dc.b $FC, 1, 0, $E, 4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0ED8:	dc.b 3
-	dc.b $F4, $D, 8, 0, $FC
-	dc.b 4, 9, 8, 8, $FC
-	dc.b $FC, 1, 8, $E, $F4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0EF2:	dc.b 4
-	dc.b $F4, $D, 0, 0, $FC
-	dc.b $FC, 5, 0, 8, $EC
-	dc.b 4, 1, 0, $C, $FC
-	dc.b 4, 5, 0, $E, 4
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F14:	dc.b 3
-	dc.b $E4, 9, 0, 0, $F4
-	dc.b $F4, $F, 0, 6, $EC
-	dc.b 4, 1, 0, $16, $C
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F2E:	dc.b 4
-	dc.b $EC, $D, 0, 0, $EA
-	dc.b $EC, 1, 0, 8, $A
-	dc.b $FC, 9, 0, $A, $F2
-	dc.b $C, $D, 0, $10, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F50:	dc.b 4
-	dc.b $EC, $D, 0, 0, $EA
-	dc.b $EC, 1, 0, 8, $A
-	dc.b $FC, 9, 0, $A, $F2
-	dc.b $C, $D, 0, $10, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F72:	dc.b 3
-	dc.b $EC, $D, 0, 0, $EA
-	dc.b $EC, 1, 0, 8, $A
-	dc.b $FC, $B, 0, $A, $F2
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0F8C:	dc.b 3
-	dc.b $E4, 9, 0, 0, $F0
-	dc.b $F4, $B, 0, 6, $F0
-	dc.b $F4, 1, 0, $12, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FA6:	dc.b 3
-	dc.b $E5, $B, 0, 0, $F0
-	dc.b $F4, 1, 0, $C, 8
-	dc.b 5, 5, 0, $E, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FC0:	dc.b 2
-	dc.b $EC, $B, 0, 0, $F1
-	dc.b $FC, 1, 0, $C, 9
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FD2:	dc.b 1
-	dc.b $EE, $F, 0, 0, $F0
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FDC:	dc.b 2
-	dc.b $F2, $B, 0, 0, $F0
-	dc.b $FA, 1, 0, $C, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_0FEE:	dc.b 3
-	dc.b $E4, 1, 0, 0, 0
-	dc.b $F4, $B, 0, 2, $F0
-	dc.b $F4, 1, 0, $E, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_1008:	dc.b 3
-	dc.b $E5, 9, 0, 0, $F0
-	dc.b $F5, $B, 0, 6, $F0
-	dc.b $ED, 3, 0, $12, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_1022:	dc.b 3
-	dc.b $E4, 5, 0, 0, $F8
-	dc.b $F4, $B, 0, 4, $F0
-	dc.b $F4, 1, 0, $10, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_103C:	dc.b 2
-	dc.b $ED, $B, 0, 0, $F0
-	dc.b $F5, 1, 0, $C, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_104E:	dc.b 2
-	dc.b $F4, 1, 0, 0, $F0
-	dc.b $F1, $B, 0, 2, $F8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_1060:	dc.b 3
-	dc.b $E4, 5, 0, 0, $F1
-	dc.b $F4, $B, 0, 4, $F0
-	dc.b $F4, 1, 0, $10, 8
-
-CUsersAdministratorDesktopROMHackingToolsMappingsConverterSonicbin_107A:	dc.b 2
-	dc.b $E1, 5, 0, 0, $F0
-	dc.b $F1, $F, 0, 4, $F0
-
-	even
+; ---------------------------------------------------------------------------
+; Sprite mappings - Sonic
+; ---------------------------------------------------------------------------
+		dc.w byte_21292-Map_Sonic, byte_21293-Map_Sonic
+		dc.w byte_212A8-Map_Sonic, byte_212B8-Map_Sonic
+		dc.w byte_212C8-Map_Sonic, byte_212D8-Map_Sonic
+		dc.w byte_212E8-Map_Sonic, byte_212FD-Map_Sonic
+		dc.w byte_21308-Map_Sonic, byte_21313-Map_Sonic
+		dc.w byte_21328-Map_Sonic, byte_21333-Map_Sonic
+		dc.w byte_21343-Map_Sonic, byte_2135D-Map_Sonic
+		dc.w byte_2137C-Map_Sonic, byte_21391-Map_Sonic
+		dc.w byte_213AB-Map_Sonic, byte_213C0-Map_Sonic
+		dc.w byte_213DA-Map_Sonic, byte_213EF-Map_Sonic
+		dc.w byte_213FA-Map_Sonic, byte_21405-Map_Sonic
+		dc.w byte_2141A-Map_Sonic, byte_21425-Map_Sonic
+		dc.w byte_21435-Map_Sonic, byte_21454-Map_Sonic
+		dc.w byte_21473-Map_Sonic, byte_21488-Map_Sonic
+		dc.w byte_214A2-Map_Sonic, byte_214B7-Map_Sonic
+		dc.w byte_214D1-Map_Sonic, byte_214DC-Map_Sonic
+		dc.w byte_214E7-Map_Sonic, byte_214F2-Map_Sonic
+		dc.w byte_214FD-Map_Sonic, byte_21512-Map_Sonic
+		dc.w byte_21522-Map_Sonic, byte_21537-Map_Sonic
+		dc.w byte_21547-Map_Sonic, byte_21552-Map_Sonic
+		dc.w byte_2155D-Map_Sonic, byte_21568-Map_Sonic
+		dc.w byte_21573-Map_Sonic, byte_21588-Map_Sonic
+		dc.w byte_21593-Map_Sonic, byte_215A8-Map_Sonic
+		dc.w byte_215B3-Map_Sonic, byte_215B9-Map_Sonic
+		dc.w byte_215BF-Map_Sonic, byte_215C5-Map_Sonic
+		dc.w byte_215CB-Map_Sonic, byte_215D1-Map_Sonic
+		dc.w byte_215DC-Map_Sonic, byte_215E2-Map_Sonic
+		dc.w byte_215ED-Map_Sonic, byte_215F3-Map_Sonic
+		dc.w byte_215FE-Map_Sonic, byte_21613-Map_Sonic
+		dc.w byte_21628-Map_Sonic, byte_21638-Map_Sonic
+		dc.w byte_21648-Map_Sonic, byte_21658-Map_Sonic
+		dc.w byte_21663-Map_Sonic, byte_21673-Map_Sonic
+		dc.w byte_21683-Map_Sonic, byte_21693-Map_Sonic
+		dc.w byte_216A8-Map_Sonic, byte_216BD-Map_Sonic
+		dc.w byte_216D7-Map_Sonic, byte_216F1-Map_Sonic
+		dc.w byte_216FC-Map_Sonic, byte_2170C-Map_Sonic
+		dc.w byte_21717-Map_Sonic, byte_21727-Map_Sonic
+		dc.w byte_21732-Map_Sonic, byte_21742-Map_Sonic
+		dc.w byte_21752-Map_Sonic, byte_2176C-Map_Sonic
+		dc.w byte_21786-Map_Sonic, byte_21791-Map_Sonic
+		dc.w byte_217A1-Map_Sonic, byte_217A7-Map_Sonic
+		dc.w byte_217AD-Map_Sonic, byte_217B3-Map_Sonic
+		dc.w byte_217C3-Map_Sonic, byte_217D3-Map_Sonic
+		dc.w byte_217E3-Map_Sonic, byte_217F3-Map_Sonic
+		dc.w byte_spdh1-Map_Sonic, byte_spdh2-Map_Sonic
+		dc.w byte_spdh3-Map_Sonic, byte_spdh4-Map_Sonic
+		dc.w byte_spdh5-Map_Sonic, byte_spdh6-Map_Sonic
+		
+byte_21292:	dc.b 0
+byte_21293:	dc.b 4			; standing
+		dc.b $EC, 8, 0,	0, $F0
+		dc.b $F4, $D, 0, 3, $F0
+		dc.b 4,	8, 0, $B, $F0
+		dc.b $C, 8, 0, $E, $F8
+byte_212A8:	dc.b 3			; waiting 1
+		dc.b $EC, 9, 0,	0, $F0
+		dc.b $FC, 9, 0,	6, $F0
+		dc.b $C, 8, 0, $C, $F8
+byte_212B8:	dc.b 3			; waiting 2
+		dc.b $EC, 9, 0,	0, $F0
+		dc.b $FC, 9, 0,	6, $F0
+		dc.b $C, 8, 0, $C, $F8
+byte_212C8:	dc.b 3			; waiting 3
+		dc.b $EC, 9, 0,	0, $F0
+		dc.b $FC, 9, 0,	6, $F0
+		dc.b $C, 8, 0, $C, $F8
+byte_212D8:	dc.b 3			; looking up
+		dc.b $EC, $A, 0, 0, $F0
+		dc.b 4,	8, 0, 9, $F0
+		dc.b $C, 8, 0, $C, $F8
+byte_212E8:	dc.b 4			; walking 1-1
+		dc.b $EB, $D, 0, 0, $EC
+		dc.b $FB, 9, 0,	8, $EC
+		dc.b $FB, 6, 0,	$E, 4
+		dc.b $B, 4, 0, $14, $EC
+byte_212FD:	dc.b 2			; walking 1-2
+		dc.b $EC, $D, 0, 0, $ED
+		dc.b $FC, $E, 0, 8, $F5
+byte_21308:	dc.b 2			; walking 1-3
+		dc.b $ED, 9, 0,	0, $F3
+		dc.b $FD, $A, 0, 6, $F3
+byte_21313:	dc.b 4			; walking 1-4
+		dc.b $EB, 9, 0,	0, $F4
+		dc.b $FB, 9, 0,	6, $EC
+		dc.b $FB, 6, 0,	$C, 4
+		dc.b $B, 4, 0, $12, $EC
+byte_21328:	dc.b 2			; walking 1-5
+		dc.b $EC, 9, 0,	0, $F3
+		dc.b $FC, $E, 0, 6, $EB
+byte_21333:	dc.b 3			; walking 1-6
+		dc.b $ED, $D, 0, 0, $EC
+		dc.b $FD, $C, 0, 8, $F4
+		dc.b 5,	9, 0, $C, $F4
+byte_21343:	dc.b 5			; walking 2-1
+		dc.b $EB, 9, 0,	0, $EB
+		dc.b $EB, 6, 0,	6, 3
+		dc.b $FB, 8, 0,	$C, $EB
+		dc.b 3,	9, 0, $F, $F3
+		dc.b $13, 0, 0,	$15, $FB
+byte_2135D:	dc.b 6			; walking 2-2
+		dc.b $EC, 9, 0,	0, $EC
+		dc.b $EC, 1, 0,	6, 4
+		dc.b $FC, $C, 0, 8, $EC
+		dc.b 4,	9, 0, $C, $F4
+		dc.b $FC, 5, 0,	$12, $C
+		dc.b $F4, 0, 0,	$16, $14
+byte_2137C:	dc.b 4			; walking 2-3
+		dc.b $ED, 9, 0,	0, $ED
+		dc.b $ED, 1, 0,	6, 5
+		dc.b $FD, $D, 0, 8, $F5
+		dc.b $D, 8, 0, $10, $FD
+byte_21391:	dc.b 5			; walking 2-4
+		dc.b $EB, 9, 0,	0, $EB
+		dc.b $EB, 5, 0,	6, 3
+		dc.b $FB, $D, 0, $A, $F3
+		dc.b $B, 8, 0, $12, $F3
+		dc.b $13, 4, 0,	$15, $FB
+byte_213AB:	dc.b 4			; walking 2-5
+		dc.b $EC, 9, 0,	0, $EC
+		dc.b $EC, 1, 0,	6, 4
+		dc.b $FC, $D, 0, 8, $F4
+		dc.b $C, 8, 0, $10, $FC
+byte_213C0:	dc.b 5			; walking 2-6
+		dc.b $ED, 9, 0,	0, $ED
+		dc.b $ED, 1, 0,	6, 5
+		dc.b $FD, 0, 0,	8, $ED
+		dc.b $FD, $D, 0, 9, $F5
+		dc.b $D, 8, 0, $11, $FD
+byte_213DA:	dc.b 4			; walking 3-1
+		dc.b $F4, 7, 0,	0, $EB
+		dc.b $EC, 9, 0,	8, $FB
+		dc.b $FC, 4, 0,	$E, $FB
+		dc.b 4,	9, 0, $10, $FB
+byte_213EF:	dc.b 2			; walking 3-2
+		dc.b $F4, 7, 0,	0, $EC
+		dc.b $EC, $B, 0, 8, $FC
+byte_213FA:	dc.b 2			; walking 3-3
+		dc.b $F4, 6, 0,	0, $ED
+		dc.b $F4, $A, 0, 6, $FD
+byte_21405:	dc.b 4			; walking 3-4
+		dc.b $F4, 6, 0,	0, $EB
+		dc.b $EC, 9, 0,	6, $FB
+		dc.b $FC, 4, 0,	$C, $FB
+		dc.b 4,	9, 0, $E, $FB
+byte_2141A:	dc.b 2			; walking 3-5
+		dc.b $F4, 6, 0,	0, $EC
+		dc.b $F4, $B, 0, 6, $FC
+byte_21425:	dc.b 3			; walking 3-6
+		dc.b $F4, 7, 0,	0, $ED
+		dc.b $EC, 0, 0,	8, $FD
+		dc.b $F4, $A, 0, 9, $FD
+byte_21435:	dc.b 6			; walking 4-1
+		dc.b $FD, 6, 0,	0, $EB
+		dc.b $ED, 4, 0,	6, $F3
+		dc.b $F5, 4, 0,	8, $EB
+		dc.b $F5, $A, 0, $A, $FB
+		dc.b $D, 0, 0, $13, $FB
+		dc.b $FD, 0, 0,	$14, $13
+byte_21454:	dc.b 6			; walking 4-2
+		dc.b $FC, 6, 0,	0, $EC
+		dc.b $E4, 8, 0,	6, $F4
+		dc.b $EC, 4, 0,	9, $FC
+		dc.b $F4, 4, 0,	$B, $EC
+		dc.b $F4, $A, 0, $D, $FC
+		dc.b $C, 0, 0, $16, $FC
+byte_21473:	dc.b 4			; walking 4-3
+		dc.b $FB, 6, 0,	0, $ED
+		dc.b $F3, 4, 0,	6, $ED
+		dc.b $EB, $A, 0, 8, $FD
+		dc.b 3,	4, 0, $11, $FD
+byte_21488:	dc.b 5			; walking 4-4
+		dc.b $FD, 6, 0,	0, $EB
+		dc.b $ED, 8, 0,	6, $F3
+		dc.b $F5, 4, 0,	9, $EB
+		dc.b $F5, $D, 0, $B, $FB
+		dc.b 5,	8, 0, $13, $FB
+byte_214A2:	dc.b 4			; walking 4-5
+		dc.b $FC, 6, 0,	0, $EC
+		dc.b $F4, 4, 0,	6, $EC
+		dc.b $EC, $A, 0, 8, $FC
+		dc.b 4,	4, 0, $11, $FC
+byte_214B7:	dc.b 5			; walking 4-6
+		dc.b $FB, 6, 0,	0, $ED
+		dc.b $EB, $A, 0, 6, $FD
+		dc.b $F3, 4, 0,	$F, $ED
+		dc.b 3,	4, 0, $11, $FD
+		dc.b $B, 0, 0, $13, $FD
+byte_214D1:	dc.b 2			; running 1-1
+		dc.b $EE, 9, 0,	0, $F4
+		dc.b $FE, $E, 0, 6, $EC
+byte_214DC:	dc.b 2			; running 1-2
+		dc.b $EE, 9, 0,	0, $F4
+		dc.b $FE, $E, 0, 6, $EC
+byte_214E7:	dc.b 2			; running 1-3
+		dc.b $EE, 9, 0,	0, $F4
+		dc.b $FE, $E, 0, 6, $EC
+byte_214F2:	dc.b 2			; running 1-4
+		dc.b $EE, 9, 0,	0, $F4
+		dc.b $FE, $E, 0, 6, $EC
+byte_214FD:	dc.b 4			; running 2-1
+		dc.b $EE, 9, 0,	0, $EE
+		dc.b $EE, 1, 0,	6, 6
+		dc.b $FE, $E, 0, 8, $F6
+		dc.b $FE, 0, 0,	$14, $EE
+byte_21512:	dc.b 3			; running 2-2
+		dc.b $EE, 9, 0,	0, $EE
+		dc.b $EE, 1, 0,	6, 6
+		dc.b $FE, $E, 0, 8, $F6
+byte_21522:	dc.b 4			; running 2-3
+		dc.b $EE, 9, 0,	0, $EE
+		dc.b $EE, 1, 0,	6, 6
+		dc.b $FE, $E, 0, 8, $F6
+		dc.b $FE, 0, 0,	$14, $EE
+byte_21537:	dc.b 3			; running 2-4
+		dc.b $EE, 9, 0,	0, $EE
+		dc.b $EE, 1, 0,	6, 6
+		dc.b $FE, $E, 0, 8, $F6
+byte_21547:	dc.b 2			; running 3-1
+		dc.b $F4, 6, 0,	0, $EE
+		dc.b $F4, $B, 0, 6, $FE
+byte_21552:	dc.b 2			; running 3-2
+		dc.b $F4, 6, 0,	0, $EE
+		dc.b $F4, $B, 0, 6, $FE
+byte_2155D:	dc.b 2			; running 3-3
+		dc.b $F4, 6, 0,	0, $EE
+		dc.b $F4, $B, 0, 6, $FE
+byte_21568:	dc.b 2			; running 3-4
+		dc.b $F4, 6, 0,	0, $EE
+		dc.b $F4, $B, 0, 6, $FE
+byte_21573:	dc.b 4			; running 4-1
+		dc.b $FA, 6, 0,	0, $EE
+		dc.b $F2, 4, 0,	6, $EE
+		dc.b $EA, $B, 0, 8, $FE
+		dc.b $A, 0, 0, $14, $FE
+byte_21588:	dc.b 2			; running 4-2
+		dc.b $F2, 7, 0,	0, $EE
+		dc.b $EA, $B, 0, 8, $FE
+byte_21593:	dc.b 4			; running 4-3
+		dc.b $FA, 6, 0,	0, $EE
+		dc.b $F2, 4, 0,	6, $EE
+		dc.b $EA, $B, 0, 8, $FE
+		dc.b $A, 0, 0, $14, $FE
+byte_215A8:	dc.b 2			; running 4-4
+		dc.b $F2, 7, 0,	0, $EE
+		dc.b $EA, $B, 0, 8, $FE
+byte_215B3:	dc.b 1			; rolling 1
+		dc.b $F0, $F, 0, 0, $F0
+byte_215B9:	dc.b 1			; rolling 2
+		dc.b $F0, $F, 0, 0, $F0
+byte_215BF:	dc.b 1			; rolling 3
+		dc.b $F0, $F, 0, 0, $F0
+byte_215C5:	dc.b 1			; rolling 4
+		dc.b $F0, $F, 0, 0, $F0
+byte_215CB:	dc.b 1			; rolling 5
+		dc.b $F0, $F, 0, 0, $F0
+byte_215D1:	dc.b 2			; warped 1 (unused)
+		dc.b $F4, $E, 0, 0, $EC
+		dc.b $F4, 2, 0,	$C, $C
+byte_215DC:	dc.b 1			; warped 2 (unused)
+		dc.b $F0, $F, 0, 0, $F0
+byte_215E2:	dc.b 2			; warped 3 (unused)
+		dc.b $EC, $B, 0, 0, $F4
+		dc.b $C, 8, 0, $C, $F4
+byte_215ED:	dc.b 1			; warped 4 (unused)
+		dc.b $F0, $F, 0, 0, $F0
+byte_215F3:	dc.b 2			; stopping 1
+		dc.b $ED, 9, 0,	0, $F0
+		dc.b $FD, $E, 0, 6, $F0
+byte_215FE:	dc.b 4			; stopping 2
+		dc.b $ED, 9, 0,	0, $F0
+		dc.b $FD, $D, 0, 6, $F0
+		dc.b $D, 4, 0, $E, 0
+		dc.b 5,	0, 0, $10, $E8
+byte_21613:	dc.b 4			; ducking
+		dc.b $F4, 4, 0,	0, $FC
+		dc.b $FC, $D, 0, 2, $F4
+		dc.b $C, 8, 0, $A, $F4
+		dc.b 4,	0, 0, $D, $EC
+byte_21628:	dc.b 3			; balancing 1
+		dc.b $EC, 8, 8,	0, $E8
+		dc.b $F4, 2, 8,	3, 0
+		dc.b $F4, $F, 8, 6, $E0
+byte_21638:	dc.b 3			; balancing 2
+		dc.b $EC, $E, 8, 0, $E8
+		dc.b 4,	$D, 8, $C, $E0
+		dc.b $C, 0, $18, $14, 0
+byte_21648:	dc.b 3			; spinning 1 (LZ)
+		dc.b $F4, $D, 0, 0, $FC
+		dc.b $FC, 5, 0,	8, $EC
+		dc.b 4,	8, 0, $C, $FC
+byte_21658:	dc.b 2			; spinning 2 (LZ)
+		dc.b $F4, $A, 0, 0, $E8
+		dc.b $F4, $A, 8, 0, 0
+byte_21663:	dc.b 3			; spinning 3 (LZ)
+		dc.b $F4, $D, 0, 0, $E4
+		dc.b $FC, 0, 0,	8, 4
+		dc.b 4,	$C, 0, 9, $EC
+byte_21673:	dc.b 3			; spinning 4 (LZ)
+		dc.b $F4, $D, 0, 0, $FC
+		dc.b $FC, 5, 0,	8, $EC
+		dc.b 4,	8, 0, $C, $FC
+byte_21683:	dc.b 3			; bouncing
+		dc.b $E8, $B, 0, 0, $F0
+		dc.b 8,	4, 0, $C, $F8
+		dc.b $10, 0, 0,	$E, $F8
+byte_21693:	dc.b 4			; hanging 1 (LZ)
+		dc.b $F8, $E, 0, 0, $E8
+		dc.b 0,	5, 0, $C, 8
+		dc.b $F8, 0, 0,	$10, 8
+		dc.b $F0, 0, 0,	$11, $F8
+byte_216A8:	dc.b 4			; hanging 2 (LZ)
+		dc.b $F8, $E, 0, 0, $E8
+		dc.b 0,	5, 0, $C, 8
+		dc.b $F8, 0, 0,	$10, 8
+		dc.b $F0, 0, 0,	$11, $F8
+byte_216BD:	dc.b 5			; celebration leap 1 (unused)
+		dc.b $E8, $A, 0, 0, $F4
+		dc.b $F0, 1, 0,	9, $C
+		dc.b 0,	9, 0, $B, $F4
+		dc.b $10, 4, 0,	$11, $F4
+		dc.b 0,	0, 0, $13, $EC
+byte_216D7:	dc.b 5			; celebration leap 2 (unused)
+		dc.b $E8, $A, 0, 0, $F4
+		dc.b $E8, 1, 0,	9, $C
+		dc.b 0,	9, 0, $B, $F4
+		dc.b $10, 4, 0,	$11, $F4
+		dc.b 0,	0, 0, $13, $EC
+byte_216F1:	dc.b 2			; pushing 1
+		dc.b $ED, $A, 0, 0, $F3
+		dc.b 5,	$D, 0, 9, $EB
+byte_216FC:	dc.b 3			; pushing 2
+		dc.b $EC, $A, 0, 0, $F3
+		dc.b 4,	8, 0, 9, $F3
+		dc.b $C, 4, 0, $C, $F3
+byte_2170C:	dc.b 2			; pushing 3
+		dc.b $ED, $A, 0, 0, $F3
+		dc.b 5,	$D, 0, 9, $EB
+byte_21717:	dc.b 3			; pushing 4
+		dc.b $EC, $A, 0, 0, $F3
+		dc.b 4,	8, 0, 9, $F3
+		dc.b $C, 4, 0, $C, $F3
+byte_21727:	dc.b 2			; surfing or sliding (unused)
+		dc.b $EC, 9, 0,	0, $F0
+		dc.b $FC, $E, 0, 6, $F0
+byte_21732:	dc.b 3			; collecting bubble (unused)
+		dc.b $EC, $A, 0, 0, $F0
+		dc.b 4,	5, 0, 9, $F8
+		dc.b $E4, 0, 0,	$D, $F8
+byte_21742:	dc.b 3			; death	1
+		dc.b $E8, $D, 0, 0, $EC
+		dc.b $E8, 1, 0,	8, $C
+		dc.b $F8, $B, 0, $A, $F4
+byte_21752:	dc.b 5			; drowning
+		dc.b $E8, $D, 0, 0, $EC
+		dc.b $E8, 1, 0,	8, $C
+		dc.b $F8, 9, 0,	$A, $F4
+		dc.b 8,	$C, 0, $10, $F4
+		dc.b $10, 0, 0,	$14, $F4
+byte_2176C:	dc.b 5			; death	2
+		dc.b $E8, $D, 0, 0, $EC
+		dc.b $E8, 1, 0,	8, $C
+		dc.b $F8, 9, 0,	$A, $F4
+		dc.b 8,	$C, 0, $10, $F4
+		dc.b $10, 0, 0,	$14, $F4
+byte_21786:	dc.b 2			; shrinking 1 (unused)
+		dc.b $EC, 8, 0,	0, $F0
+		dc.b $F4, $F, 0, 3, $F0
+byte_21791:	dc.b 3			; shrinking 2 (unused)
+		dc.b $EC, 8, 0,	0, $F0
+		dc.b $F4, $E, 0, 3, $F0
+		dc.b $C, 8, 0, $F, $F8
+byte_217A1:	dc.b 1			; shrinking 3 (unused)
+		dc.b $F0, $B, 0, 0, $F4
+byte_217A7:	dc.b 1			; shrinking 4 (unused)
+		dc.b $F4, 6, 0,	0, $F8
+byte_217AD:	dc.b 1			; shrinking 5 (unused)
+		dc.b $F8, 1, 0,	0, $FC
+byte_217B3:	dc.b 3			; injury
+		dc.b $F4, $D, 8, 0, $E4
+		dc.b $FC, 5, 8,	8, 4
+		dc.b 4,	8, 8, $C, $EC
+byte_217C3:	dc.b 3			; spinning 5 (LZ)
+		dc.b $F4, $D, 8, 0, $FC
+		dc.b $FC, 0, 8,	8, $F4
+		dc.b 4,	$C, 8, 9, $F4
+byte_217D3:	dc.b 3			; spinning 6 (LZ)
+		dc.b $F0, $E, 0, 0, $EC
+		dc.b $F8, 1, 0,	$C, $C
+		dc.b 8,	$C, 0, $E, $F4
+byte_217E3:	dc.b 3			; collecting bubble (LZ)
+		dc.b $EB, 9, 0,	0, $F4
+		dc.b $FB, $E, 0, 6, $EC
+		dc.b 3,	1, 0, $12, $C
+byte_217F3:	dc.b 2			; water	slide (LZ)
+		dc.b $F0, $F, 0, 0, $EC
+		dc.b $F8, 2, 0,	$10, $C
+byte_spdh1:	dc.b 1			; spindash 1
+		dc.b $F8, $F, 0, 0, $F0
+byte_spdh2:	dc.b 1			; spindash 2
+		dc.b $F8, $F, 0, 0, $F0
+byte_spdh3:	dc.b 1			; spindash 3
+		dc.b $F8, $F, 0, 0, $F0
+byte_spdh4:	dc.b 1			; spindash 4
+		dc.b $F8, $F, 0, 0, $F0
+byte_spdh5:	dc.b 1			; spindash 5
+		dc.b $F8, $F, 0, 0, $F0
+byte_spdh6:	dc.b 1			; spindash 6
+		dc.b $F8, $F, 0, 0, $F0
+		
+		even
