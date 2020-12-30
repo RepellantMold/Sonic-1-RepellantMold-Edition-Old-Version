@@ -3,15 +3,15 @@ CDBossUS_Header:
 	sHeaderPatch	CDBossUS_Patches
 	sHeaderCh	$07, $02
 	sHeaderTempo	$02, $40
-	sHeaderDAC	CDBossUS_DAC, $00, $16
-	sHeaderFM	CDBossUS_FM1, $00, $11
-	sHeaderFM	CDBossUS_FM2, $0C, $0F
-	sHeaderFM	CDBossUS_FM3, $0C, $16
-	sHeaderFM	CDBossUS_FM4, $0C, $0F
-	sHeaderFM	CDBossUS_FM5, $0C, $2F
-	sHeaderFM	CDBossUS_FM6, $0C, $1F
-	sHeaderPSG	CDBossUS_PSG1, $00, $08, $00, v0A
-	sHeaderPSG	CDBossUS_PSG2, $00, $08, $00, v0A
+	sHeaderDAC	CDBossUS_DAC, $00, $00
+	sHeaderFM	CDBossUS_FM1, $00-12, $12-7
+	sHeaderFM	CDBossUS_FM2, $00+12, $0B-7
+	sHeaderFM	CDBossUS_FM3, $00+36, $12-7
+	sHeaderFM	CDBossUS_FM4, $00+12, $0F-7
+	sHeaderFM	CDBossUS_FM5, $00, $2F-7
+	sHeaderFM	CDBossUS_FM6, $00+12, $1F-7
+	sHeaderPSG	CDBossUS_PSG1, $00, $06, $00, v0B
+	sHeaderPSG	CDBossUS_PSG2, $00, $06, $00, v0B
 
 CDBossUS_FM1:
 CDBossUS_Jump1:
@@ -52,7 +52,7 @@ CDBossUS_FM2:
 	sPan		spRight
 
 CDBossUS_Jump2:
-	dc.b nRst, $7F, $11    
+	dc.b nRst, $7F, $11
 	sPatFM		$04
 
 CDBossUS_Loop5:
@@ -170,7 +170,7 @@ CDBossUS_FM4:
 	sPan		spLeft
 
 CDBossUS_Jump4:
-	sPatFM		$03
+	sPatFM		$02
 	sNoteTimeOut		$05
 	dc.b nRst, $7F, $7F, $52, nD2, $02
 

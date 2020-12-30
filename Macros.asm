@@ -73,10 +73,8 @@ enable_ints:	macro
 		endm
 	
 waitvblank:	macro
-		move	#$2300,sr
-
-.wait\@:
-		tst.b	($FFFFF62A).w
+		enable_ints
+.wait\@:	tst.b	($FFFFF62A).w
 		bne.s	.wait\@
 		endm
 

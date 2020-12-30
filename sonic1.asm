@@ -305,12 +305,6 @@ loc_B10:				; XREF: Vectors
 		move.w	($C00004).l,d0
 		move.l	#$40000010,($C00004).l
 		move.l	($FFFFF616).w,($C00000).l
-		btst	#6,($FFFFFFF8).w
-		beq.s	loc_B42
-		move.w	#$700,d0
-
-loc_B3E:
-		dbf	d0,loc_B3E
 
 loc_B42:
 		move.b	($FFFFF62A).w,d0
