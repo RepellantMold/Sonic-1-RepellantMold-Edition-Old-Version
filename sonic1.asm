@@ -10704,7 +10704,6 @@ loc_8A92:
 loc_8AA8:
 		btst	#5,$22(a0)
 		beq.s	locret_8AC2
-		move.w	#1,$1C(a1)
 
 loc_8AB6:
 		bclr	#5,$22(a0)
@@ -12611,7 +12610,6 @@ loc_A246:
 loc_A25C:
 		btst	#5,$22(a0)
 		beq.s	Obj26_Animate
-		move.w	#1,$1C(a1)
 
 loc_A26A:
 		bclr	#5,$22(a0)
@@ -15218,7 +15216,7 @@ Obj39_Move:
 Obj39_SetWait:				; XREF: Obj39_Main
 		move.w	#720,$1E(a0)	; set time delay to 12 seconds
 		addq.b	#2,$24(a0)
-		rts	
+		bra.w   DisplaySprite ; KoH additional line to prevent blinking.	
 ; ===========================================================================
 
 Obj39_Wait:				; XREF: Obj39_Index
@@ -19454,7 +19452,6 @@ loc_FB8C:
 loc_FB92:
 		btst	#5,$22(a0)
 		beq.s	loc_FBAC
-		move.w	#1,$1C(a1)	; use walking animation
 
 loc_FBA0:
 		bclr	#5,$22(a0)
@@ -25606,7 +25603,7 @@ loc_139B2:
 		bclr	#6,1(a0)	; send Sonic to	high plane
 
 locret_139C2:
-		rts	
+		rts
 ; End of function Sonic_Loops
 
 ; ---------------------------------------------------------------------------
@@ -25638,8 +25635,9 @@ Sonic_Animate:
 		cmp.b	$1D(a0),d0	; is animation set to restart?
 		beq.s	SAnim_Do	; if not, branch
 		move.b	d0,$1D(a0)	; set to "no restart"
-		move.b	#0,$1B(a0)	; reset	animation
-		move.b	#0,$1E(a0)	; reset	frame duration
+		clr.b	$1B(a0)		; reset	animation
+		clr.b	$1E(a0)		; reset	frame duration
+		bclr    #5,$22(a0) 	; clear pushing flag
 
 SAnim_Do:
 		add.w	d0,d0
@@ -26231,13 +26229,22 @@ Obj38_Main:				; XREF: Obj38_Index
 		move.b	#$10,$19(a0)
 		tst.b	$1C(a0)		; is object a shield?
 		bne.s	Obj38_DoStars	; if not, branch
+		move.l 	#UnC_Shield,d1 ; Call for Regular Shield Art
+       		move.w 	#$A820,d2 ; Load Art from this location (VRAM location*20)
+; In this case, VRAM = $541*20
+     	  	move.w 	#$200,d3
+       	       	jsr 	(QueueDMATransfer).l
 		move.w	#$541,2(a0)	; shield specific code
-		rts	
+		rts
 ; ===========================================================================
 
 Obj38_DoStars:
 		addq.b	#2,$24(a0)	; stars	specific code
-		move.w	#$55C,2(a0)
+		move.l 	#UnC_Stars,d1
+		move.w 	#$A820,d2
+		move.w 	#$200,d3
+		jsr 	(QueueDMATransfer).l
+		move.w	#$541,2(a0)
 		rts	
 ; ===========================================================================
 
@@ -34994,7 +35001,7 @@ loc_1AFE6:				; XREF: Touch_Hurt
 ; ===========================================================================
 
 Touch_Hurt:				; XREF: Touch_ChkHurt
-		nop	
+		nop
 		tst.w	$30(a0)
 		bne.s	loc_1AFE6
 		movea.l	a1,a2
@@ -38183,9 +38190,9 @@ Nem_BigFlash:	incbin	artnem\rngflash.bin	; flash from giant ring
 		even
 Nem_Bonus:	incbin	artnem\bonus.bin	; hidden bonuses at end of a level
 		even
-Nem_Shield:	incbin	artnem\shield.bin	; shield
+UnC_Shield:	incbin	artnem_u\shield.bin	; shield
 		even
-Nem_Stars:	incbin	artnem\invstars.bin	; invincibility stars
+UnC_Stars:	incbin	artnem_u\invstars.bin	; invincibility stars
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - continue screen
