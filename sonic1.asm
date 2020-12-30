@@ -849,7 +849,7 @@ SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
 		move.w	#$100,($A11200).l ; reset the Z80
 		lea	(Kos_Z80).l,a0	; load sound driver
 		lea	($A00000).l,a1
-		bsr.w	KosDec		; decompress
+		jsr	TwizDec		; decompress
 		move.w	#0,($A11200).l
 		move.w	#$100,($A11200).l ; reset the Z80
 		move.w	#0,($A11100).l	; start	the Z80
@@ -910,13 +910,13 @@ PlaySound_Unk:
 PauseGame:				; XREF: Level_MainLoop; et al
 		tst.b	($FFFFFE12).w	; do you have any lives	left?
 		beq.s	Unpause		; if not, branch
-		tst.w	($FFFFF63A).w	; is game already paused?
+		tst.b	($FFFFF63A).w	; is game already paused?
 		bne.s	loc_13BE	; if yes, branch
 		btst	#7,($FFFFF605).w ; is Start button pressed?
 		beq.s	Pause_DoNothing	; if not, branch
 
 loc_13BE:
-		move.w	#1,($FFFFF63A).w ; freeze time
+		move.b	#1,($FFFFF63A).w ; freeze time
 		move.b	#1,($FFFFF003).w ; pause music
 
 loc_13CA:
@@ -944,14 +944,14 @@ loc_1404:				; XREF: PauseGame
 		move.b	#$80,($FFFFF003).w
 
 Unpause:				; XREF: PauseGame
-		clr.w	($FFFFF63A).w ; unpause the game
+		clr.b	($FFFFF63A).w ; unpause the game
 
 Pause_DoNothing:			; XREF: PauseGame
 		rts	
 ; ===========================================================================
 
 Pause_SlowMo:				; XREF: PauseGame
-		move.w	#1,($FFFFF63A).w
+		move.b	#1,($FFFFF63A).w
 		move.b	#$80,($FFFFF003).w
 		rts	
 ; End of function PauseGame
@@ -2652,15 +2652,6 @@ Title_ClrPallet:
 		lea	(Twim_TitleTM).l,a0			; load compressed art data address
 		move.w	#$A200,d0				; set VRAM address to decompress to ($A200)
 		jsr	TwimDec					; decompress and dump to VRAM
-		lea	($C00000).l,a6
-		move.l	#$50000003,4(a6)
-		lea	(Art_Text).l,a5
-		move.w	#$28F,d1
-
-Title_LoadText:
-		move.w	(a5)+,(a6)
-		dbf	d1,Title_LoadText ; load uncompressed text patterns
-
 		clr.b	($FFFFFE30).w ; clear lamppost counter
 		clr.w	($FFFFFE08).w ; disable debug item placement	mode
 		clr.w	($FFFFFFF0).w ; disable debug mode
@@ -2806,6 +2797,14 @@ Title_ClrScroll:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrScroll ; fill scroll data with 0
 		bsr.w	ClearScreen
+		lea	($C00000).l,a6
+		move.l	#$50000003,4(a6)
+		lea	(Art_Text).l,a5
+		move.w	#$28F,d1
+
+.LoadText:
+		move.w	(a5)+,(a6)
+		dbf	d1,.LoadText ; load uncompressed text patterns
 		move.l	d0,($FFFFF616).w
 		move	#$2700,sr
 		moveq	#2,d0
@@ -4472,7 +4471,7 @@ loc_491C:
 
 
 PalCycle_SS:				; XREF: loc_DA6; SpecialStage
-		tst.w	($FFFFF63A).w
+		tst.b	($FFFFF63A).w
 		bne.s	locret_49E6
 		subq.w	#1,($FFFFF79C).w
 		bpl.s	locret_49E6
@@ -21509,7 +21508,7 @@ loc_11114:
 ; ===========================================================================
 
 Obj1B_Animate:				; XREF: loc_11114
-		tst.w	($FFFFF63A).w	; is the game paused?
+		tst.b	($FFFFF63A).w	; is the game paused?
 		bne.s	Obj1B_Display	; if yes, branch
 		move.b	#0,$32(a0)	; resume animation
 		subq.b	#3,$1A(a0)	; use normal frames
@@ -26223,21 +26222,12 @@ Obj38_Main:				; XREF: Obj38_Index
 		move.b	#$10,$19(a0)
 		tst.b	$1C(a0)		; is object a shield?
 		bne.s	Obj38_DoStars	; if not, branch
-		move.l 	#UnC_Shield,d1 ; Call for Regular Shield Art
-       		move.w 	#$A820,d2 ; Load Art from this location (VRAM location*20)
-; In this case, VRAM = $541*20
-     	  	move.w 	#$200,d3
-       	       	jsr 	(QueueDMATransfer).l
 		move.w	#$541,2(a0)	; shield specific code
 		rts
 ; ===========================================================================
 
 Obj38_DoStars:
 		addq.b	#2,$24(a0)	; stars	specific code
-		move.l 	#UnC_Stars,d1
-		move.w 	#$A820,d2
-		move.w 	#$200,d3
-		jsr 	(QueueDMATransfer).l
 		move.w	#$541,2(a0)
 		rts	
 ; ===========================================================================
@@ -26247,6 +26237,11 @@ Obj38_Shield:				; XREF: Obj38_Index
 		bne.s	Obj38_RmvShield	; if yes, branch
 		tst.b	($FFFFFE2C).w	; does Sonic have shield?
 		jeq	DeleteObject	; if not, branch
+		move.l 	#UnC_Shield,d1 ; Call for Regular Shield Art
+       		move.w 	#$A820,d2 ; Load Art from this location (VRAM location*20)
+; In this case, VRAM = $541*20
+     	  	move.w 	#$200,d3
+       	       	jsr 	(QueueDMATransfer).l
 		move.w	($FFFFD008).w,8(a0)
 		move.w	($FFFFD00C).w,$C(a0)
 		move.b	($FFFFD022).w,$22(a0)
@@ -26262,6 +26257,10 @@ Obj38_RmvShield:
 Obj38_Stars:				; XREF: Obj38_Index
 		tst.b	($FFFFFE2D).w	; does Sonic have invincibility?
 		jeq	DeleteObject	; if not, branch
+		move.l 	#UnC_Stars,d1
+		move.w 	#$A820,d2
+		move.w 	#$200,d3
+		jsr 	(QueueDMATransfer).l
 		move.w	($FFFFF7A8).w,d0
 		move.b	$1C(a0),d1
 		subq.b	#1,d1
@@ -36500,8 +36499,8 @@ Obj09_NoGlass:
 
 
 AniArt_Load:				; XREF: Demo_Time; loc_F54
-		tst.w	($FFFFF63A).w	; is the game paused?
-		bne.s	AniArt_Pause	; if yes, branch
+		;tst.b	($FFFFF63A).w	; is the game paused?
+		;bne.s	AniArt_Pause	; if yes, branch
 		lea	($C00000).l,a6
 		bsr.w	AniArt_GiantRing
 		moveq	#0,d0
@@ -37131,7 +37130,7 @@ loc_1C6E4:
 Hud_ChkTime:
 		tst.b	($FFFFFE1E).w	; does the time	need updating?
 		beq.s	Hud_ChkLives	; if not, branch
-		tst.w	($FFFFF63A).w	; is the game paused?
+		tst.b	($FFFFF63A).w	; is the game paused?
 		bne.s	Hud_ChkLives	; if yes, branch
 		lea	($FFFFFE22).w,a1
 		cmpi.l	#$93B3B,(a1)+	; is the time 9.59?

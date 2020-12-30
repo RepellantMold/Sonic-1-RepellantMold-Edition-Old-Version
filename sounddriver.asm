@@ -49,13 +49,13 @@ MusicIndex:	dc.l Music81, Music82
 		dc.l Music8D, Music8E
 		dc.l Music8F, Music90
 		dc.l Music91, Music92
-		dc.l Music93, Music93
-		dc.l Music93, Music93
-		dc.l Music93, Music93
-		dc.l Music93, Music93
-		dc.l Music93, Music93
-		dc.l Music93, Music93
-		dc.l Music93
+		dc.l Music93, Music94
+		dc.l Music95, Music96
+		dc.l Music97, Music98
+		dc.l Music99, Music9A
+		dc.l Music9B, Music9C
+		dc.l Music9D, Music9E
+		dc.l Music9F
 ; ---------------------------------------------------------------------------
 ; Type of sound	being played ($90 = music; $70 = normal	sound effect)
 ; ---------------------------------------------------------------------------
@@ -2355,32 +2355,32 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-Kos_Z80:	incbin	sound\snd.kos
+Kos_Z80:	incbin	sound\snd.twiz
 		even
 
 		include "smps2asm.asm"
 
-Music81:	incbin	sound\music81.smp
+Music81:	include	sound\music81.asm
 		even
-Music82:	incbin	sound\music82.smp
+Music82:	include	sound\music82.asm
 		even
-Music83:	incbin	sound\music83.smp
+Music83:	include	sound\music83.asm
 		even
-Music84:	incbin	sound\music84.smp
+Music84:	include	sound\music84.asm
 		even
-Music85:	incbin	sound\music85.smp
+Music85:	include	sound\music85.asm
 		even
-Music86:	incbin	sound\music86.smp
+Music86:	include	sound\music86.asm
 		even
-Music87:	incbin	sound\music87.smp
+Music87:	include	sound\music87.asm
 		even
 Music88:	incbin	sound\music88.smp
 		even
 Music89:	incbin	sound\music89.smp
 		even
-Music8A:	incbin	sound\music8A.smp
+Music8A:	include	sound\music8A.asm
 		even
-Music8B:	incbin	sound\music8B.smp
+Music8B:	include	sound\music8B.asm
 		even
 Music8C:	incbin	sound\music8C.smp
 		even
@@ -2397,6 +2397,30 @@ Music91:	include	sound\music91.asm
 Music92:	incbin	sound\music92.smp
 		even
 Music93:	incbin	sound\music93.smp
+		even
+Music94:	include	sound\Music94.asm
+		even
+Music95:	include	sound\Music95.asm
+		even
+Music96:	include	sound\Music96.asm
+		even
+Music97:	include	sound\Music97.asm
+		even
+Music98:	include	sound\Music98.asm
+		even
+Music99:	include	sound\Music99.asm
+		even
+Music9A:	include	sound\Music9A.asm
+		even
+Music9B:	incbin	sound\music93.smp
+		even
+Music9C:	incbin	sound\music93.smp
+		even
+Music9D:	incbin	sound\music93.smp
+		even
+Music9E:	incbin	sound\music93.smp
+		even
+Music9F:	incbin	sound\music93.smp
 		even
 ; ---------------------------------------------------------------------------
 ; Sound	effect pointers
