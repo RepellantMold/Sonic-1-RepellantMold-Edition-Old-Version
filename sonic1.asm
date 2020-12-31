@@ -18,6 +18,7 @@
 PLCQueueAdr: =  $FFFFF650   ; beginning of RAM allocated for PLC
 PLCQueue: = PLCQueueAdr+4   ; start of PLC queue
 PLCQueueEnd: =  $FFFFF700-$20   ; end of PLC queue, start of equates for PLC, for example last state of Nemesis decompression
+Saved_music: =	$FFFFFFFF
 
 StartOfRom:
 Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
@@ -2761,7 +2762,7 @@ Title_EnterCheat:
 
 Title_PlayRing:
 		move.b	#1,(a0,d1.w)	; activate cheat
-		move.b	#$B5,($FFFFF00B).w	; play ring sound when code is entered
+		move.b	#$B5,($FFFFF00C).w	; play ring sound when code is entered
 		bra.s	Title_CountC
 ; ===========================================================================
 
@@ -3106,7 +3107,12 @@ LevelMenuText:
 ; ---------------------------------------------------------------------------
 ; Music	playlist
 ; ---------------------------------------------------------------------------
-MusicList:	incbin	misc\muslist1.bin
+MusicList:	dc.b	$81,$94,$8C,$80
+		dc.b	$82,$95,$8C,$8D
+		dc.b	$83,$96,$8C,$80
+		dc.b	$84,$97,$8C,$80
+		dc.b	$85,$98,$8C,$80
+		dc.b	$86,$99,$8D,$80
 		even
 
 ; ---------------------------------------------------------------------------
@@ -3290,20 +3296,16 @@ Level_WaterPal:
 Level_GetBgm:
 		tst.w	($FFFFFFF0).w
 		bmi.s	loc_3946
-		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
-		cmpi.w	#$103,($FFFFFE10).w ; is level SBZ3?
-		bne.s	Level_BgmNotLZ4	; if not, branch
-		moveq	#5,d0		; move 5 to d0
-
-Level_BgmNotLZ4:
-		cmpi.w	#$502,($FFFFFE10).w ; is level FZ?
-		bne.s	Level_PlayBgm	; if not, branch
-		moveq	#6,d0		; move 6 to d0
-
-Level_PlayBgm:
+    		moveq   #0,d0        ; 4(1/0)
+    		move.b  ($FFFFFE10).w,d0    ; 12(3/0)
+    		add.b   d0,d0        ; 4(1/0)
+    		add.b   d0,d0        ; 4(1/0)
+    		add.b   ($FFFFFE11).w,d0        ; 12(3/0)
+                ;  total 36
 		lea	(MusicList).l,a1 ; load	music playlist
-		move.b	(a1,d0.w),($FFFFF00A).w	; add d0 to a1
+		move.b	(a1,d0.w),d0	; add d0 to a1
+		move.b  d0,(Saved_music).w
+		move.b	d0,($FFFFF00A).w
 		move.b	#$34,($FFFFD080).w ; load title	card object
         	move.w  #3,$FFFFFE04.w      ; set the timer (Fixes Title card bug)
 
@@ -4763,11 +4765,10 @@ loc_4DF2:
 Cont_GotoLevel:				; XREF: Cont_MainLoop
 		move.b	#$C,($FFFFF600).w ; set	screen mode to $0C (level)
 		move.b	#3,($FFFFFE12).w ; set lives to	3
-		moveq	#0,d0
-		move.w	d0,($FFFFFE20).w ; clear rings
-		move.l	d0,($FFFFFE22).w ; clear time
-		move.l	d0,($FFFFFE26).w ; clear score
-		move.b	d0,($FFFFFE30).w ; clear lamppost count
+		clr.w	($FFFFFE20).w ; clear rings
+		clr.l	($FFFFFE22).w ; clear time
+		clr.l	($FFFFFE26).w ; clear score
+		clr.b	($FFFFFE30).w ; clear lamppost count
 		subq.b	#1,($FFFFFE18).w ; subtract 1 from continues
 		rts
 ; ===========================================================================
@@ -4855,7 +4856,7 @@ Obj80_ChkType:				; XREF: Obj80_Index
 		andi.b	#1,d0
 		bne.s	loc_4F40
 		tst.w	($FFFFD010).w
-		jne	Obj80_Delete
+		jne	DeleteObject
 		rts	
 ; ===========================================================================
 
@@ -4867,10 +4868,6 @@ loc_4F40:				; XREF: Obj80_ChkType
 
 ;Obj80_Display2:
 		jmp	DisplaySprite
-; ===========================================================================
-
-Obj80_Delete:				; XREF: Obj80_ChkType
-		jmp	DeleteObject
 ; ===========================================================================
 
 ; ---------------------------------------------------------------------------
@@ -5037,6 +5034,9 @@ End_LoadData:
 		moveq	#3,d0
 		bsr.w	PalLoad1	; load Sonic's pallet
 		move.b	#$8B,($FFFFF00A).w; play ending sequence music
+		cmpi.b	#6,($FFFFFE57).w ; do you have all 6 emeralds?
+		beq.s	End_LoadData	; if yes, branch
+		move.b	#$95,($FFFFF00A).w; play ending sequence music
 		tst.b	($FFFFFFE2).w	; has debug cheat been entered?
 		beq.s	End_LoadSonic	; if not, branch
 		btst	#6,($FFFFF604).w ; is button A pressed?
@@ -5053,17 +5053,16 @@ End_LoadSonic:
 		jsr	ObjPosLoad
 		jsr	ObjectsLoad
 		jsr	BuildSprites
-		moveq	#0,d0
-		move.w	d0,($FFFFFE20).w
-		move.l	d0,($FFFFFE22).w
-		move.b	d0,($FFFFFE1B).w
-		move.b	d0,($FFFFFE2C).w
-		move.b	d0,($FFFFFE2D).w
-		move.b	d0,($FFFFFE2E).w
-		move.b	d0,($FFFFFE2F).w
-		move.w	d0,($FFFFFE08).w
-		move.w	d0,($FFFFFE02).w
-		move.w	d0,($FFFFFE04).w
+		clr.w	($FFFFFE20).w
+		clr.l	($FFFFFE22).w
+		clr.b	($FFFFFE1B).w
+		clr.b	($FFFFFE2C).w
+		clr.b	($FFFFFE2D).w
+		clr.b	($FFFFFE2E).w
+		clr.b	($FFFFFE2F).w
+		clr.w	($FFFFFE08).w
+		clr.w	($FFFFFE02).w
+		clr.w	($FFFFFE04).w
 		bsr.w	OscillateNumInit
 		move.b	#1,($FFFFFE1F).w
 		move.b	#1,($FFFFFE1D).w
@@ -5097,7 +5096,7 @@ End_MainLoop:
 		cmpi.b	#$18,($FFFFF600).w ; is	scene number $18 (ending)?
 		beq.s	loc_52DA	; if yes, branch
 		move.b	#$1C,($FFFFF600).w ; set scene to $1C (credits)
-		move.b	#$91,($FFFFF00B).w ; play credits music
+		move.b	#$91,($FFFFF00A).w ; play credits music
 		clr.w	($FFFFFFF4).w ; set credits index number to 0
 		rts	
 ; ===========================================================================
@@ -8035,7 +8034,7 @@ LoadZoneTiles:
 		lea	($FF0000).l,a1		; Load v_256x256/StartOfRAM (in this context, an art buffer) into a1 (destination)
 		bsr.w	CompDec			; Decompress a0 to a1 (Comper compression)
 
-		move.w	a1,d3			; Move a word of a1 to d3, note that a1 doesn't exactly contain the address of v_256x256/StartOfRAM anymore, after KosDec, a1 now contains v_256x256/StartOfRAM + the size of the file decompressed to it, d3 now contains the length of the file that was decompressed
+		move.w	a1,d3			; Move a word of a1 to d3, note that a1 doesn't exactly contain the address of v_256x256/StartOfRAM anymore, after CompDec, a1 now contains v_256x256/StartOfRAM + the size of the file decompressed to it, d3 now contains the length of the file that was decompressed
 		move.w	d3,d7			; Move d3 to d7, for use in seperate calculations
 
 		andi.w	#$FFF,d3		; Remove the high nibble of the high byte of the length of decompressed file, this nibble is how many $1000 bytes the decompressed art is
@@ -8326,7 +8325,7 @@ loc_6EB0:
 		move.w	#$280,$C(a1)
 
 loc_6ED0:
-		move.b	#$8C,($FFFFF00A).w	; play boss music
+		;move.b	#$8C,($FFFFF00A).w	; play boss music
 		move.b	#1,($FFFFF7AA).w ; lock	screen
 		addq.b	#2,($FFFFF742).w
 		moveq	#$11,d0
@@ -8383,7 +8382,7 @@ loc_6F28:
 		move.b	#$77,0(a1)	; load LZ boss object
 
 loc_6F4A:
-		move.b	#$8C,($FFFFF00A).w	; play boss music
+		;move.b	#$8C,($FFFFF00A).w	; play boss music
 		move.b	#1,($FFFFF7AA).w ; lock	screen
 		addq.b	#2,($FFFFF742).w
 		moveq	#$11,d0
@@ -8540,7 +8539,7 @@ Resize_MZ3boss:
 		move.w	#$22C,$C(a1)
 
 loc_70D0:
-		move.b	#$8C,($FFFFF00A).w	; play boss music
+		;move.b	#$8C,($FFFFF00A).w	; play boss music
 		move.b	#1,($FFFFF7AA).w ; lock	screen
 		addq.b	#2,($FFFFF742).w
 		moveq	#$11,d0
@@ -8601,7 +8600,7 @@ Resize_SLZ3boss:
 		move.b	#$7A,(a1)	; load SLZ boss	object
 
 loc_7144:
-		move.b	#$8C,($FFFFF00A).w	; play boss music
+		;move.b	#$8C,($FFFFF00A).w	; play boss music
 		move.b	#1,($FFFFF7AA).w ; lock	screen
 		addq.b	#2,($FFFFF742).w
 		moveq	#$11,d0
@@ -8679,7 +8678,7 @@ Resize_SYZ3boss:
 		addq.b	#2,($FFFFF742).w
 
 loc_71EC:
-		move.b	#$8C,($FFFFF00A).w	; play boss music
+		;move.b	#$8C,($FFFFF00A).w	; play boss music
 		move.b	#1,($FFFFF7AA).w ; lock	screen
 		moveq	#$11,d0
 		bra.w	LoadPLC		; load boss patterns
@@ -9261,7 +9260,7 @@ Obj11_DelAll:				; XREF: Obj11_ChkDel
 		lea	$28(a0),a2	; load bridge length
 		move.b	(a2)+,d2	; move bridge length to	d2
 		subq.b	#1,d2		; subtract 1
-		bcs.s	Obj11_Delete
+		bcs.w	DeleteObject
 
 Obj11_DelLoop:
 		moveq	#0,d0
@@ -9275,20 +9274,16 @@ Obj11_DelLoop:
 
 loc_791E:
 		dbf	d2,Obj11_DelLoop ; repeat d2 times (bridge length)
-
-Obj11_Delete:
 		bsr.w	DeleteObject
 		rts	
 ; ===========================================================================
 
 Obj11_Delete2:				; XREF: Obj11_Index
-		bsr.w	DeleteObject
-		rts	
+		bra.w	DeleteObject
 ; ===========================================================================
 
 Obj11_Display2:				; XREF: Obj11_Index
-		bsr.w	DisplaySprite
-		rts	
+		bra.w	DisplaySprite
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - GHZ	bridge
@@ -12112,7 +12107,7 @@ Obj25_Collect:				; XREF: Obj25_Index
 		addq.b	#2,$24(a0)
 		move.b	#0,$20(a0)
 		move.b	#1,$18(a0)
-		bsr.w	CollectRing
+		bsr.s	CollectRing
 		lea	($FFFFFC00).w,a2
 		moveq	#0,d0
 		move.b	$23(a0),d0
@@ -12149,7 +12144,7 @@ loc_9CA4:
 		addq.b	#1,($FFFFFE1C).w ; add 1 to the	lives counter
 		move.b	#$88,d0		; play extra life music
 playsnd:
-		move.b	d0,($FFFFF00A).w
+		move.b	d0,($FFFFF00C).w
 		rts
 ; End of function CollectRing
 
@@ -12340,7 +12335,7 @@ Obj4B_Main:				; XREF: Obj4B_Index
 		tst.b	1(a0)
 		bpl.s	Obj4B_Animate
 		cmpi.b	#6,($FFFFFE57).w ; do you have 6 emeralds?
-		beq.w	Obj4B_Delete	; if yes, branch
+		beq.w	DeleteObject	; if yes, branch
 		cmpi.w	#50,($FFFFFE20).w ; do you have	at least 50 rings?
 		bcc.s	Obj4B_Okay	; if yes, branch
 		rts	
@@ -12774,7 +12769,7 @@ Obj2E_ChkRings:
 		beq.w	ExtraLife
 
 Obj2E_RingSound:
-		move.b	#$B5,($FFFFF00A).w	; play ring sound
+		move.b	#$B5,($FFFFF00C).w	; play ring sound
 		rts
 ; ===========================================================================
 
@@ -12910,10 +12905,8 @@ Obj0E_Wait:				; XREF: Obj0E_Delay
 Obj0E_Move:				; XREF: Obj0E_Index
 		subq.w	#8,$A(a0)
 		cmpi.w	#$96,$A(a0)
-		bne.s	Obj0E_Display
+		bne.w	DisplaySprite
 		addq.b	#2,$24(a0)
-
-Obj0E_Display:
 		bra.w	DisplaySprite
 ; ===========================================================================
 
@@ -24019,15 +24012,8 @@ Obj01_ChkInvin:
 		bne.s	Obj01_RmvInvin
 		cmpi.w	#$C,($FFFFFE14).w
 		bcs.s	Obj01_RmvInvin
-		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
-		cmpi.w	#$103,($FFFFFE10).w ; check if level is	SBZ3
-		bne.s	Obj01_PlayMusic
-		moveq	#5,d0		; play SBZ music
-
-Obj01_PlayMusic:
-		lea	(MusicList).l,a1
-		move.b	(a1,d0.w),($FFFFF00A).w	; play normal music
+		move.b	(Saved_music),d0
+		move.b	d0,($FFFFF00A).w	; play normal music
 
 Obj01_RmvInvin:
 		clr.b	($FFFFFE2D).w ; cancel invincibility
@@ -26174,12 +26160,7 @@ locret_1408C:
 ResumeMusic:				; XREF: Obj64_Wobble; Sonic_Water; Obj0A_ReduceAir
 		cmpi.w	#$C,($FFFFFE14).w
 		bhi.s	loc_140AC
-		move.w	#$82,d0		; play LZ music
-		cmpi.w	#$103,($FFFFFE10).w ; check if level is	0103 (SBZ3)
-		bne.s	loc_140A6
-		move.w	#$86,d0		; play SBZ music
-
-loc_140A6:
+		move.b	(Saved_music).w,d0
 		move.b	d0,($FFFFF00A).w
 
 loc_140AC:
@@ -30320,7 +30301,7 @@ loc_179DA:
 
 loc_179E0:
 		clr.w	$12(a0)
-		move.b	#$81,($FFFFF00A).w	; play GHZ music
+		;move.b	(Saved_music).w,($FFFFF00A).w	; play GHZ music
 
 loc_179EE:
 		bsr.w	BossMove
@@ -30888,7 +30869,7 @@ loc_180F6:				; XREF: Obj77_ShipIndex
 		move.b	#$32,$3C(a0)
 
 loc_18112:
-		move.b	#$82,($FFFFF00A).w	; play LZ music
+		;move.b	(Saved_music).w,($FFFFF00A).w	; play LZ music
 		bset	#0,$22(a0)
 		addq.b	#2,$25(a0)
 
@@ -31316,7 +31297,7 @@ loc_18566:
 
 loc_1856C:
 		clr.w	$12(a0)
-		move.b	#$83,($FFFFF00A).w	; play MZ music
+		;move.b	(Saved_music).w,($FFFFF00A).w	; play MZ music
 
 loc_1857A:
 		bsr.w	BossMove
@@ -31961,7 +31942,7 @@ loc_18BAE:
 
 loc_18BB4:
 		clr.w	$12(a0)
-		move.b	#$84,($FFFFF00A).w	; play SLZ music
+		;move.b	(Saved_music).w,($FFFFF00A).w	; play SLZ music
 
 loc_18BC2:
 		bra.w	loc_189EE
@@ -32853,7 +32834,7 @@ loc_194DA:
 
 loc_194E0:
 		clr.w	$12(a0)
-		move.b	#$85,($FFFFF00A).w	; play SYZ music
+		;move.b	(Saved_music).w,($FFFFF00A).w	; play SYZ music
 
 loc_194EE:
 		bra.w	loc_191F2

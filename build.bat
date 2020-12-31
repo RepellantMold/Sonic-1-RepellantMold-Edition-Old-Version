@@ -13,7 +13,6 @@ TwizMod.exe arttwim/titleson.bin
 TwizMod.exe arttwim/titletm.bin
 TwizMod.exe arttwim/segalogo.bin
 TwizMod.exe arttwim/japcreds.bin
-TwizMod.exe arttwim/menutext.bin
 Twizzler.exe mapeni/japcreds.unc
 Twizzler.exe sound/snd.unc
 asm68k /o op+ /o os+ /o ow+ /o oz+ /o oaq+ /o osq+ /o omq+ /o l+ /p /o ae- sonic1.asm, s1built.bin , ,sonic1.lst >error.log

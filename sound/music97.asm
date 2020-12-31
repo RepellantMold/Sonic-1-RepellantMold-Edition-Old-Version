@@ -9,8 +9,8 @@ ICZ2_Header:
 	sHeaderFM	ICZ2_FM3, $0C, $1E
 	sHeaderFM	ICZ2_FM4, $0C, $1E
 	sHeaderFM	ICZ2_FM5, $18, $20
-	sHeaderPSG	ICZ2_PSG1, $00, $03, $00, v00
-	sHeaderPSG	ICZ2_PSG2, $00, $05, $00, v00
+	sHeaderPSG	ICZ2_PSG1, $00-12, $03, $00, v00
+	sHeaderPSG	ICZ2_PSG2, $00-12, $05, $00, v00
 	sHeaderPSG	ICZ2_PSG3, $00, $04, $00, v00
 
 ICZ2_FM1:

@@ -31,7 +31,7 @@
 	dc.l Blk16_SBZ+$F000000
 	dc.l Blk256_SBZ
 	dc.b 0,	$86, 9,	9
-	dc.l Comp_GHZ	; main load block for ending
+	dc.l Comp_GHZ+$1C000000	; main load block for ending
 	dc.l Blk16_GHZ
 	dc.l Blk256_GHZ
 	dc.b 0,	$86, $13, $13

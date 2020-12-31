@@ -36,7 +36,7 @@ PSG0C:		dc.b 4, 4, 3, 3, 2, 2, 1,	1, 1, 1, 1, 1, 1, 1, 1,	1, 1, 1
 		dc.b 7, $80
 PSG0D:		dc.b 0, 1, 3, $80
 
-byte_71A94:	dc.b 7,	$72, $73, $26, $15, 8, $FF, 5
+byte_71A94:	;dc.b 7,	$72, $73, $26, $15, 8, $FF, 5
 ; ---------------------------------------------------------------------------
 ; Music	Pointers
 ; ---------------------------------------------------------------------------
@@ -185,13 +185,14 @@ loc_71C38:
 loc_71C44:
 		startZ80	; start	the Z80
 		btst 	#6,($FFFFFFF8).w; is Genesis/Megadrive PAL?
-     		beq.s 	.end 		; if not, branch
+     		beq.s 	.dontcount 		; if not, branch
       	     	cmpi.b 	#5,($FFFFFFBF).w; 5th frame?
-       		bne.s 	.end 		; if not, branch
+       		bls.s 	.end 		; if not, branch
       	     	clr.b 	($FFFFFFBF).w 	; reset counter
        		bra.w	sub_71B4C 	; run sound driver again
 .end:
       		addq.b 	#1,($FFFFFFBF).w; add 1 to frame count
+.dontcount:
 		rts
 ; End of function sub_71B4C
 
@@ -650,25 +651,25 @@ Sound_ExIndex:
 
 Sound_E1:
 	 	move.b  #$B6, d0    ; Register: FM3/6 Panning
-        	move.b  #$C0, d1    ; Value: Enable both channels
+		move.b  #$C0, d1    ; Value: Enable both channels
         	jsr 	sub_72764(pc)   ; Write to YM2612 Port 1 (for FM6) [sub_72764]
-		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports 
-		move.l	#(SegaPCM_End-SegaPCM),d3			; Load the size of the SEGA PCM sample into d3 
-		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel	  
-PlayPCM_Loop:	  
-		move.b	(a2)+,($A04001).l		; Write the PCM data (contained in a2) to $A04001 (YM2612 register D0) 
-		move.w	#$45,d0				; Write the pitch ($14 in this case) to d0
-		dbf	d0,*				; Decrement d0; jump to itself if not 0. (for pitch control, avoids playing the sample too fast)  
-		sub.l	#1,d3				; Subtract 1 from the PCM sample size 
-		beq.s	return_PlayPCM			; If d3 = 0, we finished playing the PCM sample, so stop playing, leave this loop, and unfreeze the 68K 
-		lea	($FFFFF604).w,a0		; address where JoyPad states are written 
-		lea	($A10003).l,a1			; address where JoyPad states are read from 
-		jsr	(Joypad_Read).w			; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that 
-		btst	#7,($FFFFF604).w		; Check for Start button 
-		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K 
-		bra.s	PlayPCM_Loop			; Otherwise, continue playing PCM sample 
-return_PlayPCM: 
-		addq.w	#4,sp 
+		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports
+		move.l	#(SegaPCM_End-SegaPCM),d3			; Load the size of the SEGA PCM sample into d3
+		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel
+PlayPCM_Loop:
+		move.b	(a2)+,($A04001).l		; Write the PCM data (contained in a2) to $A04001 (YM2612 register D0)
+		;move.w	#$14,d0				; Write the pitch ($14 in this case) to d0
+		;dbf	d0,*				; Decrement d0; jump to itself if not 0. (for pitch control, avoids playing the sample too fast)
+		subq.l	#1,d3				; Subtract 1 from the PCM sample size
+		beq.s	return_PlayPCM			; If d3 = 0, we finished playing the PCM sample, so stop playing, leave this loop, and unfreeze the 68K
+		lea	($FFFFF604).w,a0		; address where JoyPad states are written
+		lea	($A10003).l,a1			; address where JoyPad states are read from
+		jsr	(Joypad_Read).w			; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that
+		btst	#7,($FFFFF604).w		; Check for Start button
+		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K
+		beq.s	PlayPCM_Loop			; Otherwise, continue playing PCM sample
+return_PlayPCM:
+		addq.w	#4,sp
 		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------

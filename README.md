@@ -19,6 +19,7 @@ A repository of one of my ROM hacks, *nuff said.* :squirrel:
   * Mercury's ReadySonic - Some quirks, like holding a button to speed up the score tally
   * Alex Field/ValleyBell - Bugfixes for the Sonic 1 sound driver guide
   * Vladikcomper - Slightly less hacky VBlank/HBlank guide
+  * Inferno/ProjectFM - Per-act music via math
   * Valleybell (again) - MID2SMPS
 ###### Music Credits
   * JexuBandicoot527 - Sonic CD (US) boss theme
