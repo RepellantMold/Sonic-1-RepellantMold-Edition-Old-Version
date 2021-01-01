@@ -2616,14 +2616,14 @@ Title_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrObjRam ; fill object RAM ($D000-$EFFF) with	$0
 
-		lea	(Twim_JapNames).l,a0			; load compressed art data address
+		lea	(Twim_JCrdts).l,a0			; load compressed art data address
 		move.w	#0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
 		move.l	#$54C00000,($C00004).l
 		lea	(Nem_CreditText).l,a0 ;	load alphabet
 		bsr.w	NemDec
 		lea	($FF0000).l,a1
-		lea	(Twiz_JapNames).l,a0 ; load mappings for	Japanese credits
+		lea	(Twiz_JCrdts).l,a0 ; load mappings for	Japanese credits
 		jsr	TwizDec
 		lea	($FF0000).l,a1
 		move.l	#$40000003,d0
@@ -2840,11 +2840,18 @@ LevelSelect:
 LevSelLevCheckStart:				; XREF: LevelSelect
 		andi.b	#$80,($FFFFF605).w ; is	Start pressed?
 		beq.s	LevelSelect	; if not, branch
-		bra.s	LevSel_Level_SS
+		bra.w	LevSel_Level_SS
 
 LevSelBCPress:				; XREF: LevelSelect
-		move.w	($FFFFFF84).w,d0
-		addi.w	#$80,d0
+		move.w	($FFFFFF84).w,d0; using Nineko's cheat code method, not using this forever
+		addi.w	#$80,d0         ; not going to use this forever but eh, gotta have a quick way to test things y'know?
+		move.l 	($FFFFC60C).w,d1; move the last 4 songs played into d1
+		rol.l 	#8,d1		; rotate d1 by 8 bits
+		move.l 	d1,($FFFFC60C).w; put the rotated d1 back there
+		move.b 	d0,($FFFFC60F).w; overwrite the right-most song
+		cmpi.l 	#$82808084,($FFFFC60C).w; did you play 82, 80, 80, 84?
+		bne.b 	LevSel_PlaySnd	; if not, proceed normally
+		bra.w 	EndingSequence	; let's play the bonus stage
 
 LevSel_PlaySnd:
 		move.b	d0,($FFFFF00C).w
@@ -2854,48 +2861,6 @@ LevSelStartPress:				; XREF: LevelSelect
 		clr.b	($FFFFF600).w
 		rts
 ; ===========================================================================
-
-LevSel_Level_SS:			; XREF: LevelSelect
-		add.w	d0,d0
-		move.w	LSelectPointers(pc,d0.w),d0 ; load level number
-		bmi.s	LevelSelect
-		cmpi.w	#$700,d0	; check	if level is 0700 (Special Stage)
-		bne.s	LevSel_Level	; if not, branch
-		move.b	#$10,($FFFFF600).w ; set screen	mode to	$10 (Special Stage)
-		clr.w	($FFFFFE10).w	; clear	level
-		move.b	#3,($FFFFFE12).w ; set lives to	3
-		moveq	#0,d0
-		move.w	d0,($FFFFFE20).w ; clear rings
-		move.l	d0,($FFFFFE22).w ; clear time
-		move.l	d0,($FFFFFE26).w ; clear score
-		rts
-; ===========================================================================
-
-LevSel_Level:				; XREF: LevSel_Level_SS
-		andi.w	#$3FFF,d0
-		move.w	d0,($FFFFFE10).w ; set level number
-
-PlayLevel:				; XREF: ROM:00003246j ...
-		move.b	#$C,($FFFFF600).w ; set	screen mode to $0C (level)
-		move.b	#3,($FFFFFE12).w ; set lives to	3
-		moveq	#0,d0
-		move.w	d0,($FFFFFE20).w ; clear rings
-		move.l	d0,($FFFFFE22).w ; clear time
-		move.l	d0,($FFFFFE26).w ; clear score
-		move.b	d0,($FFFFFE16).w ; clear special stage number
-		move.b	d0,($FFFFFE57).w ; clear emeralds
-		move.l	d0,($FFFFFE58).w ; clear emeralds
-		move.l	d0,($FFFFFE5C).w ; clear emeralds
-		move.b	d0,($FFFFFE18).w ; clear continues
-		move.b	#$E0,($FFFFF00B).w ; fade out music
-		rts
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Level	select - level pointers
-; ---------------------------------------------------------------------------
-LSelectPointers:
-		incbin	misc\ls_point.bin
-		even
 ; ---------------------------------------------------------------------------
 ; Level	select codes
 ; ---------------------------------------------------------------------------
@@ -3116,6 +3081,48 @@ MusicList:	dc.b	$81,$94,$8C,$80
 		dc.b	$85,$98,$8C,$80
 		dc.b	$86,$99,$8D,$80
 		even
+		
+; ---------------------------------------------------------------------------
+; Level	select - level pointers
+; ---------------------------------------------------------------------------
+LSelectPointers:
+		incbin	misc\ls_point.bin
+		even
+
+LevSel_Level_SS:			; XREF: LevelSelect
+		add.w	d0,d0
+		move.w	LSelectPointers(pc,d0.w),d0 ; load level number
+		bmi.w	LevelSelect
+		cmpi.w	#$700,d0	; check	if level is 0700 (Special Stage)
+		bne.s	LevSel_Level	; if not, branch
+		move.b	#$10,($FFFFF600).w ; set screen	mode to	$10 (Special Stage)
+		clr.w	($FFFFFE10).w	; clear	level
+		move.b	#3,($FFFFFE12).w ; set lives to	3
+		moveq	#0,d0
+		move.w	d0,($FFFFFE20).w ; clear rings
+		move.l	d0,($FFFFFE22).w ; clear time
+		move.l	d0,($FFFFFE26).w ; clear score
+		rts
+; ===========================================================================
+
+LevSel_Level:				; XREF: LevSel_Level_SS
+		andi.w	#$3FFF,d0
+		move.w	d0,($FFFFFE10).w ; set level number
+
+PlayLevel:				; XREF: ROM:00003246j ...
+		move.b	#$C,($FFFFF600).w ; set	screen mode to $0C (level)
+		move.b	#3,($FFFFFE12).w ; set lives to	3
+		moveq	#0,d0
+		move.w	d0,($FFFFFE20).w ; clear rings
+		move.l	d0,($FFFFFE22).w ; clear time
+		move.l	d0,($FFFFFE26).w ; clear score
+		move.b	d0,($FFFFFE16).w ; clear special stage number
+		move.b	d0,($FFFFFE57).w ; clear emeralds
+		move.l	d0,($FFFFFE58).w ; clear emeralds
+		move.l	d0,($FFFFFE5C).w ; clear emeralds
+		move.b	d0,($FFFFFE18).w ; clear continues
+		move.b	#$E0,($FFFFF00B).w ; fade out music
+		rts
 
 ; ---------------------------------------------------------------------------
 ; Demo mode
@@ -3495,7 +3502,7 @@ Level_ChkDemo:				; XREF: Level_MainLoop
 		cmpi.b	#8,($FFFFF600).w
 		beq.w	Level_MainLoop	; if screen mode is 08 (demo), branch
 		clr.b	($FFFFF600).w; go to Sega screen
-		rts	
+		rts
 ; ===========================================================================
 
 Level_EndDemo:				; XREF: Level_ChkDemo
@@ -3695,7 +3702,7 @@ DynWater_LZ3:				; XREF: DynWater_Index
 loc_3D54:
 		move.w	d1,($FFFFF64A).w
 		move.w	d1,($FFFFF648).w
-		rts	
+		rts
 ; ===========================================================================
 
 loc_3D5E:				; XREF: DynWater_LZ3
@@ -5467,6 +5474,7 @@ Credits:				; XREF: GameModeArray
 		move.w	#$8720,(a6)
 		clr.b	($FFFFF64E).w
 		bsr.w	ClearScreen
+		clr.b   ($FFFFFFD0).w
 		lea	($FFFFD000).w,a1
 		moveq	#0,d0
 		move.w	#$7FF,d1
@@ -5475,9 +5483,9 @@ Cred_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Cred_ClrObjRam ; clear object RAM
 
-		move.l	#$74000002,($C00004).l
-		lea	(Nem_CreditText).l,a0 ;	load credits alphabet patterns
-		bsr.w	NemDec
+		lea	(Twim_CreditText2).l,a0			; load compressed art data address
+		move.w	#$B400,d0				; set VRAM address to decompress to ($B400)
+		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($FFFFFB80).w,a1
 		moveq	#0,d0
 		move.w	#$1F,d1
@@ -5488,24 +5496,8 @@ Cred_ClrPallet:
 
 		moveq	#3,d0
 		bsr.w	PalLoad1	; load Sonic's pallet
-		move.b	#$8A,($FFFFD080).w ; load credits object
-		clr.b	($FFFFFFD0).w
-		jsr	ObjectsLoad
-		jsr	BuildSprites
-		addq.w  #1,($FFFFFFF4).w ; remove this line and...
-		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
-		lsl.w	#4,d0
-		lea	(MainLoadBlocks).l,a2 ;	load block mappings etc
-		lea	(a2,d0.w),a2
-		moveq	#0,d0
-		move.b	(a2),d0
-		beq.s	loc_5862
-		bsr.w	LoadPLC		; load level patterns
-
-loc_5862:
-		moveq	#1,d0
-		bsr.w	LoadPLC		; load standard	level patterns
+		jsr	Credits_MapLoad
+		addq.w  #1,($FFFFFFF4).w
 		move.w	#120,($FFFFF614).w ; display a credit for 2 seconds
 		bsr.w	Pal_FadeTo
 
@@ -5827,7 +5819,7 @@ LevelSizeArray:
         ; GHZ
 	dc.w $0004, $0000, $24BF, $0000, $0300, $0060 ; Act 1
         dc.w $0004, $0000, $1EBF, $0000, $0300, $0060 ; Act 2
-        dc.w $0004, $0000, $2960, $0000, $0300, $0060 ; Act 3
+        dc.w $0004, $2800, $2960, $0000, $0300, $0060 ; Act 3
         dc.w $0004, $0000, $2ABF, $0000, $0300, $0060 ; Act 4 (Unused)
         ; LZ
         dc.w $0004, $0000, $19BF, $0000, $0530, $0060 ; Act 1
@@ -5837,17 +5829,17 @@ LevelSizeArray:
         ; MZ
         dc.w $0004, $0000, $17BF, $0000, $01D0, $0060 ; Act 1
         dc.w $0004, $0000, $17BF, $0000, $0520, $0060 ; Act 2
-        dc.w $0004, $0000, $1800, $0000, $0720, $0060 ; Act 3
+        dc.w $0004, $1608, $1800, $0000, $0720, $0060 ; Act 3
         dc.w $0004, $0000, $16BF, $0000, $0720, $0060 ; Act 4 (Unused)
         ; SLZ
         dc.w $0004, $0000, $1FBF, $0000, $0640, $0060 ; Act 1
         dc.w $0004, $0000, $1FBF, $0000, $0640, $0060 ; Act 2
-        dc.w $0004, $0000, $2000, $0000, $06C0, $0060 ; Act 3
+        dc.w $0004, $1E48, $2000, $0000, $06C0, $0060 ; Act 3
         dc.w $0004, $0000, $3EC0, $0000, $0720, $0060 ; Act 4 (Unused)
         ; SYZ
         dc.w $0004, $0000, $22C0, $0000, $0420, $0060 ; Act 1
         dc.w $0004, $0000, $28C0, $0000, $0520, $0060 ; Act 2
-        dc.w $0004, $0000, $2C00, $0000, $0620, $0060 ; Act 3
+        dc.w $0004, $2B00, $2C00, $0000, $0620, $0060 ; Act 3
         dc.w $0004, $0000, $2EC0, $0000, $0620, $0060 ; Act 4 (Unused)
         ; SBZ
         dc.w $0004, $0000, $21C0, $0000, $0720, $0060 ; Act 1
@@ -8629,7 +8621,7 @@ Resize_SLZ3main:
 		addq.b	#2,($FFFFF742).w
 
 locret_7130:
-		rts	
+		rts
 ; ===========================================================================
 
 Resize_SLZ3boss:
@@ -37942,9 +37934,9 @@ Twim_TitleSonic:incbin	arttwim\titleson.twim	; Sonic on title screen
 		even
 Twim_TitleTM:	incbin	arttwim\titletm.twim	; TM on title screen
 		even
-Twiz_JapNames:	incbin	mapeni\japcreds.twiz	; Japanese credits (mappings)
+Twiz_JCrdts:	incbin	mapeni\jcreds.twiz	; Japanese credits (mappings)
 		even
-Twim_JapNames:	incbin	arttwim\japcreds.twim	; Japanese credits
+Twim_JCrdts:	incbin	arttwim\jcreds.twim	; Japanese credits
 		even
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - Sonic
@@ -38262,6 +38254,8 @@ Nem_EndFlower:	incbin	artnem\endflowe.bin	; ending sequence flowers
 Nem_CreditText:	incbin	artnem\credits.bin	; credits alphabet
 		even
 Nem_EndStH:	incbin	artnem\endtext.bin	; ending sequence "Sonic the Hedgehog" text
+		even
+Twim_CreditText2:incbin	arttwim\Text.twim	; credits alphabet
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - animals
@@ -38582,6 +38576,29 @@ ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 
 
   		  include "compression/Twizzler.asm"
+  		  
+		include  EniCredProg.asm
+		even
+EniCred_0:	incbin	credeni\cred0.bin	; Credits #0 mappings
+		even
+EniCred_1:	incbin	credeni\cred1.bin	; Credits #1 mappings
+		even
+EniCred_2:	incbin	credeni\cred2.bin	; Credits #2 mappings
+		even
+EniCred_3:	incbin	credeni\cred3.bin	; Credits #3 mappings
+		even
+EniCred_4:	incbin	credeni\cred4.bin	; Credits #4 mappings
+		even
+EniCred_5:	incbin	credeni\cred5.bin	; Credits #5 mappings
+		even
+EniCred_6:	incbin	credeni\cred6.bin	; Credits #6 mappings
+		even
+EniCred_7:	incbin	credeni\cred7.bin	; Credits #7 mappings
+		even
+EniCred_8:	incbin	credeni\cred8.bin	; Credits #8 mappings
+		even
+EniCred_9:	incbin	credeni\cred9.bin	; Credits #9 mappings
+		even
   		  
 ; ---------------------------------------------------------------------------
 

@@ -20,6 +20,7 @@ A repository of one of my ROM hacks, *nuff said.* :neckbeard:
   * Vladikcomper - Slightly less hacky VBlank/HBlank guide
   * Inferno/ProjectFM - Per-act music via math
   * Bright Neon Colors - Porting Sonic 2's HUD to Sonic 1 guide
+  * Fukuller - Enigma credits guide
 ### Music Credits
   * JexuBandicoot527 - Sonic CD (US) boss theme
   * Jazzdog5 - Title screen/bad ending/good ending
