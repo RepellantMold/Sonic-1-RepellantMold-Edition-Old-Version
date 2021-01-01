@@ -41,16 +41,16 @@ Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
 		dc.b 'REPMLD  JAN.2021' ; Release date
 		dc.b 'SONIC THE HEDGEHOG REPELLANTMOLD EDITION        ' ; Domestic name
 		dc.b 'SONIC THE HEDGEHOG REPELLANTMOLD EDITION        ' ; International name
-		dc.b 'GM 00001009-00'   ; Serial/version number
+		dc.b 'GM 00004002-00'   ; Serial/version number
 Checksum:	dc.w 0
 		dc.b 'J               ' ; I/O support
 RomStartLoc:	dc.l StartOfRom		; ROM start
 RomEndLoc:	dc.l EndOfRom-1		; ROM end
 RamStartLoc:	dc.l $FF0000		; RAM start
 RamEndLoc:	dc.l $FFFFFF		; RAM end
-SRAMSupport:	dc.l $20202020		; change to $5241E020 to create	SRAM
-		dc.l $20202020		; SRAM start
-		dc.l $20202020		; SRAM end
+SRAMSupport:	dc.b "RA",$a0,$20	; SRAM support (Nonsaving - 16-bit addresses)
+		dc.l $200000		; SRAM start
+		dc.l $2007FF		; SRAM end (only doing 2KB to start with)
 Notes:		dc.b "Well it's not the best, that's for sure....haha....."
 Region:		dc.b ' UE             ' ; Region
 EndofHeader:
@@ -201,7 +201,7 @@ GameProgram:
 		tst.w	($C00004).l
 		btst	#6,($A1000D).l
 		beq.s	CheckSumCheck
-		cmpi.l	#'init',($FFFFFFFC).w 	; has checksum routine already run?
+		cmpi.b	#'E',($FFFFFFFF).w 	; has checksum routine already run?
 		beq.s	GameInit		; if yes, branch
 
 CheckSumCheck:
@@ -242,7 +242,7 @@ loc_348:
 		move.b	($A10001).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,($FFFFFFF8).w
-		move.l	#'init',($FFFFFFFC).w 	; set flag so checksum won't be run again
+		move.b	#'E',($FFFFFFFF).w 	; set flag so checksum won't be run again
 
 GameInit:
 		lea	($FF0000).l,a6
@@ -259,7 +259,7 @@ GameClrRAM:
 
 MainGameLoop:
 		move.b	($FFFFF600).w,d0 ; load	Game Mode
-		andi.w	#$7C,d0
+		andi.w	#$1C,d0
 		move.l	GameModeArray(pc,d0.w),a0	; same system of the Sonic 3 GameMode
 		jsr	(a0)				; jump to apt location in ROM
 		bra.s	MainGameLoop
@@ -509,7 +509,7 @@ loc_E64:
 		subq.w	#1,($FFFFF614).w
 
 locret_E70:
-		rts	
+		rts
 ; ===========================================================================
 
 loc_E72:				; XREF: off_B6E
@@ -1264,7 +1264,7 @@ NemDec4:
 	move.w	d7,(a6)+		; ~~ store entry
 	dbf	d5,.ItemShortCodeLoop	; repeat for required number of entries
 	bra.s	.ItemLoop
-	
+
 ; ===============================================================
 ; ---------------------------------------------------------------
 ; uncompressed art to VRAM loader
@@ -2560,6 +2560,7 @@ SegaScreen:				; XREF: GameModeArray
 		clr.w	($FFFFF634).w
 		clr.w	($FFFFF662).w
 		clr.w	($FFFFF660).w
+		clr.b	($FFFFFFD0).w
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
 		move.w	d0,($C00004).l
@@ -2640,6 +2641,7 @@ Title_ClrPallet:
 		moveq	#3,d0		; load Sonic's pallet
 		bsr.w	PalLoad1
 		move.b	#$8A,($FFFFD080).w ; load "SONIC TEAM PRESENTS"	object
+		clr.b	($FFFFFFD0).w
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		bsr.w	Pal_FadeTo
@@ -3184,6 +3186,7 @@ Demo_Levels:;	incbin	misc\dm_ord1.bin
 
 Level:					; XREF: GameModeArray
 		bset	#7,($FFFFF600).w ; add $80 to screen mode (for pre level sequence)
+		clr.b	($FFFFFFD0).w
 		tst.w	($FFFFFFF0).w
 		bmi.s	loc_37B6
 		move.b	#$E0,($FFFFF00B).w ; fade out music
@@ -3339,7 +3342,7 @@ loc_3946:
 		move.b	#1,($FFFFD000).w ; load	Sonic object
 		tst.w	($FFFFFFF0).w
 		bmi.s	Level_ChkDebug
-		move.b	#$21,($FFFFD040).w ; load HUD object
+		move.b	#1,($FFFFFFD0).w
 
 Level_ChkDebug:
 		tst.b	($FFFFFFE2).w	; has debug cheat been entered?
@@ -3365,7 +3368,6 @@ Level_LoadObj:
 		moveq	#0,d0
 		tst.b	($FFFFFE30).w	; are you starting from	a lamppost?
 		bne.s	loc_39E8	; if yes, branch
-		move.w	d0,($FFFFFE20).w ; clear rings
 		move.l	d0,($FFFFFE22).w ; clear time
 		move.b	d0,($FFFFFE1B).w ; clear lives counter
 
@@ -4255,6 +4257,7 @@ SS_ClrNemRam:
 		clr.l	($FFFFF700).w
 		clr.l	($FFFFF704).w
 		move.b	#9,($FFFFD000).w ; load	special	stage Sonic object
+		clr.b	($FFFFFFD0).w
 		bsr.w	PalCycle_SS
 		clr.w	($FFFFF780).w	; set stage angle to "upright"
 		move.w	#$40,($FFFFF782).w ; set stage rotation	speed
@@ -4726,6 +4729,7 @@ Cont_ClrObjRam:
 		move.b	#4,($FFFFD09A).w
 		move.b	#$80,($FFFFD0C0).w
 		move.b	#4,($FFFFD0E4).w
+		clr.b	($FFFFFFD0).w
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		move.w	($FFFFF60C).w,d0
@@ -5049,7 +5053,7 @@ End_LoadSonic:
 		move.b	#1,($FFFFF7CC).w ; lock	controls
 		move.w	#$400,($FFFFF602).w ; move Sonic to the	left
 		move.w	#$F800,($FFFFD014).w ; set Sonic's speed
-		move.b	#$21,($FFFFD040).w ; load HUD object
+		move.b	#1,($FFFFFFD0).w
 		jsr	ObjPosLoad
 		jsr	ObjectsLoad
 		jsr	BuildSprites
@@ -5485,6 +5489,7 @@ Cred_ClrPallet:
 		moveq	#3,d0
 		bsr.w	PalLoad1	; load Sonic's pallet
 		move.b	#$8A,($FFFFD080).w ; load credits object
+		clr.b	($FFFFFFD0).w
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		addq.w  #1,($FFFFFFF4).w ; remove this line and...
@@ -5818,11 +5823,46 @@ LevelSizeLoad:				; XREF: TitleScreen; Level; EndingSequence
 ; ---------------------------------------------------------------------------
 ; Level size array and ending start location array
 ; ---------------------------------------------------------------------------
-LevelSizeArray:	incbin	misc\lvl_size.bin
-		even
+LevelSizeArray:
+        ; GHZ
+	dc.w $0004, $0000, $24BF, $0000, $0300, $0060 ; Act 1
+        dc.w $0004, $0000, $1EBF, $0000, $0300, $0060 ; Act 2
+        dc.w $0004, $0000, $2960, $0000, $0300, $0060 ; Act 3
+        dc.w $0004, $0000, $2ABF, $0000, $0300, $0060 ; Act 4 (Unused)
+        ; LZ
+        dc.w $0004, $0000, $19BF, $0000, $0530, $0060 ; Act 1
+        dc.w $0004, $0000, $10AF, $0000, $0720, $0060 ; Act 2
+        dc.w $0004, $0000, $202F, $FF00, $0800, $0060 ; Act 3
+        dc.w $0004, $0000, $20BF, $0000, $0720, $0060 ; Act 4 (Scrap Brain Act 3)
+        ; MZ
+        dc.w $0004, $0000, $17BF, $0000, $01D0, $0060 ; Act 1
+        dc.w $0004, $0000, $17BF, $0000, $0520, $0060 ; Act 2
+        dc.w $0004, $0000, $1800, $0000, $0720, $0060 ; Act 3
+        dc.w $0004, $0000, $16BF, $0000, $0720, $0060 ; Act 4 (Unused)
+        ; SLZ
+        dc.w $0004, $0000, $1FBF, $0000, $0640, $0060 ; Act 1
+        dc.w $0004, $0000, $1FBF, $0000, $0640, $0060 ; Act 2
+        dc.w $0004, $0000, $2000, $0000, $06C0, $0060 ; Act 3
+        dc.w $0004, $0000, $3EC0, $0000, $0720, $0060 ; Act 4 (Unused)
+        ; SYZ
+        dc.w $0004, $0000, $22C0, $0000, $0420, $0060 ; Act 1
+        dc.w $0004, $0000, $28C0, $0000, $0520, $0060 ; Act 2
+        dc.w $0004, $0000, $2C00, $0000, $0620, $0060 ; Act 3
+        dc.w $0004, $0000, $2EC0, $0000, $0620, $0060 ; Act 4 (Unused)
+        ; SBZ
+        dc.w $0004, $0000, $21C0, $0000, $0720, $0060 ; Act 1
+        dc.w $0004, $0000, $1E40, $FF00, $0800, $0060 ; Act 2
+        dc.w $0004, $2080, $2460, $0510, $0510, $0060 ; Act 3 (Final Zone)
+        dc.w $0004, $0000, $3EC0, $0000, $0720, $0060 ; Act 4 (Unused)
+        ; Ending
+        dc.w $0004, $0000, $0500, $0110, $0110, $0060 ; Act 1 (Good Ending)
+        dc.w $0004, $0000, $0DC0, $0110, $0110, $0060 ; Act 2 (Bad Ending)
+        dc.w $0004, $0000, $2FFF, $0000, $0320, $0060 ; Act 3 (Unused)
+        dc.w $0004, $0000, $2FFF, $0000, $0320, $0060 ; Act 4 (Unused)
+        even
 EndingStLocArray:
-		incbin	misc\sloc_end.bin
-		even
+		;incbin	misc\sloc_end.bin
+		;even
 
 ; ===========================================================================
 
@@ -6557,7 +6597,7 @@ Deform_SBZ:
 
 		lea	(BGScrollSize_SBZ1).l,a4
 		lea	($FFFFA800).w,a5
-		jmp	ProcessBGScroll
+		bra.w	ProcessBGScroll
 ;-------------------------------------------------------------------------------
 Bg_Scroll_SBz_2:;loc_68A2:
 		move.w	($FFFFF73A).w,d4
@@ -12557,7 +12597,7 @@ loc_A1EC:				; XREF: Obj26_Solid
 		bmi.s	loc_A20A
 		cmpi.b	#2,$1C(a1)	; is Sonic rolling?
 		beq.s	loc_A25C	; if yes, branch
-		cmpi.b	#9,$1C(a1)	; is Sonic spin-dashing?
+		cmpi.b	#$1F,$1C(a1)	; is Sonic spin-dashing?
 		beq.s	loc_A25C	; if yes, branch
 
 loc_A20A:
@@ -16564,11 +16604,16 @@ BldSpr_ScrPos:	dc.l 0			; blank
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-BuildSprites:				; XREF: TitleScreen; et al
-		lea	($FFFFF800).w,a2 ; set address for sprite table
-		moveq	#0,d5
-		lea	($FFFFAC00).w,a4
-		moveq	#7,d7
+BuildSprites:                ; XREF: TitleScreen; et al
+        lea    ($FFFFF800).w,a2 ; set address for sprite table
+        moveq    #0,d5
+        moveq    #0,d4
+        tst.b    ($FFFFFFD0).w ; this was level_started_flag
+        beq.s    BuildSprites_2
+        jsr    loc_40804
+BuildSprites_2:
+        lea    ($FFFFAC00).w,a4
+        moveq    #7,d7
 
 loc_D66A:
 		tst.w	(a4)
@@ -18270,7 +18315,6 @@ Obj47_Hit:				; XREF: Obj47_Index
 		asr.l	#8,d0
 		move.w	d0,$12(a1)	; bounce Sonic away
 		bset	#1,$22(a1)
-		bclr	#4,$22(a1)
 		bclr	#5,$22(a1)
 		clr.b	$3C(a1)
 		move.b	#1,$1C(a0)
@@ -19267,14 +19311,14 @@ loc_F9FE:
 		bclr	#3,$22(a0)
 		clr.b	$25(a0)
 		moveq	#0,d4
-		rts	
+		rts
 ; ===========================================================================
 
 loc_FA12:
 		move.w	d4,d2
-		bsr.w	MvSonicOnPtfm
+		jsr	MvSonicOnPtfm
 		moveq	#0,d4
-		rts	
+		rts
 ; ===========================================================================
 
 SolidObject71:				; XREF: Obj71_Solid
@@ -19302,7 +19346,7 @@ loc_FA44:
 
 loc_FA58:
 		move.w	d4,d2
-		bsr.w	MvSonicOnPtfm
+		jsr	MvSonicOnPtfm
 		moveq	#0,d4
 		rts	
 ; ===========================================================================
@@ -23318,7 +23362,6 @@ Obj64_Wobble:				; XREF: Obj64_ChkWater
 		move.w	#$23,$3E(a1)
 		move.b	#0,$3C(a1)
 		bclr	#5,$22(a1)
-		bclr	#4,$22(a1)
 		btst	#2,$22(a1)
 		beq.w	Obj64_Burst
 		bclr	#2,$22(a1)
@@ -24345,7 +24388,7 @@ loc_13024:
 		beq.s	loc_13066
 		cmpi.b	#$80,d0
 		beq.s	loc_13060
-        	cmpi.w  #$C00,$10(a0)    	; Check if player is at running speed
+        	cmpi.w  #$A00,$10(a0)    	; Check if player is at running speed
         	bge.s   Sonic_WallRecoil    	; If so, bonk
 		add.w	d1,$10(a0)
 		bset	#5,$22(a0)
@@ -24359,7 +24402,7 @@ loc_13060:
 ; ===========================================================================
 
 loc_13066:
-          	cmpi.w  #-$C00,$10(a0)    	; If player is at running speed to the left
+          	cmpi.w  #-$A00,$10(a0)    	; If player is at running speed to the left
         	ble.s   Sonic_WallRecoil	; Bonk!
 		sub.w	d1,$10(a0)
 		bset	#5,$22(a0)
@@ -24388,7 +24431,7 @@ Sonic_WallRecoil:   		; Routine to bounce Sonic off a wall when going too fast
         move.w    d0,$10(a0)  	; Move recoil speed into X speed
         move.w    #$FC00,$12(a0); Vertical recoil speed
         move.w    #0,$14(a0)  	; Clear inertia
-        move.b    #$A,$1C(a0) 	; Play recoil animation
+        move.b    #$1A,$1C(a0) 	; Play recoil animation
         move.b    #1,$25(a0)
         move.b    #$A3,($FFFFF00B).w   ; Play bonk sound
         rts ; Return
@@ -24864,10 +24907,10 @@ loc_1341C:
 		move.b	#1,$3C(a0)
 		clr.b	$38(a0)
 		move.b	#$A0,($FFFFF00B).w ;	play jumping sound
-		move.b	#$13,$16(a0)
-		move.b	#9,$17(a0)
 		move.b	#$E,$16(a0)
 		move.b	#7,$17(a0)
+        	btst    #2,$22(a0)
+        	bne.s   locret_1348E
 		move.b	#2,$1C(a0)	; use "jumping"	animation
 		bset	#2,$22(a0)
 		addq.w	#5,$C(a0)
@@ -24928,7 +24971,7 @@ Sonic_SpinDash:
 		move.b	#$D1,($FFFFF00B).w	; play spin sound
 		addq.l	#4,sp			; Add 4 bytes to the stack return address to skip Sonic_Jump on next rts to Obj01_MdNormal, preventing conflicts with button presses.
 		move.b	#1,$39(a0)		; set Spin Dash flag
-		move.w	#0,$3A(a0)		; set charge count to 0
+		clr.w	$3A(a0)			; set charge count to 0
 		cmpi.b	#$C,$28(a0)		; ??? oxygen remaining?
 		move.b	#2,($FFFFD1DC).w
 		
@@ -24941,6 +24984,7 @@ locret2_1AC8C:
 ; ---------------------------------------------------------------------------
 
 loc2_1AC8E:
+		move.b	#$1F,$1C(a0)
 		move.b	($FFFFF602).w,d0	; read controller
 		btst	#1,d0			; check down button
 		bne.w	loc2_1AD30		; if set, branch
@@ -24948,7 +24992,7 @@ loc2_1AC8E:
 		move.b	#7,$17(a0)		; $17(a0) is width/2
 		move.b	#2,$1C(a0)		; set animation to roll
 		addq.w	#5,$C(a0)		; $C(a0) is Y coordinate
-		move.b	#0,$39(a0)		; clear Spin Dash flag
+		clr.b	$39(a0)		; clear Spin Dash flag
 		moveq	#0,d0
 		move.b	$3A(a0),d0		; copy charge count
 		add.w	d0,d0			; double it
@@ -24970,8 +25014,7 @@ loc2_1ACF4:
 		move.b	#$BC,($FFFFF00B).w	; spin release sound
 		bra.s	loc2_1AD78
 ; ===========================================================================
-Dash_Speeds:
-		dc.w  $800		; 0
+Dash_Speeds:	dc.w  $800		; 0
 		dc.w  $880		; 1
 		dc.w  $900		; 2
 		dc.w  $980		; 3
@@ -24980,6 +25023,13 @@ Dash_Speeds:
 		dc.w  $B00		; 6
 		dc.w  $B80		; 7
 		dc.w  $C00		; 8
+		dc.w  $C80		; 9
+		dc.w  $D00		; $A
+		dc.w  $D80		; $B
+		dc.w  $E00		; $C
+		dc.w  $E80		; $D
+		dc.w  $F00		; $E
+		dc.w  $F80		; $F
 ; ===========================================================================
 
 loc2_1AD30:				; If still charging the dash...
@@ -24989,7 +25039,7 @@ loc2_1AD30:				; If still charging the dash...
 		lsr.w	#5,d0		; shift right 5 (divide it by 32)
 		sub.w	d0,$3A(a0)	; subtract from charge count
 		bcc.s	loc2_1AD48	; ??? branch if carry clear
-		move.w	#0,$3A(a0)	; set charge count to 0
+		clr.w	$3A(a0)		; set charge count to 0
 
 loc2_1AD48:
 		move.b	($FFFFF603).w,d0	; read controller
@@ -26201,16 +26251,10 @@ Obj38_Main:				; XREF: Obj38_Index
 		move.b	#4,1(a0)
 		move.b	#1,$18(a0)
 		move.b	#$10,$19(a0)
+		move.w	#$541,2(a0)	; shield specific code
 		tst.b	$1C(a0)		; is object a shield?
 		bne.s	Obj38_DoStars	; if not, branch
-		move.w	#$541,2(a0)	; shield specific code
 		rts
-; ===========================================================================
-
-Obj38_DoStars:
-		addq.b	#2,$24(a0)	; stars	specific code
-		move.w	#$541,2(a0)
-		rts	
 ; ===========================================================================
 
 Obj38_Shield:				; XREF: Obj38_Index
@@ -26231,6 +26275,8 @@ Obj38_Shield:				; XREF: Obj38_Index
 		jmp	DisplaySprite
 ; ===========================================================================
 
+Obj38_DoStars:
+		addq.b	#2,$24(a0)	; stars	specific code
 Obj38_RmvShield:
 		rts
 ; ===========================================================================
@@ -35055,6 +35101,8 @@ KillSonic:
 		tst.w	($FFFFFE08).w	; is debug mode	active?
 		bne.s	Kill_NoDeath	; if yes, branch
 		clr.b	($FFFFFE2D).w ; remove invincibility
+		clr.b	($FFFFFE2C).w ; clear shield
+		clr.b	($FFFFFE20).w ; remove rings
 		move.b	#6,$24(a0)
 		bsr.w	Sonic_ResetOnFloor
 		bset	#1,$22(a0)
@@ -35102,7 +35150,7 @@ Touch_CatKiller:			; XREF: Touch_Special
 Touch_Yadrin:				; XREF: Touch_Special
 		sub.w	d0,d5
 		cmpi.w	#8,d5
-		bcc.s	loc_1B144
+		bcc.w	Touch_Enemy
 		move.w	8(a1),d0
 		subq.w	#4,d0
 		btst	#0,$22(a1)
@@ -35113,20 +35161,14 @@ loc_1B130:
 		sub.w	d2,d0
 		bcc.s	loc_1B13C
 		addi.w	#$18,d0
-		bcs.s	loc_1B140
-		bra.s	loc_1B144
+		bcs.w	Touch_ChkHurt
+		bra.w	Touch_Enemy
 ; ===========================================================================
 
 loc_1B13C:
 		cmp.w	d4,d0
-		bhi.s	loc_1B144
-
-loc_1B140:
+		bhi.w	Touch_Enemy
 		bra.w	Touch_ChkHurt
-; ===========================================================================
-
-loc_1B144:
-		bra.w	Touch_Enemy
 ; ===========================================================================
 
 Touch_D7orE1:				; XREF: Touch_Special
@@ -36983,7 +37025,7 @@ loc_1C4FA:				; XREF: AniArt_MZextra
 AniArt_GiantRing:			; XREF: AniArt_Load
 		tst.w	($FFFFF7BE).w
 		bne.s	loc_1C518
-		rts	
+		rts
 ; ===========================================================================
 
 loc_1C518:
@@ -37008,41 +37050,48 @@ loc_1C518:
 ; ---------------------------------------------------------------------------
 
 Obj21:					; XREF: Obj_Index
-		moveq	#0,d0
-		move.b	$24(a0),d0
-		move.w	Obj21_Index(pc,d0.w),d1
-		jmp	Obj21_Index(pc,d1.w)
-; ===========================================================================
-Obj21_Index:	dc.w Obj21_Main-Obj21_Index
-		dc.w Obj21_Flash-Obj21_Index
-; ===========================================================================
-
-Obj21_Main:				; XREF: Obj21_Main
-		addq.b	#2,$24(a0)
-		move.w	#$90,8(a0)
-		move.w	#$108,$A(a0)
-		move.l	#Map_obj21,4(a0)
-		move.w	#$6CA,2(a0)
-		move.b	#0,1(a0)
-		move.b	#0,$18(a0)
-
-Obj21_Flash:				; XREF: Obj21_Main
-		moveq	#0,d0
-		btst	#3,($FFFFFE05).w
-		bne.s	Obj21_Display
-		tst.w	($FFFFFE20).w	; do you have any rings?
-		bne.s	Obj21_Flash2	; if not, branch
-		addq.w	#1,d0		; make ring counter flash red
+		rts
+		
+; ---------------------------------------------------------------------------
+; HUD Object code - SCORE, TIME, RINGS
+; --------------------------------------------------------------------------- 
+loc_40804:
+    tst.w    ($FFFFFE20).w
+    beq.s    loc_40820
+    moveq    #0,d1
+    btst    #3,($FFFFFE05).w
+    bne.s    loc_40836
+    cmpi.b    #9,($FFFFFE23).w
+    bne.s    loc_40836
+    addq.w    #2,d1
+    bra.s    loc_40836
 ; ===========================================================================
 
-Obj21_Flash2:
-		cmpi.b	#9,($FFFFFE23).w ; have	9 minutes elapsed?
-		bne.s	Obj21_Display	; if not, branch
-		addq.w	#2,d0		; make time counter flash red
+loc_40820:
+    moveq    #0,d1
+    btst    #3,($FFFFFE05).w
+    bne.s    loc_40836
+    addq.w    #1,d1
+    cmpi.b    #9,($FFFFFE23).w
+    bne.s    loc_40836
+    addq.w    #2,d1
 
-Obj21_Display:
-		move.b	d0,$1A(a0)
-		jmp	DisplaySprite
+loc_40836:
+    move.w    #$90,d3
+    move.w    #$108,d2
+    lea    (Map_Obj21).l,a1
+    movea.w    #$6CA,a3
+    add.w    d1,d1
+    adda.w    (a1,d1.w),a1
+    moveq    #0,d1
+    move.b    (a1)+,d1
+    subq.b    #1,d1
+    bmi.s    return_40858
+    jsr    sub_D762
+
+return_40858:
+    rts
+; End of function h
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - SCORE, TIME, RINGS
@@ -37908,7 +37957,8 @@ Map_Sonic:
 ; ---------------------------------------------------------------------------
 SonicDynPLC:
 	include "_inc\Sonic dynamic pattern load cues.asm"
-
+	
+		align $8000
 ; ---------------------------------------------------------------------------
 ; Uncompressed graphics	- Sonic
 ; ---------------------------------------------------------------------------
@@ -37989,6 +38039,12 @@ Nem_GhzWall1:	incbin	artnem\ghzwall1.bin	; GHZ destroyable wall
 		even
 Nem_GhzWall2:	incbin	artnem\ghzwall2.bin	; GHZ normal wall
 		even
+Art_GhzWater:	incbin	artunc\ghzwater.bin	; GHZ waterfall
+		even
+Art_GhzFlower1:	incbin	artunc\ghzflowl.bin	; GHZ large flower
+		even
+Art_GhzFlower2:	incbin	artunc\ghzflows.bin	; GHZ small flower
+		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - LZ stuff
 ; ---------------------------------------------------------------------------
@@ -38038,6 +38094,12 @@ Nem_MzFire:	incbin	artnem\mzfire.bin	; MZ fireballs
 Nem_Lava:	incbin	artnem\mzlava.bin	; MZ lava
 		even
 Nem_MzBlock:	incbin	artnem\mzblock.bin	; MZ green pushable block
+		even
+Art_MzLava1:	incbin	artunc\mzlava1.bin	; MZ lava surface
+		even
+Art_MzLava2:	incbin	artunc\mzlava2.bin	; MZ lava
+		even
+Art_MzTorch:	incbin	artunc\mztorch.bin	; MZ torch in background
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - SLZ stuff
@@ -38099,6 +38161,8 @@ Nem_SlideFloor:	incbin	artnem\sbzslide.bin	; SBZ floor that slides away
 Nem_SbzDoor2:	incbin	artnem\sbzhdoor.bin	; SBZ large horizontal door
 		even
 Nem_Girder:	incbin	artnem\sbzgirde.bin	; SBZ crushing girder
+		even
+Art_SbzSmoke:	incbin	artunc\sbzsmoke.bin	; SBZ smoke in background
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - enemies
@@ -38169,11 +38233,35 @@ UnC_Shield:	incbin	artnem_u\shield.bin	; shield
 UnC_Stars:	incbin	artnem_u\invstars.bin	; invincibility stars
 		even
 ; ---------------------------------------------------------------------------
-; Compressed graphics - continue screen
+; Compressed graphics - bosses and ending sequence
 ; ---------------------------------------------------------------------------
-Nem_ContSonic:	incbin	artnem\cntsonic.bin	; Sonic on continue screen
+Nem_Eggman:	incbin	artnem\bossmain.bin	; boss main patterns
 		even
-Nem_MiniSonic:	incbin	artnem\cntother.bin	; mini Sonic and text on continue screen
+Nem_Weapons:	incbin	artnem\bossxtra.bin	; boss add-ons and weapons
+		even
+Nem_Prison:	incbin	artnem\prison.bin	; prison capsule
+		even
+Nem_Sbz2Eggman:	incbin	artnem\sbz2boss.bin	; Eggman in SBZ2 and FZ
+		even
+Nem_FzBoss:	incbin	artnem\fzboss.bin	; FZ boss
+		even
+Nem_FzEggman:	incbin	artnem\fzboss2.bin	; Eggman after the FZ boss
+		even
+Nem_Exhaust:	incbin	artnem\bossflam.bin	; boss exhaust flame
+		even
+Nem_EndEm:	incbin	artnem\endemera.bin	; ending sequence chaos emeralds
+		even
+Nem_EndSonic:	incbin	artnem\endsonic.bin	; ending sequence Sonic
+		even
+Nem_TryAgain:	incbin	artnem\tryagain.bin	; ending "try again" screen
+		even
+Kos_EndFlowers:	incbin	artkos\flowers.bin	; ending sequence animated flowers
+		even
+Nem_EndFlower:	incbin	artnem\endflowe.bin	; ending sequence flowers
+		even
+Nem_CreditText:	incbin	artnem\credits.bin	; credits alphabet
+		even
+Nem_EndStH:	incbin	artnem\endtext.bin	; ending sequence "Sonic the Hedgehog" text
 		even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - animals
@@ -38238,35 +38326,11 @@ Twim_Title:	incbin	arttwim\8x8title.twim	; Title patterns
 Blk256_TS:	incbin	map256\TS.twiz
 		even
 ; ---------------------------------------------------------------------------
-; Compressed graphics - bosses and ending sequence
+; Compressed graphics - continue screen
 ; ---------------------------------------------------------------------------
-Nem_Eggman:	incbin	artnem\bossmain.bin	; boss main patterns
+Nem_ContSonic:	incbin	artnem\cntsonic.bin	; Sonic on continue screen
 		even
-Nem_Weapons:	incbin	artnem\bossxtra.bin	; boss add-ons and weapons
-		even
-Nem_Prison:	incbin	artnem\prison.bin	; prison capsule
-		even
-Nem_Sbz2Eggman:	incbin	artnem\sbz2boss.bin	; Eggman in SBZ2 and FZ
-		even
-Nem_FzBoss:	incbin	artnem\fzboss.bin	; FZ boss
-		even
-Nem_FzEggman:	incbin	artnem\fzboss2.bin	; Eggman after the FZ boss
-		even
-Nem_Exhaust:	incbin	artnem\bossflam.bin	; boss exhaust flame
-		even
-Nem_EndEm:	incbin	artnem\endemera.bin	; ending sequence chaos emeralds
-		even
-Nem_EndSonic:	incbin	artnem\endsonic.bin	; ending sequence Sonic
-		even
-Nem_TryAgain:	incbin	artnem\tryagain.bin	; ending "try again" screen
-		even
-Kos_EndFlowers:	incbin	artkos\flowers.bin	; ending sequence animated flowers
-		even
-Nem_EndFlower:	incbin	artnem\endflowe.bin	; ending sequence flowers
-		even
-Nem_CreditText:	incbin	artnem\credits.bin	; credits alphabet
-		even
-Nem_EndStH:	incbin	artnem\endtext.bin	; ending sequence "Sonic the Hedgehog" text
+Nem_MiniSonic:	incbin	artnem\cntother.bin	; mini Sonic and text on continue screen
 		even
 ; ---------------------------------------------------------------------------
 ; Collision data
@@ -38303,23 +38367,6 @@ SS_4:		incbin	sslayout\4.bin
 SS_5:		incbin	sslayout\5.bin
 		even
 SS_6:		incbin	sslayout\6.bin
-		even
-; ---------------------------------------------------------------------------
-; Animated uncompressed graphics
-; ---------------------------------------------------------------------------
-Art_GhzWater:	incbin	artunc\ghzwater.bin	; GHZ waterfall
-		even
-Art_GhzFlower1:	incbin	artunc\ghzflowl.bin	; GHZ large flower
-		even
-Art_GhzFlower2:	incbin	artunc\ghzflows.bin	; GHZ small flower
-		even
-Art_MzLava1:	incbin	artunc\mzlava1.bin	; MZ lava surface
-		even
-Art_MzLava2:	incbin	artunc\mzlava2.bin	; MZ lava
-		even
-Art_MzTorch:	incbin	artunc\mztorch.bin	; MZ torch in background
-		even
-Art_SbzSmoke:	incbin	artunc\sbzsmoke.bin	; SBZ smoke in background
 		even
 
 ; ---------------------------------------------------------------------------
@@ -38474,18 +38521,6 @@ ObjPos_LZ3:	incbin	objpos\lz3.bin
 		even
 ObjPos_SBZ3:	incbin	objpos\sbz3.bin
 		even
-ObjPos_LZ1pf1:	incbin	objpos\lz1pf1.bin
-		even
-ObjPos_LZ1pf2:	incbin	objpos\lz1pf2.bin
-		even
-ObjPos_LZ2pf1:	incbin	objpos\lz2pf1.bin
-		even
-ObjPos_LZ2pf2:	incbin	objpos\lz2pf2.bin
-		even
-ObjPos_LZ3pf1:	incbin	objpos\lz3pf1.bin
-		even
-ObjPos_LZ3pf2:	incbin	objpos\lz3pf2.bin
-		even
 ObjPos_MZ1:	incbin	objpos\mz1.bin
 		even
 ObjPos_MZ2:	incbin	objpos\mz2.bin
@@ -38510,6 +38545,20 @@ ObjPos_SBZ2:	incbin	objpos\sbz2.bin
 		even
 ObjPos_FZ:	incbin	objpos\fz.bin
 		even
+ObjPos_End:	incbin	objpos\ending.bin
+		even
+ObjPos_LZ1pf1:	incbin	objpos\lz1pf1.bin
+		even
+ObjPos_LZ1pf2:	incbin	objpos\lz1pf2.bin
+		even
+ObjPos_LZ2pf1:	incbin	objpos\lz2pf1.bin
+		even
+ObjPos_LZ2pf2:	incbin	objpos\lz2pf2.bin
+		even
+ObjPos_LZ3pf1:	incbin	objpos\lz3pf1.bin
+		even
+ObjPos_LZ3pf2:	incbin	objpos\lz3pf2.bin
+		even
 ObjPos_SBZ1pf1:	incbin	objpos\sbz1pf1.bin
 		even
 ObjPos_SBZ1pf2:	incbin	objpos\sbz1pf2.bin
@@ -38521,8 +38570,6 @@ ObjPos_SBZ1pf4:	incbin	objpos\sbz1pf4.bin
 ObjPos_SBZ1pf5:	incbin	objpos\sbz1pf5.bin
 		even
 ObjPos_SBZ1pf6:	incbin	objpos\sbz1pf6.bin
-		even
-ObjPos_End:	incbin	objpos\ending.bin
 		even
 ObjPos_Null:	dc.b $FF, $FF, 0, 0, 0,	0
 		even

@@ -650,9 +650,9 @@ Sound_ExIndex:
 ; ---------------------------------------------------------------------------
 
 Sound_E1:
-	 	move.b  #$B6, d0    ; Register: FM3/6 Panning
-		move.b  #$C0, d1    ; Value: Enable both channels
-        	jsr 	sub_72764(pc)   ; Write to YM2612 Port 1 (for FM6) [sub_72764]
+	 	move.b  #$B6, d0    			; Register: FM3/6 Panning
+		move.b  #$C0, d1    			; Value: Enable both channels
+        	jsr 	sub_72764(pc)   		; Write to YM2612 Port 1 (for FM6) [sub_72764]
 		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports
 		move.l	#(SegaPCM_End-SegaPCM),d3			; Load the size of the SEGA PCM sample into d3
 		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel
@@ -893,7 +893,7 @@ Sound_D1toDF:
 		
 .cont1:
 		addq.b	#1,d0
-		cmp.b	#$C,d0		; has the limit been reached?
+		cmp.b	#$F,d0		; has the limit been reached?
 		bcc.s	.cont2		; if it has, branch
 		move.b	d0,($FFFFC902).w	; otherwise, set new frequency
 		
@@ -1125,12 +1125,7 @@ locret_723C6:
 ; End of function Sound_ChkValue
 
 ; ===========================================================================
-		dc.l $FFF100
-		dc.l $FFF1F0
-		dc.l $FFF250
-		dc.l $FFF310
-		dc.l $FFF340
-		dc.l $FFF370
+
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -2358,7 +2353,6 @@ loc_72E64:				; XREF: loc_72A64
 ; ===========================================================================
 Kos_Z80:	incbin	sound\snd.twiz
 		even
-
 		include "smps2asm.asm"
 
 Music81:	include	sound\music81.asm
