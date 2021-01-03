@@ -17,12 +17,12 @@ align:	macro
 ; ---------------------------------------------------------------------------
 
 fillVRAM:	macro value,length,loc
-		lea	($C00004).l,a5
-		move.w	#$8F01,(a5)
+		lea	(VdpCtrl).l,a5
+		move.w	#VDPREG_INCR+1,(a5)
 		move.l	#$94000000+((length&$FF00)<<8)+$9300+(length&$FF),(a5)
 		move.w	#$9780,(a5)
-		move.l	#$40000080+((loc&$3FFF)<<16)+((loc&$C000)>>14),(a5)
-		move.w	#value,($C00000).l
+		move.l	#$40000080+((loc&$3FFF)<<16)+((loc&vram_fg)>>14),(a5)
+		move.w	#value,(VdpData).l
 		endm
 
 ; ---------------------------------------------------------------------------
@@ -160,4 +160,9 @@ jmi:		macro loc
 		bpl.s	.nojump\@
 		jmp	loc
 	.nojump\@:
+		endm
+
+; VDP Stuff
+SetGfxMode: 	macro mode
+    		move.w  #VDPREG_MODE4|(mode), (VdpCtrl)
 		endm

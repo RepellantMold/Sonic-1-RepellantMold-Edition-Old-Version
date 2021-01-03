@@ -36,7 +36,8 @@ PSG0C:		dc.b 4, 4, 3, 3, 2, 2, 1,	1, 1, 1, 1, 1, 1, 1, 1,	1, 1, 1
 		dc.b 7, $80
 PSG0D:		dc.b 0, 1, 3, $80
 
-byte_71A94:	;dc.b 7,	$72, $73, $26, $15, 8, $FF, 5
+byte_71A94:	dc.b 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+		even
 ; ---------------------------------------------------------------------------
 ; Music	Pointers
 ; ---------------------------------------------------------------------------
@@ -2436,7 +2437,7 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundC7, SoundC8, SoundC9
 		dc.l SoundCA, SoundCB, SoundCC
 		dc.l SoundCD, SoundCE, SoundCF
-		dc.l SoundD1
+		dc.l SoundD1, SoundD2, SoundD2
 SoundD0Index:	dc.l SoundD0
 SoundA0:	incbin	sound\soundA0.bin
 		even
@@ -2454,7 +2455,7 @@ SoundA6:	incbin	sound\soundA6.bin
 		even
 SoundA7:	incbin	sound\soundA7.bin
 		even
-SoundA8:	incbin	sound\soundA8.bin
+SoundA8:	include	sound\soundA8.asm
 		even
 SoundA9:	incbin	sound\soundA9.bin
 		even
@@ -2470,7 +2471,7 @@ SoundAE:	incbin	sound\soundAE.bin
 		even
 SoundAF:	incbin	sound\soundAF.bin
 		even
-SoundB0:	incbin	sound\soundB0.bin
+SoundB0:	include	sound\soundB0.asm
 		even
 SoundB1:	incbin	sound\soundB1.bin
 		even
@@ -2534,9 +2535,11 @@ SoundCE:	incbin	sound\soundCE.bin
 		even
 SoundCF:	incbin	sound\soundCF.bin
 		even
-SoundD0:	incbin	sound\soundD0.bin
+SoundD0:	include	sound\soundD0.asm
 		even
 SoundD1:	incbin	sound\soundD1.bin
+		even
+SoundD2:	include	sound\soundD2.asm
 		even
 SegaPCM:	incbin	sound\segapcm.bin
 SegaPCM_End:	even

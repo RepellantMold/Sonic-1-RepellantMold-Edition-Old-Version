@@ -14,11 +14,7 @@
 
 	include "macros.asm"
     include   "Debugger.asm"
-    
-PLCQueueAdr: =  $FFFFF650   ; beginning of RAM allocated for PLC
-PLCQueue: = PLCQueueAdr+4   ; start of PLC queue
-PLCQueueEnd: =  $FFFFF700-$20   ; end of PLC queue, start of equates for PLC, for example last state of Nemesis decompression
-Saved_music: =	$FFFFFFFF
+    include	"equates.asm"
 
 StartOfRom:
 Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
@@ -129,21 +125,21 @@ PSGInitLoop:
 PortC_Ok:
 		bra.s	GameProgram
 ; ===========================================================================
-SetupValues:	dc.w $8000		; XREF: PortA_Ok
-		dc.w $3FFF
-		dc.w $100
+SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
+		dc.w $3FFF		; size of RAM/4
+		dc.w $100		; VDP register diff
 
 		dc.l $A00000		; start	of Z80 RAM
 		dc.l $A11100		; Z80 bus request
 		dc.l $A11200		; Z80 reset
-		dc.l $C00000
-		dc.l $C00004		; address for VDP registers
+		dc.l VdpData
+		dc.l VdpCtrl		; address for VDP registers
 
 		dc.b 4			; VDP $80 - 8-colour mode
 		dc.b $14		; VDP $81 - Megadrive mode, DMA enable
-		dc.b ($C000>>10)	; VDP $82 - foreground nametable address
-		dc.b ($F000>>10)	; VDP $83 - window nametable address
-		dc.b ($E000>>13)	; VDP $84 - background nametable address
+		dc.b (vram_fg>>10)	; VDP $82 - foreground nametable address
+		dc.b (vram_sonic>>10)	; VDP $83 - window nametable address
+		dc.b (vram_bg>>13)	; VDP $84 - background nametable address
 		dc.b ($D800>>9)		; VDP $85 - sprite table address
 		dc.b 0			; VDP $86 - unused
 		dc.b 0			; VDP $87 - background colour
@@ -161,7 +157,7 @@ SetupValues:	dc.w $8000		; XREF: PortA_Ok
 		dc.w $FFFF		; VDP $93/94 - DMA length
 		dc.w 0			; VDP $95/96 - DMA source
 		dc.b $80		; VDP $97 - DMA fill VRAM
-		dc.l $40000080		; VRAM address 0
+		dc.l VRAM_ADDR_CMD+$80	; VRAM address 0
 
 		dc.b $AF		; xor	a
 		dc.b $01, $D9, $1F	; ld	bc,1fd9h
@@ -189,16 +185,16 @@ SetupValues:	dc.w $8000		; XREF: PortA_Ok
 		dc.b $36, $E9		; ld	(hl),E9h
 		dc.b $E9		; jp	(hl)
 
-		dc.w $8104		; VDP display mode
-		dc.w $8F02		; VDP increment
-		dc.l $C0000000		; CRAM write mode
-		dc.l $40000010		; VSRAM address 0
+		dc.w VDPREG_MODE2+4	; VDP display mode
+		dc.w VDPREG_INCR+2	; VDP increment
+		dc.l CRAM_ADDR_CMD	; CRAM write mode
+		dc.l VSRAM_ADDR_CMD	; VSRAM address 0
 
 		dc.b $9F, $BF, $DF, $FF	; values for PSG channel volumes
 ; ===========================================================================
 
 GameProgram:
-		tst.w	($C00004).l
+		tst.w	(VdpCtrl).l
 		btst	#6,($A1000D).l
 		beq.s	CheckSumCheck
 		cmpi.b	#'E',($FFFFFFFF).w 	; has checksum routine already run?
@@ -283,11 +279,11 @@ GameModeArray:
 
 CheckSumError:
 		bsr.w	VDPSetupGame
-		move.l	#$C0000000,($C00004).l ; set VDP to CRAM write
+		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l ; set VDP to CRAM write
 		moveq	#$3F,d7
 
 CheckSum_Red:
-		move.w	#$E,($C00000).l	; fill screen with colour red
+		move.w	#$E,(VdpData).l	; fill screen with colour red
 		dbf	d7,CheckSum_Red	; repeat $3F more times
 
 CheckSum_Loop:
@@ -303,9 +299,9 @@ loc_B10:				; XREF: Vectors
 		movem.l	d0-a6,-(sp)
 		tst.b	($FFFFF62A).w
 		beq.s	loc_B88
-		move.w	($C00004).l,d0
-		move.l	#$40000010,($C00004).l
-		move.l	($FFFFF616).w,($C00000).l
+		move.w	(VdpCtrl).l,d0
+		move.l	#$40000010,(VdpCtrl).l
+		move.l	($FFFFF616).w,(VdpData).l
 
 loc_B42:
 		move.b	($FFFFF62A).w,d0
@@ -345,11 +341,11 @@ loc_B88:				; XREF: loc_B10; off_B6E
 loc_B9A:
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ ?
 		bne.s	loc_B5E		; if not, branch
-		move.w	($C00004).l,d0
+		move.w	(VdpCtrl).l,d0
 		move.w	#1,($FFFFF644).w
 		tst.b	($FFFFF64E).w
 		bne.s	loc_BFE
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -360,7 +356,7 @@ loc_B9A:
 ; ===========================================================================
 
 loc_BFE:				; XREF: loc_BC8
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -411,7 +407,7 @@ loc_C76:
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_CB0
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -422,7 +418,7 @@ loc_C76:
 ; ===========================================================================
 
 loc_CB0:				; XREF: loc_C76
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -432,14 +428,14 @@ loc_CB0:				; XREF: loc_C76
 
 loc_CD4:				; XREF: loc_C76
 		move.w	($FFFFF624).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -479,21 +475,21 @@ Demo_TimeEnd:
 loc_DA6:				; XREF: off_B6E
 loc_DAE:
 		bsr.w	ReadJoypads
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
@@ -517,7 +513,7 @@ loc_E7A:
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_EB4
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -528,7 +524,7 @@ loc_E7A:
 ; ===========================================================================
 
 loc_EB4:				; XREF: loc_E7A
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -538,7 +534,7 @@ loc_EB4:				; XREF: loc_E7A
 
 loc_ED8:				; XREF: loc_E7A
 		move.w	($FFFFF624).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 
@@ -547,7 +543,7 @@ loc_EEE:
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -584,21 +580,21 @@ loc_F9A:				; XREF: off_B6E
 loc_FA6:				; XREF: off_B6E
 loc_FAE:
 		bsr.w	ReadJoypads
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
@@ -623,7 +619,7 @@ loc_1076:
 		bsr.w	ReadJoypads
 		tst.b	($FFFFF64E).w
 		bne.s	loc_10B0
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -634,7 +630,7 @@ loc_1076:
 ; ===========================================================================
 
 loc_10B0:				; XREF: sub_106E
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -643,14 +639,14 @@ loc_10B0:				; XREF: sub_106E
 		move.w	($FFFFF640).w,(a5)
 
 loc_10D4:				; XREF: sub_106E
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96E69500,(a5)
 		move.w	#$977F,(a5)
@@ -673,9 +669,9 @@ PalToCRAM:
 		beq.s	locret_119C
 		clr.w	($FFFFF644).w
 		movem.l	a0-a1,-(sp)
-		lea	($C00000).l,a1
+		lea	(VdpData).l,a1
 		lea	($FFFFFA80).w,a0 ; load	pallet from RAM
-		move.l	#$C0000000,4(a1) ; set VDP to CRAM write
+		move.l	#CRAM_ADDR_CMD,4(a1) ; set VDP to CRAM write
 		rept 32
 		move.l	(a0)+,(a1)	; move pallet to CRAM
 		endr
@@ -737,7 +733,7 @@ Joypad_Read:
 
 
 VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
-		lea	($C00004).l,a0
+		lea	(VdpCtrl).l,a0
 		lea	($C00000).l,a1
 		lea	(VDPSetupArray).l,a2
 		moveq	#$12,d7
@@ -750,7 +746,7 @@ VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
 		move.w	d0,($FFFFF60C).w
 		move.w	#$8A00+223,($FFFFF624).w	; H-INT every 224th scanline
 		moveq	#0,d0
-		move.l	#$C0000000,($C00004).l 		; set VDP to CRAM write
+		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l 		; set VDP to CRAM write
 		move.w	#$3F,d7
 
 	.clrCRAM:
@@ -1053,7 +1049,7 @@ QueueDMATransfer_Done:
 
 ; sub_14AC: CopyToVRAM: IssueVDPCommands: Process_DMA: Process_DMA_Queue:
 ProcessDMAQueue:
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		lea	($FFFFC800).w,a1
 ; loc_14B6:
 ProcessDMAQueue_Loop:
@@ -1431,7 +1427,7 @@ sub_165E:				; XREF: Demo_Time
 		addi.w	#$60,(PLCQueue).w
 
 loc_1676:				; XREF: sub_1642
-		lea	($C00004).l,a4
+		lea	(VdpCtrl).l,a4
 		lsl.l	#2,d0
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
@@ -1498,7 +1494,7 @@ RunPLC_Loop:
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
 		swap	d0
-		move.l	d0,($C00004).l	; put the VRAM address into VDP
+		move.l	d0,(VdpCtrl).l	; put the VRAM address into VDP
 		bsr.w	NemDec		; decompress
 		dbf	d1,RunPLC_Loop	; loop for number of entries
 		rts
@@ -2520,7 +2516,7 @@ SegaScreen:				; XREF: GameModeArray
 		move.b	#$E4,($FFFFF00B).w ; stop music
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -2530,7 +2526,7 @@ SegaScreen:				; XREF: GameModeArray
 		move	#$2700,sr
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
 		lea	(Twim_SegaLogo).l,a0			; load compressed art data address
 		move.w	#$0,d0					; set VRAM address to decompress to (0)
@@ -2539,6 +2535,7 @@ SegaScreen:				; XREF: GameModeArray
 		lea	(Eni_SegaLogo).l,a0 ; load Sega	logo mappings
 		move.w	#0,d0
 		bsr.w	EniDec
+		SetGfxMode GFXMODE_256x224
 		lea	($FF0000).l,a1
 		move.l	#$65100003,d0
 		moveq	#$17,d1
@@ -2563,7 +2560,7 @@ SegaScreen:				; XREF: GameModeArray
 		clr.b	($FFFFFFD0).w
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 
 Sega_WaitPallet:
 		move.b	#2,($FFFFF62A).w
@@ -2598,7 +2595,7 @@ TitleScreen:				; XREF: GameModeArray
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
 		move	#$2700,sr
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -2619,7 +2616,7 @@ Title_ClrObjRam:
 		lea	(Twim_JCrdts).l,a0			; load compressed art data address
 		move.w	#0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
-		move.l	#$54C00000,($C00004).l
+		move.l	#$54C00000,(VdpCtrl).l
 		lea	(Nem_CreditText).l,a0 ;	load alphabet
 		bsr.w	NemDec
 		lea	($FF0000).l,a1
@@ -2637,7 +2634,7 @@ Title_ClrObjRam:
 Title_ClrPallet:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrPallet ; fill pallet with 0	(black)
-
+		SetGfxMode GFXMODE_320x224
 		moveq	#3,d0		; load Sonic's pallet
 		bsr.w	PalLoad1
 		move.b	#$8A,($FFFFD080).w ; load "SONIC TEAM PRESENTS"	object
@@ -2674,7 +2671,7 @@ Title_ClrPallet:
 		bsr.w	Pal_FadeFrom
 		move	#$2700,sr
 		bsr.w	ClearScreen
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		lea	($C00000).l,a6
 		lea	($FFFFF708).w,a3
 		lea	($FFFFA440).w,a4
@@ -2721,7 +2718,7 @@ Title_ClrObjRam2:
 		clr.w	($FFFFFFE6).w
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		bsr.w	Pal_FadeTo
 
 loc_317C:
@@ -2800,6 +2797,7 @@ Title_ClrScroll:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrScroll ; fill scroll data with 0
 		bsr.w	ClearScreen
+		SetGfxMode GFXMODE_320x224
 		lea	($C00000).l,a6
 		move.l	#$50000003,4(a6)
 		lea	(Art_Text).l,a5
@@ -2822,7 +2820,7 @@ Title_ClrScroll:
 LevelSelect:
 		move.b	#2,($FFFFF62A).w
 		waitvblank
-		bsr.w	LevSelControls
+		bsr.s	LevSelControls
 		bsr.w	RunPLC_RAM
 		tst.l	(PLCQueueAdr).w
 		bne.s	LevelSelect
@@ -2843,15 +2841,8 @@ LevSelLevCheckStart:				; XREF: LevelSelect
 		bra.w	LevSel_Level_SS
 
 LevSelBCPress:				; XREF: LevelSelect
-		move.w	($FFFFFF84).w,d0; using Nineko's cheat code method, not using this forever
-		addi.w	#$80,d0         ; not going to use this forever but eh, gotta have a quick way to test things y'know?
-		move.l 	($FFFFC60C).w,d1; move the last 4 songs played into d1
-		rol.l 	#8,d1		; rotate d1 by 8 bits
-		move.l 	d1,($FFFFC60C).w; put the rotated d1 back there
-		move.b 	d0,($FFFFC60F).w; overwrite the right-most song
-		cmpi.l 	#$82808084,($FFFFC60C).w; did you play 82, 80, 80, 84?
-		bne.b 	LevSel_PlaySnd	; if not, proceed normally
-		bra.w 	EndingSequence	; let's play the bonus stage
+		move.b	($FFFFFF85).w,d0
+		addi.b	#$80,d0
 
 LevSel_PlaySnd:
 		move.b	d0,($FFFFF00C).w
@@ -2956,9 +2947,10 @@ LevSel_NoMove:
 
 
 LevSelTextLoad:				; XREF: TitleScreen
+	textpos:	= (VRAM_ADDR_CMD+(($E210&$3FFF)<<16)+(($E210&$C000)>>14))
 		lea	(LevelMenuText).l,a1
 		lea	($C00000).l,a6
-		move.l	#$62100003,d4	; screen position (text)
+		move.l	#textpos,d4	; screen position (text)
 		move.w	#$E680,d3	; VRAM setting
 		moveq	#$14,d1		; number of lines of text
 
@@ -2989,15 +2981,15 @@ loc_34FE:				; XREF: LevSelTextLoad+26j
 		move.w	#$C680,d3
 
 loc_3550:
-		move.l	#$6C300003,($C00004).l ; screen	position (sound	test)
+		move.l	#$6C300003,(VdpCtrl).l ; screen	position (sound	test)
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
 		move.b	d0,d2
 		lsr.b	#4,d0
 		bsr.s	LevSel_ChgSnd
 		move.b	d2,d0
-		bsr.s	LevSel_ChgSnd
-		rts
+		;bra.s	LevSel_ChgSnd
+		;rts
 ; End of function LevSelTextLoad
 
 
@@ -3098,10 +3090,9 @@ LevSel_Level_SS:			; XREF: LevelSelect
 		move.b	#$10,($FFFFF600).w ; set screen	mode to	$10 (Special Stage)
 		clr.w	($FFFFFE10).w	; clear	level
 		move.b	#3,($FFFFFE12).w ; set lives to	3
-		moveq	#0,d0
-		move.w	d0,($FFFFFE20).w ; clear rings
-		move.l	d0,($FFFFFE22).w ; clear time
-		move.l	d0,($FFFFFE26).w ; clear score
+		clr.w	($FFFFFE20).w ; clear rings
+		clr.l	($FFFFFE22).w ; clear time
+		clr.l	($FFFFFE26).w ; clear score
 		rts
 ; ===========================================================================
 
@@ -3204,7 +3195,7 @@ loc_37B6:
 		tst.w	($FFFFFFF0).w
 		bmi.s	Level_ClrRam
 		move	#$2700,sr
-	        move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+	        move.l  #$70000002,(VdpCtrl)        ; set mode "VRAM Write to $B000"
 	        lea 	Nem_TitleCard,a0        ; load title card patterns
 	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
         	jsr 	LoadUncArt          ; load uncompressed art
@@ -3255,10 +3246,10 @@ Level_ClrVars2:
 Level_ClrVars3:
 		move.l	d0,(a1)+
 		dbf	d1,Level_ClrVars3 ; clear object variables
-
+                SetGfxMode GFXMODE_320x224
 		move	#$2700,sr
 		bsr.w	ClearScreen
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8B03,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -4199,17 +4190,17 @@ SpecialStage:				; XREF: GameModeArray
 		move.b	#$CA,($FFFFF00B).w ; play special stage entry sound
 		bsr.w	Pal_MakeFlash
 		move	#$2700,sr
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8B03,(a6)
 		move.w	#$8004,(a6)
 		move.w	#$8AAF,($FFFFF624).w
 		move.w	#$9011,(a6)
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
 		move	#$2300,sr
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		move.w	#$8F01,(a5)
 		move.l	#$946F93FF,(a5)
 		move.w	#$9780,(a5)
@@ -4289,7 +4280,7 @@ SS_ClrNemRam:
 SS_NoDebug:
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		bsr.w	Pal_MakeWhite
 
 ; ---------------------------------------------------------------------------
@@ -4346,12 +4337,12 @@ loc_47D4:
 		bne.s	SS_EndLoop
 
 		move	#$2700,sr
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
 		move.w	#$9001,(a6)
 		bsr.w	ClearScreen
-	        move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+	        move.l  #$70000002,(VdpCtrl)        ; set mode "VRAM Write to $B000"
 	        lea 	Nem_TitleCard,a0        ; load title card patterns
 	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
         	jsr 	LoadUncArt          ; load uncompressed art
@@ -4487,7 +4478,7 @@ PalCycle_SS:				; XREF: loc_DA6; SpecialStage
 		bne.s	locret_49E6
 		subq.w	#1,($FFFFF79C).w
 		bpl.s	locret_49E6
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	($FFFFF79A).w,d0
 		addq.w	#1,($FFFFF79A).w
 		andi.w	#$1F,d0
@@ -4512,7 +4503,7 @@ loc_4992:
 		move.w	#-$7C00,d0
 		move.b	(a0)+,d0
 		move.w	d0,(a6)
-		move.l	#$40000010,($C00004).l
+		move.l	#$40000010,(VdpCtrl).l
 		move.l	($FFFFF616).w,($C00000).l
 		moveq	#0,d0
 		move.b	(a0)+,d0
@@ -4698,8 +4689,8 @@ ContinueScreen:				; XREF: GameModeArray
 		move	#$2700,sr
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
-		move.w	d0,($C00004).l
-		lea	($C00004).l,a6
+		move.w	d0,(VdpCtrl).l
+		lea	(VdpCtrl).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8700,(a6)
 		bsr.w	ClearScreen
@@ -4711,14 +4702,14 @@ Cont_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Cont_ClrObjRam ; clear object RAM
 
-	        move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+	        move.l  #$70000002,(VdpCtrl)        ; set mode "VRAM Write to $B000"
 	        lea 	Nem_TitleCard,a0        ; load title card patterns
 	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
         	jsr 	LoadUncArt          ; load uncompressed art
-		move.l	#$60000002,($C00004).l
+		move.l	#$60000002,(VdpCtrl).l
 		lea	(Nem_ContSonic).l,a0 ; load Sonic patterns
 		bsr.w	NemDec
-		move.l	#$6A200002,($C00004).l
+		move.l	#$6A200002,(VdpCtrl).l
 		lea	(Nem_MiniSonic).l,a0 ; load continue screen patterns
 		bsr.w	NemDec
 		moveq	#10,d1
@@ -4741,7 +4732,7 @@ Cont_ClrObjRam:
 		jsr	BuildSprites
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		bsr.w	Pal_FadeTo
 
 ; ---------------------------------------------------------------------------
@@ -5009,9 +5000,9 @@ End_ClrRam3:
 		move	#$2700,sr
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8B03,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -5083,7 +5074,7 @@ End_LoadSonic:
 		waitvblank
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VdpCtrl).l
 		move.w	#$3F,($FFFFF626).w
 		bsr.w	Pal_FadeTo
 
@@ -5108,7 +5099,7 @@ End_MainLoop:
 		beq.s	loc_52DA	; if yes, branch
 		move.b	#$1C,($FFFFF600).w ; set scene to $1C (credits)
 		move.b	#$91,($FFFFF00A).w ; play credits music
-		clr.w	($FFFFFFF4).w ; set credits index number to 0
+		clr.b	($FFFFFFF4).w ; set credits index number to 0
 		rts	
 ; ===========================================================================
 
@@ -5142,7 +5133,7 @@ loc_5334:
 		beq.w	End_AllEmlds
 		clr.w	($FFFFFE02).w
 		move.w	#$2E2F,($FFFFA480).w ; modify level layout
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		lea	($C00000).l,a6
 		lea	($FFFFF700).w,a3
 		lea	($FFFFA400).w,a4
@@ -5464,7 +5455,7 @@ Map_obj89:
 Credits:				; XREF: GameModeArray
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -5497,7 +5488,7 @@ Cred_ClrPallet:
 		moveq	#3,d0
 		bsr.w	PalLoad1	; load Sonic's pallet
 		jsr	Credits_MapLoad
-		addq.w  #1,($FFFFFFF4).w
+		addq.b  #1,($FFFFFFF4).w
 		move.w	#120,($FFFFF614).w ; display a credit for 2 seconds
 		bsr.w	Pal_FadeTo
 
@@ -5507,7 +5498,7 @@ Cred_WaitLoop:
 		bsr.w	RunPLC_RAM
 		tst.w	($FFFFF614).w	; have 2 seconds elapsed?
 		bne.s	Cred_WaitLoop	; if not, branch
-		cmpi.w	#9,($FFFFFFF4).w ; have	the credits finished?
+		cmpi.b	#9,($FFFFFFF4).w ; have	the credits finished?
 		beq.s	TryAgainEnd	; if yes, branch
 		rts
 ; ===========================================================================
@@ -5518,7 +5509,7 @@ Cred_WaitLoop:
 TryAgainEnd:				; XREF: Credits
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
-		lea	($C00004).l,a6
+		lea	(VdpCtrl).l,a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -5605,7 +5596,7 @@ Obj8B_Main:				; XREF: Obj8B_Index
 		cmpi.b	#6,($FFFFFE57).w ; do you have all 6 emeralds?
 		beq.s	Obj8B_Animate	; if yes, branch
 		move.b	#$8A,($FFFFD0C0).w ; load credits object
-		move.w	#9,($FFFFFFF4).w ; use "TRY AGAIN" text
+		move.b	#9,($FFFFFFF4).w ; use "TRY AGAIN" text
 		move.b	#$8C,($FFFFD800).w ; load emeralds object on "TRY AGAIN" screen
 		move.b	#0,$1C(a0)	; use "TRY AGAIN" animation
 
@@ -7168,7 +7159,7 @@ BGScroll_Block3:
 
 
 sub_6886:		
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		lea	($C00000).l,a6
 		lea	($FFFFF756).w,a2
 		lea	($FFFFF708).w,a3
@@ -7188,7 +7179,7 @@ sub_6886:
 
 
 LoadTilesAsYouMove:			; XREF: Demo_Time
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		lea	($C00000).l,a6
 		lea	($FFFFFF32).w,a2
 		lea	($FFFFFF18).w,a3
@@ -7904,7 +7895,7 @@ loc_7176:
 
 
 LoadTilesFromStart:
-		lea	($C00004).l,a5
+		lea	(VdpCtrl).l,a5
 		lea	($C00000).l,a6
 		lea	($FFFFF700).w,a3
 		lea	($FFFFA400).w,a4
@@ -18487,7 +18478,7 @@ GotThroughAct:				; XREF: Obj3E_EndAct
 		clr.b	($FFFFFE1E).w	; stop time counter
 		move.b	#$3A,($FFFFD5C0).w
         	move.l  a0,-(sp)            ; save object address to stack
-        	move.l  #$70000002,($C00004)        ; set mode "VRAM Write to $B000"
+        	move.l  #$70000002,(VdpCtrl)        ; set mode "VRAM Write to $B000"
         	lea 	Nem_TitleCard,a0        ; load title card patterns
         	move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
         	jsr 	LoadUncArt          ; load uncompressed art
@@ -29194,7 +29185,7 @@ loc_1670E:
 		move.w	8(a0),8(a1)
 		move.w	$C(a0),$C(a1)
 		clr.b	$32(a0)
-		move.b	#$BE,($FFFFF00B).w ;	play Sonic rolling sound
+		move.b	#$D2,($FFFFF00B).w ;	play Sonic rolling sound
 
 locret_1675C:
 		rts	
@@ -30029,7 +30020,7 @@ Obj8A_Main:				; XREF: Obj8A_Index
 		move.w	#$F0,$A(a0)
 		move.l	#Map_obj8A,4(a0)
 		move.w	#$5A0,2(a0)
-		move.w	($FFFFFFF4).w,d0 ; load	credits	index number
+		move.b	($FFFFFFF4).w,d0 ; load	credits	index number
 		move.b	d0,$1A(a0)	; display appropriate sprite
 		move.b	#0,1(a0)
 		move.b	#0,$18(a0)
@@ -36551,7 +36542,7 @@ AniArt_GHZ:				; XREF: AniArt_Index
 		lea	$100(a1),a1	; load next frame
 
 loc_1C078:
-		move.l	#$6F000001,($C00004).l ; VRAM address
+		move.l	#$6F000001,(VdpCtrl).l ; VRAM address
 		move.w	#7,d1		; number of 8x8	tiles
 		bra.w	LoadTiles
 ; ===========================================================================
@@ -36568,7 +36559,7 @@ loc_1C08A:
 		lea	$200(a1),a1
 
 loc_1C0AE:
-		move.l	#$6B800001,($C00004).l
+		move.l	#$6B800001,(VdpCtrl).l
 		move.w	#$F,d1
 		bra.w	LoadTiles
 ; ===========================================================================
@@ -36590,7 +36581,7 @@ loc_1C0E8:
 		move.w	d0,d1
 		add.w	d0,d0
 		add.w	d1,d0
-		move.l	#$6D800001,($C00004).l
+		move.l	#$6D800001,(VdpCtrl).l
 		lea	(Art_GhzFlower2).l,a1 ;	load small flower patterns
 		lea	(a1,d0.w),a1
 		move.w	#$B,d1
@@ -36621,7 +36612,7 @@ loc_1C134:
 		move.b	d0,($FFFFF7B0).w
 		mulu.w	#$100,d0
 		adda.w	d0,a1
-		move.l	#$5C400001,($C00004).l
+		move.l	#$5C400001,(VdpCtrl).l
 		move.w	#7,d1
 		bsr.w	LoadTiles
 
@@ -36634,7 +36625,7 @@ loc_1C150:
 		lea	(Art_MzLava2).l,a4 ; load lava patterns
 		ror.w	#7,d0
 		adda.w	d0,a4
-		move.l	#$5A400001,($C00004).l
+		move.l	#$5A400001,(VdpCtrl).l
 		moveq	#0,d3
 		move.b	($FFFFF7B2).w,d3
 		addq.b	#1,($FFFFF7B2).w
@@ -36667,7 +36658,7 @@ loc_1C1AE:
 		andi.b	#3,($FFFFF7B6).w
 		mulu.w	#$C0,d0
 		adda.w	d0,a1
-		move.l	#$5E400001,($C00004).l
+		move.l	#$5E400001,(VdpCtrl).l
 		move.w	#5,d1
 		bra.w	LoadTiles
 ; ===========================================================================
@@ -36691,7 +36682,7 @@ loc_1C1F8:
 		bpl.s	loc_1C250
 		move.b	#7,($FFFFF7B1).w
 		lea	(Art_SbzSmoke).l,a1 ; load smoke patterns
-		move.l	#$49000002,($C00004).l
+		move.l	#$49000002,(VdpCtrl).l
 		move.b	($FFFFF7B0).w,d0
 		addq.b	#1,($FFFFF7B0).w
 		andi.w	#7,d0
@@ -36726,7 +36717,7 @@ loc_1C25C:
 		bpl.s	locret_1C2A0
 		move.b	#7,($FFFFF7B3).w
 		lea	(Art_SbzSmoke).l,a1
-		move.l	#$4A800002,($C00004).l
+		move.l	#$4A800002,(VdpCtrl).l
 		move.b	($FFFFF7B2).w,d0
 		addq.b	#1,($FFFFF7B2).w
 		andi.w	#7,d0
@@ -36764,11 +36755,11 @@ AniArt_Ending:				; XREF: AniArt_Index
 		lea	$200(a2),a2
 
 loc_1C2CE:
-		move.l	#$6B800001,($C00004).l
+		move.l	#$6B800001,(VdpCtrl).l
 		move.w	#$F,d1
 		bsr.w	LoadTiles
 		movea.l	a2,a1
-		move.l	#$72000001,($C00004).l
+		move.l	#$72000001,(VdpCtrl).l
 		move.w	#$F,d1
 		bra.w	LoadTiles
 ; ===========================================================================
@@ -36785,7 +36776,7 @@ loc_1C2F4:
 		move.w	d0,d1
 		add.w	d0,d0
 		add.w	d1,d0
-		move.l	#$6D800001,($C00004).l
+		move.l	#$6D800001,(VdpCtrl).l
 		lea	(Art_GhzFlower2).l,a1 ;	load small flower patterns
 		lea	(a1,d0.w),a1
 		move.w	#$B,d1
@@ -36804,7 +36795,7 @@ loc_1C33C:
 		move.b	byte_1C376(pc,d0.w),d0
 		lsl.w	#8,d0
 		add.w	d0,d0
-		move.l	#$70000001,($C00004).l
+		move.l	#$70000001,(VdpCtrl).l
 		lea	($FFFF9800).w,a1 ; load	special	flower patterns	(from RAM)
 		lea	(a1,d0.w),a1
 		move.w	#$F,d1
@@ -36823,7 +36814,7 @@ loc_1C37A:
 		move.b	byte_1C376(pc,d0.w),d0
 		lsl.w	#8,d0
 		add.w	d0,d0
-		move.l	#$68000001,($C00004).l
+		move.l	#$68000001,(VdpCtrl).l
 		lea	($FFFF9E00).w,a1 ; load	special	flower patterns	(from RAM)
 		lea	(a1,d0.w),a1
 		move.w	#$F,d1
@@ -37190,7 +37181,7 @@ Hud_ChkBonus:
 		tst.b	($FFFFF7D6).w	; do time/ring bonus counters need updating?
 		beq.s	Hud_End		; if not, branch
 		clr.b	($FFFFF7D6).w
-		move.l	#$6E000002,($C00004).l
+		move.l	#$6E000002,(VdpCtrl).l
 		moveq	#0,d1
 		move.w	($FFFFF7D2).w,d1 ; load	time bonus
 		bsr.w	Hud_TimeRingBonus
@@ -37239,7 +37230,7 @@ HudDb_ChkBonus:
 		tst.b	($FFFFF7D6).w	; does the ring/time bonus counter need	updating?
 		beq.s	HudDb_End	; if not, branch
 		clr.b	($FFFFF7D6).w
-		move.l	#$6E000002,($C00004).l ; set VRAM address
+		move.l	#$6E000002,(VdpCtrl).l ; set VRAM address
 		moveq	#0,d1
 		move.w	($FFFFF7D2).w,d1 ; load	time bonus
 		bsr.w	Hud_TimeRingBonus
@@ -37259,7 +37250,7 @@ HudDb_End:
 
 
 Hud_LoadZero:				; XREF: HudUpdate
-		move.l	#$5F400003,($C00004).l
+		move.l	#$5F400003,(VdpCtrl).l
 		lea	Hud_TilesZero(pc),a2
 		move.w	#2,d2
 		bra.s	loc_1C83E
@@ -37275,7 +37266,7 @@ Hud_LoadZero:				; XREF: HudUpdate
 Hud_Base:				; XREF: Level; SS_EndLoop; EndingSequence
 		lea	($C00000).l,a6
 		bsr.w	Hud_Lives
-		move.l	#$5C400003,($C00004).l
+		move.l	#$5C400003,(VdpCtrl).l
 		lea	Hud_TilesBase(pc),a2
 		move.w	#$E,d2
 
@@ -37318,7 +37309,7 @@ Hud_TilesZero:	dc.b $FF, $FF, 0, 0
 
 
 HudDb_XY:				; XREF: HudDebug
-		move.l	#$5C400003,($C00004).l ; set VRAM address
+		move.l	#$5C400003,(VdpCtrl).l ; set VRAM address
 		move.w	($FFFFF700).w,d1 ; load	camera x-position
 		swap	d1
 		move.w	($FFFFD008).w,d1 ; load	Sonic's x-position
@@ -37426,7 +37417,7 @@ loc_1C92C:
 
 
 ContScrCounter:				; XREF: ContinueScreen
-		move.l	#$5F800003,($C00004).l ; set VRAM address
+		move.l	#$5F800003,(VdpCtrl).l ; set VRAM address
 		lea	($C00000).l,a6
 		lea	(Hud_10).l,a2
 		moveq	#1,d6

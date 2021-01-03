@@ -11,9 +11,9 @@ Credits_Mappings:
 		dc.l	EniCred_9	; credit id = 9
 
 Credits_MapLoad:
-		move.w	($FFFFFFF4).w,d0
-		add.w	d0,d0
-		add.w	d0,d0
+		move.b	($FFFFFFF4).w,d0
+		add.b	d0,d0
+		add.b	d0,d0
 		movea.l	Credits_Mappings(pc,d0.w),a0
 		lea	($FF0000).l,a1
 		moveq	#0,d0		; location of art in VRAM
