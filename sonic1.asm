@@ -48,7 +48,8 @@ SRAMSupport:	dc.b "RA",$a0,$20	; SRAM support (Nonsaving - 16-bit addresses)
 		dc.l $200000		; SRAM start
 		dc.l $2007FF		; SRAM end (only doing 2KB to start with)
 Notes:		dc.b "Well it's not the best, that's for sure....haha....."
-Region:		dc.b ' UE             ' ; Region
+Region:		dc.w %0010
+		dc.b '              ' ; Region
 EndofHeader:
 
 ; ===========================================================================
