@@ -40,9 +40,33 @@ VRAM_ADDR_CMD:  equ $40000000
 CRAM_ADDR_CMD:  equ $C0000000
 VSRAM_ADDR_CMD: equ $40000010
 
+VRAM_DMA_CMD:   equ $40000080
+CRAM_DMA_CMD:   equ $C0000080
+VSRAM_DMA_CMD:  equ $40000090
+
 VRAM_SIZE:    equ 65536
 CRAM_SIZE:    equ 128
 VSRAM_SIZE:   equ 80
+
+NOFLIP:  equ $0000  ; Don't flip
+HFLIP:   equ $0800  ; Flip horizontally
+VFLIP:   equ $1000  ; Flip vertically
+HVFLIP:  equ $1800  ; Flip both ways
+
+VRAM_PAL0:    equ $0000  ; 1st palette
+VRAM_PAL1:    equ $2000  ; 2nd palette
+VRAM_PAL2:    equ $4000  ; 3rd palette
+VRAM_PAL3:    equ $6000  ; 4th palette
+
+LOPRI:   equ $0000  ; Low priority
+HIPRI:   equ $8000  ; High priority
+
+IoCtrl1:      equ $A10009  ; I/O control port 1P
+IoCtrl2:      equ $A1000B  ; I/O control port 2P
+IoCtrlExt:    equ $A1000D  ; I/O control port modem
+IoData1:      equ $A10003  ; I/O data port 1P
+IoData2:      equ $A10005  ; I/O data port 2P
+IoDataExt:    equ $A10007  ; I/O data port modem
 
 ; VRAM data
 vram_fg:	equ $C000	; foreground namespace

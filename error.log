@@ -1,6 +1,8 @@
 
 SN 68k version 2.53
 
+C:\USERS\ADMINISTRATOR\DOCUMENTS\GITHUB\SONIC-1-JACOB-EDITION\SONIC1.ASM(282) : Warning : Operand value 128 will be sign extended
+ moveq #cram_size,d7
 
 Assembly completed.
-0 error(s) from 92236 lines in 0.8 seconds
+0 error(s) from 92301 lines in 0.6 seconds

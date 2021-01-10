@@ -24,11 +24,11 @@
 ; 	a1	Destination address
 ; ---------------------------------------------------------------------------
 
-flip_x              =      (1<<11)
-flip_y              =      (1<<12)
-palette_line_1      =      (1<<13)
-palette_line_2      =      (2<<13)
-high_priority       =      (1<<15)
+eni_flipx              =      (1<<11)
+eni_flipy              =      (1<<12)
+eni_palline1      =      (1<<13)
+eni_palline2      =      (2<<13)
+eni_priority       =      (1<<15)
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; ---------------------------------------------------------------------------
@@ -159,7 +159,7 @@ EniDec_GetInlineCopyVal:
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5		; is the bit set?
 	beq.s	.skip_pri	; if not, branch
-	ori.w	#high_priority,d3	; set high priority bit
+	ori.w	#eni_priority,d3	; set high priority bit
 
 .skip_pri:
 	add.b	d1,d1
@@ -167,7 +167,7 @@ EniDec_GetInlineCopyVal:
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5
 	beq.s	.skip_pal2
-	addi.w	#palette_line_2,d3	; set second palette line bit
+	addi.w	#eni_palline2,d3	; set second palette line bit
 
 .skip_pal2:
 	add.b	d1,d1
@@ -175,7 +175,7 @@ EniDec_GetInlineCopyVal:
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5
 	beq.s	.skip_pal1
-	addi.w	#palette_line_1,d3	; set first palette line bit
+	addi.w	#eni_palline1,d3	; set first palette line bit
 
 .skip_pal1:
 	add.b	d1,d1
@@ -183,7 +183,7 @@ EniDec_GetInlineCopyVal:
 	subq.w	#1,d6		; get next bit number
 	btst	d6,d5
 	beq.s	.skip_flipy
-	ori.w	#flip_y,d3	; set Y-flip bit
+	ori.w	#eni_flipy,d3	; set Y-flip bit
 
 .skip_flipy:
 	add.b	d1,d1
@@ -191,7 +191,7 @@ EniDec_GetInlineCopyVal:
 	subq.w	#1,d6
 	btst	d6,d5
 	beq.s	.skip_flipx
-	ori.w	#flip_x,d3	; set X-flip bit
+	ori.w	#eni_flipx,d3	; set X-flip bit
 
 .skip_flipx:
 	move.w	d5,d1

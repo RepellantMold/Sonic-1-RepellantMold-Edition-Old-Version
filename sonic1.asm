@@ -155,10 +155,10 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 		dc.b 1			; VDP $90 - 64 cell hscroll size
 		dc.b 0			; VDP $91 - window h position
 		dc.b 0			; VDP $92 - window v position
-		dc.w $FFFF		; VDP $93/94 - DMA length
+		dc.w -1			; VDP $93/94 - DMA length
 		dc.w 0			; VDP $95/96 - DMA source
 		dc.b $80		; VDP $97 - DMA fill VRAM
-		dc.l VRAM_ADDR_CMD+$80	; VRAM address 0
+		dc.l VRAM_DMA_CMD	; VRAM address 0
 
 		dc.b $AF		; xor	a
 		dc.b $01, $D9, $1F	; ld	bc,1fd9h
@@ -196,7 +196,7 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 
 GameProgram:
 		tst.w	(VdpCtrl).l
-		btst	#6,($A1000D).l
+		btst	#6,(IoCtrlExt).l
 		beq.s	CheckSumCheck
 		cmpi.b	#'E',($FFFFFFFF).w 	; has checksum routine already run?
 		beq.s	GameInit		; if yes, branch
@@ -242,9 +242,9 @@ loc_348:
 		move.b	#'E',($FFFFFFFF).w 	; set flag so checksum won't be run again
 
 GameInit:
-		lea	($FF0000).l,a6
+		lea	(RamStartLoc).l,a6
 		moveq	#0,d7
-		move.w	#$3F7F,d6
+		move.w	#(RamEndLoc-RamStartLoc)-1,d6
 
 GameClrRAM:
 		move.l	d7,(a6)+
@@ -279,7 +279,7 @@ GameModeArray:
 CheckSumError:
 		bsr.w	VDPSetupGame
 		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l ; set VDP to CRAM write
-		moveq	#$3F,d7
+		moveq	#CRAM_SIZE,d7
 
 CheckSum_Red:
 		move.w	#$00E,(VdpData).l	; fill screen with colour red
@@ -299,7 +299,7 @@ loc_B10:				; XREF: Vectors
 		tst.b	($FFFFF62A).w
 		beq.s	loc_B88
 		move.w	(VdpCtrl).l,d0
-		move.l	#$40000010,(VdpCtrl).l
+		move.l	#VSRAM_ADDR_CMD,(VdpCtrl).l
 		move.l	($FFFFF616).w,(VdpData).l
 
 loc_B42:
@@ -690,9 +690,9 @@ locret_119C:
 
 JoypadInit:				; XREF: GameClrRAM
 		moveq	#$40,d0
-		move.b	d0,($A10009).l	; init port 1 (joypad 1)
-		move.b	d0,($A1000B).l	; init port 2 (joypad 2)
-		move.b	d0,($A1000D).l	; init port 3 (extra)
+		move.b	d0,(IoCtrl1).l	; init port 1 (joypad 1)
+		move.b	d0,(IoCtrl2).l	; init port 2 (joypad 2)
+		move.b	d0,(IoCtrlExt).l	; init port 3 (extra)
 		rts
 ; End of function JoypadInit
 
@@ -705,7 +705,7 @@ JoypadInit:				; XREF: GameClrRAM
 
 ReadJoypads:
 		lea	($FFFFF604).w,a0 ; address where joypad	states are written
-		lea	($A10003).l,a1	; first	joypad port
+		lea	(IoData1).l,a1	; first	joypad port
 		bsr.s	Joypad_Read	; do the first joypad
 		addq.w	#2,a1		; do the second	joypad
 
@@ -733,7 +733,7 @@ Joypad_Read:
 
 VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
 		lea	(VdpCtrl).l,a0
-		lea	($C00000).l,a1
+		lea	(VdpData).l,a1
 		lea	(VDPSetupArray).l,a2
 		moveq	#$12,d7
 
@@ -743,7 +743,7 @@ VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
 
 		move.w	(VDPSetupArray+2).l,d0
 		move.w	d0,($FFFFF60C).w
-		move.w	#$8A00+223,($FFFFF624).w	; H-INT every 224th scanline
+		move.w	#VDPREG_HRATE+223,($FFFFF624).w	; H-INT every 224th scanline
 		moveq	#0,d0
 		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l 		; set VDP to CRAM write
 		move.w	#$3F,d7
@@ -762,31 +762,31 @@ VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
 		btst	#1,d1		; is DMA (fillVRAM) still running?
 		bne.s	.waitforDMA	; if yes, branch
 
-		move.w	#$8F02,(a5)	; set VDP increment size
+		move.w	#VDPREG_INCR+2,(a5)	; set VDP increment size
 		move.l	(sp)+,d1
 		rts	
 ; End of function VDPSetupGame
 
 ; ===========================================================================
-VDPSetupArray:	dc.w $8004		; 8-colour mode
-		dc.w $8134		; enable V.interrupts, enable DMA
-		dc.w $8200+($C000>>10) 	; set foreground nametable address
-		dc.w $8300+($A000>>10)	; set window nametable address
-		dc.w $8400+($E000>>13) 	; set background nametable address
-		dc.w $8500+($F800>>9) 	; set sprite table address
+VDPSetupArray:	dc.w VDPREG_MODE1+4		; 8-colour mode
+		dc.w VDPREG_MODE2+$34		; enable V.interrupts, enable DMA
+		dc.w VDPREG_PLANEA+(vram_fg>>10) 	; set foreground nametable address
+		dc.w VDPREG_WINDOW+($A000>>10)	; set window nametable address
+		dc.w VDPREG_PLANEB+(vram_bg>>13) 	; set background nametable address
+		dc.w VDPREG_SPRITE+(vram_sprites>>9) 	; set sprite table address
 		dc.w $8600		; unused
-		dc.w $8700		; set background colour (palette entry 0)
+		dc.w VDPREG_BGCOL	; set background colour (palette entry 0)
 		dc.w $8800		; unused
 		dc.w $8900		; unused
-		dc.w $8A00		; default H.interrupt register
-		dc.w $8B00		; full-screen vertical scrolling
-		dc.w $8C81		; 40-cell display mode
-		dc.w $8D00+($FC00>>10) 	; set background hscroll address
+		dc.w VDPREG_HRATE	; default H.interrupt register
+		dc.w VDPREG_MODE3		; full-screen vertical scrolling
+		dc.w VDPREG_MODE4+$81		; 40-cell display mode
+		dc.w VDPREG_HSCROLL+(vram_hscroll>>10) 	; set background hscroll address
 		dc.w $8E00		; unused
-		dc.w $8F02		; set VDP increment size
-		dc.w $9001		; 64-cell hscroll size
-		dc.w $9100		; window horizontal position
-		dc.w $9200		; window vertical position
+		dc.w VDPREG_INCR+2		; set VDP increment size
+		dc.w VDPREG_SIZE+1		; 64-cell hscroll size
+		dc.w VDPREG_WINX		; window horizontal position
+		dc.w VDPREG_WINY		; window vertical position
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	clear the screen
@@ -803,7 +803,7 @@ ClearScreen:
 		btst	#1,d1
 		bne.s	.wait1
 
-		move.w	#$8F02,(a5)
+		move.w	#VDPREG_INCR+2,(a5)
 		fillVRAM	0,$FFF,$E000 ; clear background namespace
 
 	.wait2:
@@ -811,7 +811,7 @@ ClearScreen:
 		btst	#1,d1
 		bne.s	.wait2
 
-		move.w	#$8F02,(a5)
+		move.w	#VDPREG_INCR+2,(a5)
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
 
@@ -960,7 +960,7 @@ Pause_SlowMo:				; XREF: PauseGame
 
 
 ShowVDPGraphics:			; XREF: SegaScreen; TitleScreen; SS_BGLoad
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		move.l	#$800000,d4
 
 loc_142C:
@@ -997,26 +997,26 @@ QueueDMATransfer:
 		beq.s	QueueDMATransfer_Done ; return if there's no more room in the buffer
 
 		; piece together some VDP commands and store them for later...
-		move.w	#$9300,d0 ; command to specify DMA transfer length & $00FF
+		move.w	#VDPREG_DMALEN_L,d0 ; command to specify DMA transfer length & $00FF
 		move.b	d3,d0
 		move.w	d0,(a1)+ ; store command
 
-		move.w	#$9400,d0 ; command to specify DMA transfer length & $FF00
+		move.w	#VDPREG_DMALEN_H,d0 ; command to specify DMA transfer length & $FF00
 		lsr.w	#8,d3
 		move.b	d3,d0
 		move.w	d0,(a1)+ ; store command
 
-		move.w	#$9500,d0 ; command to specify source address & $0001FE
+		move.w	#VDPREG_DMASRC_L,d0 ; command to specify source address & $0001FE
 		lsr.l	#1,d1
 		move.b	d1,d0
 		move.w	d0,(a1)+ ; store command
 
-		move.w	#$9600,d0 ; command to specify source address & $01FE00
+		move.w	#VDPREG_DMASRC_M,d0 ; command to specify source address & $01FE00
 		lsr.l	#8,d1
 		move.b	d1,d0
 		move.w	d0,(a1)+ ; store command
 
-		move.w	#$9700,d0 ; command to specify source address & $FE0000
+		move.w	#VDPREG_DMASRC_H,d0 ; command to specify source address & $FE0000
 		lsr.l	#8,d1
 		move.b	d1,d0
 		move.w	d0,(a1)+ ; store command
@@ -1025,7 +1025,7 @@ QueueDMATransfer:
 		lsl.l	#2,d2
 		lsr.w	#2,d2
 		swap	d2
-		ori.l	#$40000080,d2 ; set bits to specify VRAM transfer
+		ori.l	#VRAM_DMA_CMD,d2 ; set bits to specify VRAM transfer
 		move.l	d2,(a1)+ ; store command
 
 		move.l	a1,($FFFFC8FC).w ; set the next free slot address
@@ -1086,7 +1086,7 @@ NemDec_RAM:
 ; ------------------------------------------------------------------------------
 NemDec:
 	movem.l	d0-a1/a3-a6,-(sp)
-	lea	$C00000,a4		; load VDP Data Port
+	lea	VdpData,a4		; load VDP Data Port
 	lea	NemDec_WriteRowToVDP(pc),a3
 
 NemDec_Main:
@@ -1218,7 +1218,7 @@ NemDec4:
 	move.b	(a0)+,d0		; read first byte
 
 .ChkEnd:
-	cmpi.b	#$FF,d0			; has the end of the code table description been reached?
+	cmpi.b	#-1,d0			; has the end of the code table description been reached?
 	bne.s	.NewPalIndex		; if not, branch
 	rts
 ; ---------------------------------------------------------------------------
@@ -1270,7 +1270,7 @@ NemDec4:
 ; ---------------------------------------------------------------
 LoadUncArt:
         move    #$2700,sr   ; disable interrupts
-        lea $C00000.l,a6    ; get VDP data port
+        lea VdpData.l,a6    ; get VDP data port
  
 LoadArt_Loop:
         rept 8
@@ -2680,7 +2680,7 @@ Title_ClrPallet:
 		move	#$2700,sr
 		bsr.w	ClearScreen
 		lea	(VdpCtrl).l,a5
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		lea	($FFFFF708).w,a3
 		lea	($FFFFA440).w,a4
 		move.w	#$6000,d2
@@ -2806,7 +2806,7 @@ Title_ClrScroll:
 		dbf	d1,Title_ClrScroll ; fill scroll data with 0
 		bsr.w	ClearScreen
 		SetGfxMode GFXMODE_320x224
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		move.l	#$50000003,4(a6)
 		lea	(Art_Text).l,a5
 		move.w	#$28F,d1
@@ -2957,7 +2957,7 @@ LevSel_NoMove:
 LevSelTextLoad:				; XREF: TitleScreen
 	textpos:	= (VRAM_ADDR_CMD+(($E210&$3FFF)<<16)+(($E210&$C000)>>14))
 		lea	(LevelMenuText).l,a1
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		move.l	#textpos,d4	; screen position (text)
 		move.w	#$E680,d3	; VRAM setting
 		moveq	#$14,d1		; number of lines of text
@@ -4213,7 +4213,7 @@ SpecialStage:				; XREF: GameModeArray
 		move.l	#$946F93FF,(a5)
 		move.w	#$9780,(a5)
 		move.l	#$50000081,(a5)
-		move.w	#0,($C00000).l
+		move.w	#0,(VdpData).l
 
 loc_463C:
 		move.w	(a5),d1
@@ -4511,8 +4511,8 @@ loc_4992:
 		move.w	#-$7C00,d0
 		move.b	(a0)+,d0
 		move.w	d0,(a6)
-		move.l	#$40000010,(VdpCtrl).l
-		move.l	($FFFFF616).w,($C00000).l
+		move.l	#VSRAM_ADDR_CMD,(VdpCtrl).l
+		move.l	($FFFFF616).w,(VdpData).l
 		moveq	#0,d0
 		move.b	(a0)+,d0
 		bmi.s	loc_49E8
@@ -4699,8 +4699,8 @@ ContinueScreen:				; XREF: GameModeArray
 		andi.b	#$BF,d0
 		move.w	d0,(VdpCtrl).l
 		lea	(VdpCtrl).l,a6
-		move.w	#$8004,(a6)
-		move.w	#$8700,(a6)
+		move.w	#VDPREG_MODE1+4,(a6)
+		move.w	#VDPREG_BGCOL,(a6)
 		bsr.w	ClearScreen
 		lea	($FFFFD000).w,a1
 		moveq	#0,d0
@@ -5142,7 +5142,7 @@ loc_5334:
 		clr.w	($FFFFFE02).w
 		move.w	#$2E2F,($FFFFA480).w ; modify level layout
 		lea	(VdpCtrl).l,a5
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		lea	($FFFFF700).w,a3
 		lea	($FFFFA400).w,a4
 		move.w	#$4000,d2
@@ -7169,7 +7169,7 @@ BGScroll_Block3:
 
 sub_6886:		
 		lea	(VdpCtrl).l,a5
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		lea	($FFFFF756).w,a2
 		lea	($FFFFF708).w,a3
 		lea	($FFFFA440).w,a4
@@ -7189,7 +7189,7 @@ sub_6886:
 
 LoadTilesAsYouMove:			; XREF: Demo_Time
 		lea	(VdpCtrl).l,a5
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		lea	($FFFFFF32).w,a2
 		lea	($FFFFFF18).w,a3
 		lea	($FFFFA440).w,a4
@@ -7905,7 +7905,7 @@ loc_7176:
 
 LoadTilesFromStart:
 		lea	(VdpCtrl).l,a5
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		lea	($FFFFF700).w,a3
 		lea	($FFFFA400).w,a4
 		move.w	#$4000,d2
@@ -36677,7 +36677,7 @@ Obj09_NoGlass:
 AniArt_Load:				; XREF: Demo_Time; loc_F54
 		;tst.b	($FFFFF63A).w	; is the game paused?
 		;bne.s	AniArt_Pause	; if yes, branch
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		bsr.w	AniArt_GiantRing
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
@@ -37434,7 +37434,7 @@ Hud_LoadZero:				; XREF: HudUpdate
 
 
 Hud_Base:				; XREF: Level; SS_EndLoop; EndingSequence
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		bsr.w	Hud_Lives
 		move.l	#$5C400003,(VdpCtrl).l
 		lea	Hud_TilesBase(pc),a2
@@ -37588,7 +37588,7 @@ loc_1C92C:
 
 ContScrCounter:				; XREF: ContinueScreen
 		move.l	#$5F800003,(VdpCtrl).l ; set VRAM address
-		lea	($C00000).l,a6
+		lea	(VdpData).l,a6
 		lea	(Hud_10).l,a2
 		moveq	#1,d6
 		moveq	#0,d4
