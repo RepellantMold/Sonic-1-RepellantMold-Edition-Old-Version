@@ -22,6 +22,7 @@ A repository of one of my ROM hacks, *nuff said.* :neckbeard:
   * Bright Neon Colors - Porting Sonic 2's HUD to Sonic 1 guide
   * Fukuller - Enigma credits guide
   * Sik - SLZ/UFTC compression (not used yet)
+  * DeltaWooloo/Shooter - Sonic 2 checkpoint port
 ### Music Credits
   * JexuBandicoot527 - Sonic CD (US) boss theme (original MIDI)
   * Jazzdog5 - Title screen/bad ending/good ending

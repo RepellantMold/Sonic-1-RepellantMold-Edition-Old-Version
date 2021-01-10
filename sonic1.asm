@@ -29726,6 +29726,7 @@ Obj79_Index:	dc.w Obj79_Main-Obj79_Index
 		dc.w Obj79_BlueLamp-Obj79_Index
 		dc.w Obj79_AfterHit-Obj79_Index
 		dc.w Obj79_Twirl-Obj79_Index
+		dc.w Obj79_Star-Obj79_Index
 ; ===========================================================================
 
 Obj79_Main:				; XREF: Obj79_Index
@@ -29785,7 +29786,7 @@ Obj79_HitLamp:
 		sub.w	$C(a0),d0
 		addi.w	#$40,d0
 		cmpi.w	#$68,d0
-		bcc.s	locret_16F90
+		bcc.w	locret_16F90
 		move.b	#$A1,($FFFFF00B).w ;	play lamppost sound
 		addq.b	#2,$24(a0)
 		jsr	SingleObjLoad
@@ -29810,6 +29811,11 @@ loc_16F76:
 		moveq	#0,d0
 		move.b	$23(a0),d0
 		bset	#0,2(a2,d0.w)
+		cmpi.b	#6,($FFFFFE57).w ; DeltaWooloo: from here and below is what we'll be focusing on
+        	beq.s	loc_16F76
+    	        cmpi.w	#50,($FFFFFE20).w
+    	      	bcs.s	loc_16F76
+		bsr.w	Obj79_MakeSpecialStars
 
 locret_16F90:
 		rts	
@@ -29913,12 +29919,132 @@ locret_170F6:
 		rts	
 ; End of function Obj79_LoadInfo
 
+; loc_1F4C4:
+Obj79_MakeSpecialStars:
+    moveq    #4-1,d1 ; execute the loop 4 times (1 for each star)
+    moveq    #0,d2
+
+Obj79_MakeStarsLoop: jsr    SingleObjLoad2
+    bne.s    return_1F534
+    move.b    0(a0),0(a1) ; load obj79
+    move.l    #Map_obj79b,4(a1)
+    move.w    #($D740/$20),2(a1)
+    move.b    #4,1(a1)
+    move.b    #8,$24(a1) ; => Obj79_Star
+    move.w    8(a0),d0
+    move.w    d0,8(a1)
+    move.w    d0,$30(a1)
+    move.w    $C(a0),d0
+    subi.w    #$30,d0
+    move.w    d0,$C(a1)
+    move.w    d0,$32(a1)
+    move.b    $18(a0),$18(a1)
+    move.b    #8,$19(a1)
+    move.b    #1,$1A(a1)
+    move.w    #-$400,$10(a1)
+    move.w    #0,$12(a1)
+    move.w    d2,$34(a1) ; set the angle
+    addi.w    #$40,d2 ; increase the angle for next time
+    dbf    d1,Obj79_MakeStarsLoop  ; loop
+
+return_1F534:
+    rts
+; ===========================================================================
+; loc_1F536:
+Obj79_Star:
+        tst.b    $21(a0)
+        beq.s    loc_1F554
+        move.b    #$10,($FFFFF600).w
+loc_1F553
+    clr.b    $21(a0)
+
+loc_1F554:
+    addi.w    #$A,$34(a0)
+    move.w    $34(a0),d0
+    andi.w    #$FF,d0
+    jsr    (CalcSine).l
+    asr.w    #5,d0
+    asr.w    #3,d1
+    move.w    d1,d3
+    move.w    $34(a0),d2
+    andi.w    #$3E0,d2
+    lsr.w    #5,d2
+    moveq    #2,d5
+    moveq    #0,d4
+    cmpi.w    #$10,d2
+    ble.s    loc_1F555
+    neg.w    d1
+loc_1F555
+    andi.w    #$F,d2
+    cmpi.w    #8,d2
+    ble.s    loc_1F594
+    neg.w    d2
+    andi.w    #7,d2
+
+loc_1F594:
+    lsr.w    #1,d2
+    beq.s   loc_1F595
+    add.w    d1,d4
+loc_1F595
+    asl.w    #1,d1
+    dbf    d5,loc_1F594
+
+    asr.w    #4,d4
+    add.w    d4,d0
+    addq.w    #1,$36(a0)
+    move.w    $36(a0),d1
+    cmpi.w    #$80,d1
+    beq.s    loc_1F5BE
+    bgt.s    loc_1F5C4
+
+loc_1F5B4:
+    muls.w    d1,d0
+    muls.w    d1,d3
+    asr.w    #7,d0
+    asr.w    #7,d3
+    bra.s    loc_1F5D6
+; ===========================================================================
+
+loc_1F5BE:
+    move.b    #$D7,$20(a0)
+
+loc_1F5C4:
+    cmpi.w    #$180,d1
+    ble.s    loc_1F5D6
+    neg.w    d1
+    addi.w    #$200,d1
+    jmi    	DeleteObject
+    bra.s    loc_1F5B4
+; ===========================================================================
+
+loc_1F5D6:
+    move.w    $30(a0),d2
+    add.w    d3,d2
+    move.w    d2,8(a0)
+    move.w    $32(a0),d2
+    add.w    d0,d2
+    move.w    d2,$C(a0)
+    addq.b    #1,$1B(a0)
+    move.b    $1B(a0),d0
+    andi.w    #6,d0
+    lsr.w    #1,d0
+    cmpi.b    #3,d0
+    bne.s    loc_1F5D7
+    moveq    #1,d0
+loc_1F5D7
+    move.b    d0,$1A(a0)
+    jmp    MarkObjGone
+; ===========================================================================
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Sprite mappings - lamppost
 ; ---------------------------------------------------------------------------
 Map_obj79:
 	include "_maps\obj79.asm"
+	
+Map_obj79b:
+    include "_maps\obj79b.asm"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
