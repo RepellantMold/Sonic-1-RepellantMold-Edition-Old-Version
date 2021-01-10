@@ -1527,6 +1527,15 @@ RunPLC_Loop:
 
 
   		  include "compression/Comper.asm"
+  		  
+; ---------------------------------------------------------------------------
+; SLZ decompression algorithm
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+  		  include "compression/slz.68k"
 
 ; ---------------------------------------------------------------------------
 ; Pallet cycling routine loading subroutine
@@ -8279,16 +8288,10 @@ locret_6E08:
 ; ===========================================================================
 
 Resize_GHZ2:
-		move.w	#$300,($FFFFF726).w
-		cmpi.w	#$ED0,($FFFFF700).w
-		bcs.s	locret_6E3A
 		move.w	#$200,($FFFFF726).w
-		cmpi.w	#$1600,($FFFFF700).w
+		cmpi.w	#$12B3,($FFFFF700).w
 		bcs.s	locret_6E3A
 		move.w	#$400,($FFFFF726).w
-		cmpi.w	#$1D60,($FFFFF700).w
-		bcs.s	locret_6E3A
-		move.w	#$300,($FFFFF726).w
 
 locret_6E3A:
 		rts	
@@ -8325,13 +8328,13 @@ loc_6E8E:
 		bcc.s	loc_6E98
 
 locret_6E96:
-		rts	
+		rts
 ; ===========================================================================
 
 loc_6E98:
 		move.w	#$300,($FFFFF726).w
 		addq.b	#2,($FFFFF742).w
-		rts	
+		rts
 ; ===========================================================================
 
 Resize_GHZ3boss:
