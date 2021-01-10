@@ -9,7 +9,7 @@ A repository of one of my ROM hacks, *nuff said.* :neckbeard:
   * MainMemory - SonLVL
   * Flamewing - KENSC tools and also the decompressor code
   * Hivebrain - Base disassembly
-  * Iso Kilo - S2NA's wall recoil port/slow ducking/making debug slightly less annoying to use/centering title screen guide
+  * Iso Kilo - S2NA's wall recoil port/slow ducking/making debug slightly less annoying to use/centering title screen guide/high jump monitor
   * ADudeCalledLeo - Making debug HUD work like in S&K (only shows when object placement is enabled) guide
   * SoullessSentinel - ASCII level select guide
   * Stardust Gear - S3K background deformation guide

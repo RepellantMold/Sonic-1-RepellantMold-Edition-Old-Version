@@ -12802,8 +12802,15 @@ Obj2E_RingSound:
 
 Obj2E_ChkS:
 		cmpi.b	#7,d0		; does monitor contain 'S'
-		bne.s	Obj2E_ChkEnd
-		nop	
+		bne.s	Obj2E_ChkHighJump
+		nop
+		rts
+
+Obj2E_ChkHighJump:
+		cmpi.b    #8,d0 ;Does monitor contain high jump?
+		bne.s    Obj2E_ChkEnd
+		move.b    #1,($FFFFFFFD).w ;Enable High Jump flag
+		move.w    #$CC,($FFFFF00B).w
 
 Obj2E_ChkEnd:
 		rts			; 'S' and goggles monitors do nothing
@@ -24874,10 +24881,18 @@ Sonic_Jump:				; XREF: Obj01_MdNormal; Obj01_MdRoll
 		bsr.w	sub_14D48
 		cmpi.w	#6,d1
 		blt.w	locret_1348E
+        	tst.b	($FFFFFFFD).w
+		bne.s   High_Jump
 		move.w	#$680,d2
 		btst	#6,$22(a0)
 		beq.s	loc_1341C
 		move.w	#$380,d2
+        	beq.s   loc_1341C
+High_Jump:
+          	move.w  #$9C0,d2 ;Sonic's new jump height
+        	btst    #6,$22(a0)
+        	beq.s   loc_1341C
+        	move.w  #$380,d2
 
 loc_1341C:
 		moveq	#0,d0
@@ -35160,6 +35175,8 @@ Touch_Hurt:				; XREF: Touch_ChkHurt
 
 
 HurtSonic:
+        	tst.b	($FFFFFFFD).w
+		bne.s   Hurt_High
 		tst.b	($FFFFFE2C).w	; does Sonic have a shield?
 		bne.s	Hurt_Shield	; if yes, branch
 		tst.w	($FFFFFE20).w	; does Sonic have any rings?
@@ -35181,6 +35198,18 @@ Hurt_Shield:
 		beq.s	Hurt_Reverse
 		move.w	#-$200,$12(a0)
 		move.w	#-$100,$10(a0)
+		
+Hurt_High:
+          	clr.b	($FFFFFFFD).w ; remove high jump
+        	move.b	#4,$24(a0)
+        	bsr.w	Sonic_ResetOnFloor
+        	bset	#1,$22(a0)
+        	move.w	#-$400,$12(a0)    ; make Sonic bounce away from the object
+        	move.w	#-$200,$10(a0)
+        	btst	#6,$22(a0)
+        	beq.s	Hurt_Reverse
+        	move.w	#-$200,$12(a0)
+        	move.w	#-$100,$10(a0)
 
 Hurt_Reverse:
 		move.w	8(a0),d0
