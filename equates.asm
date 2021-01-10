@@ -79,7 +79,8 @@ PLCQueueAdr: =  $FFFFF650   ; beginning of RAM allocated for PLC
 PLCQueue: = PLCQueueAdr+4   ; start of PLC queue
 PLCQueueEnd: =  $FFFFF700-$20   ; end of PLC queue, start of equates for PLC, for example last state of Nemesis decompression
 Saved_music: =	$FFFFFFFF
-
+v_hscrolltablebuffer:	equ $FFFFCC00 ; scrolling table data (actually $380 bytes, but $400 is reserved for it)
+v_spritetablebuffer:	equ $FFFFF800 ; sprite table ($280 bytes, last $80 bytes are overwritten by v_pal_water_dup)
 Water_palette_dup:		equ 	$FFFFFA00 		; $80 bytes - duplicate underwater palette, used for transitions
 Water_palette:			equ 	Water_palette_dup+$80	; $80 bytes - main underwater palette ($FFFFFA80, listed like this in case of RAM shifting)
 Normal_palette:			equ	$FFFFFB00               ; 32 bytes

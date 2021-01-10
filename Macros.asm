@@ -54,6 +54,21 @@ fillVRAM:	macro value,length,loc
 		endm
 		
 ; ---------------------------------------------------------------------------
+; DMA copy data from 68K (ROM/RAM) to the VRAM
+; input: source, length, destination
+; ---------------------------------------------------------------------------
+
+writeVRAM:	macro
+		lea	(VdpCtrl).l,a5
+		move.l	#$94000000+(((\2>>1)&$FF00)<<8)+VDPREG_DMALEN_L+((\2>>1)&$FF),(a5)
+		move.l	#$96000000+(((\1>>1)&$FF00)<<8)+VDPREG_DMASRC_L+((\1>>1)&$FF),(a5)
+		move.w	#VDPREG_DMASRC_H+((((\1>>1)&$FF0000)>>16)&$7F),(a5)
+		move.w	#$4000+(\3&$3FFF),(a5)
+		move.w	#$80+((\3&vram_fg)>>14),($FFFFF640).w
+		move.w	($FFFFF640).w,(a5)
+		endm
+		
+; ---------------------------------------------------------------------------
 ; Copy a tilemap from 68K (ROM/RAM) to the VRAM without using DMA
 ; input: source, destination, width [cells], height [cells]
 ; ---------------------------------------------------------------------------
