@@ -274,8 +274,6 @@ GameModeArray:
 		dc.l	ContinueScreen	; Continue Screen ($14)
 		dc.l	EndingSequence	; End of game sequence ($18)
 		dc.l	Credits		; Credits ($1C)
-		nop
-		nop
 ; ===========================================================================
 
 CheckSumError:
@@ -284,7 +282,7 @@ CheckSumError:
 		moveq	#$3F,d7
 
 CheckSum_Red:
-		move.w	#$E,(VdpData).l	; fill screen with colour red
+		move.w	#$00E,(VdpData).l	; fill screen with colour red
 		dbf	d7,CheckSum_Red	; repeat $3F more times
 
 CheckSum_Loop:
@@ -2622,7 +2620,7 @@ TitleScreen:				; XREF: GameModeArray
 Title_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrObjRam ; fill object RAM ($D000-$EFFF) with	$0
-
+		SetGfxMode GFXMODE_320x224_SH
 		lea	(Twim_JCrdts).l,a0			; load compressed art data address
 		move.w	#0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
@@ -5475,6 +5473,7 @@ Credits:				; XREF: GameModeArray
 		move.w	#$8720,(a6)
 		clr.b	($FFFFF64E).w
 		bsr.w	ClearScreen
+		SetGfxMode GFXMODE_256x224
 		clr.b   ($FFFFFFD0).w
 		lea	($FFFFD000).w,a1
 		moveq	#0,d0
@@ -12809,8 +12808,8 @@ Obj2E_ChkS:
 Obj2E_ChkHighJump:
 		cmpi.b    #8,d0 ;Does monitor contain high jump?
 		bne.s    Obj2E_ChkEnd
-		move.b    #1,($FFFFFFFD).w ;Enable High Jump flag
-		move.w    #$CC,($FFFFF00B).w
+		move.b   #1,($FFFFFFFD).w ;Enable High Jump flag
+		move.b   #$CC,($FFFFF00B).w
 
 Obj2E_ChkEnd:
 		rts			; 'S' and goggles monitors do nothing
@@ -29827,10 +29826,10 @@ loc_16F76:
 		move.b	$23(a0),d0
 		bset	#0,2(a2,d0.w)
 		cmpi.b	#6,($FFFFFE57).w ; DeltaWooloo: from here and below is what we'll be focusing on
-        	beq.s	loc_16F76
+        	beq.s	locret_16F90
     	        cmpi.w	#50,($FFFFFE20).w
-    	      	bcs.s	loc_16F76
-		bsr.w	Obj79_MakeSpecialStars
+    	      	bcs.s	locret_16F90
+		bsr.s	Obj79_MakeSpecialStars
 
 locret_16F90:
 		rts	
@@ -29859,87 +29858,14 @@ loc_16FA0:
 		add.w	$32(a0),d0
 		move.w	d0,$C(a0)
 		rts	
-; ===========================================================================
-; ---------------------------------------------------------------------------
-; Subroutine to	store information when you hit a lamppost
-; ---------------------------------------------------------------------------
-
-Obj79_StoreInfo:			; XREF: Obj79_HitLamp
-		move.b	$28(a0),($FFFFFE30).w 		; lamppost number
-		move.b	($FFFFFE30).w,($FFFFFE31).w
-		move.w	8(a0),($FFFFFE32).w		; x-position
-		move.w	$C(a0),($FFFFFE34).w		; y-position
-		move.w	($FFFFFE20).w,($FFFFFE36).w 	; rings
-		move.b	($FFFFFE1B).w,($FFFFFE54).w 	; lives
-		move.l	($FFFFFE22).w,($FFFFFE38).w 	; time
-		move.b	($FFFFF742).w,($FFFFFE3C).w 	; routine counter for dynamic level mod
-		move.w	($FFFFF72E).w,($FFFFFE3E).w 	; lower y-boundary of level
-		move.w	($FFFFF700).w,($FFFFFE40).w 	; screen x-position
-		move.w	($FFFFF704).w,($FFFFFE42).w 	; screen y-position
-		move.w	($FFFFF708).w,($FFFFFE44).w 	; bg position
-		move.w	($FFFFF70C).w,($FFFFFE46).w 	; bg position
-		move.w	($FFFFF710).w,($FFFFFE48).w 	; bg position
-		move.w	($FFFFF714).w,($FFFFFE4A).w 	; bg position
-		move.w	($FFFFF718).w,($FFFFFE4C).w 	; bg position
-		move.w	($FFFFF71C).w,($FFFFFE4E).w 	; bg position
-		move.w	($FFFFF648).w,($FFFFFE50).w 	; water height
-		move.b	($FFFFF64D).w,($FFFFFE52).w 	; rountine counter for water
-		move.b	($FFFFF64E).w,($FFFFFE53).w 	; water direction
-		rts	
-
-; ---------------------------------------------------------------------------
-; Subroutine to	load stored info when you start	a level	from a lamppost
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-Obj79_LoadInfo:				; XREF: LevelSizeLoad
-		move.b	($FFFFFE31).w,($FFFFFE30).w
-		move.w	($FFFFFE32).w,($FFFFD008).w
-		move.w	($FFFFFE34).w,($FFFFD00C).w
-		move.w	($FFFFFE36).w,($FFFFFE20).w
-		move.b	($FFFFFE54).w,($FFFFFE1B).w
-		clr.w	($FFFFFE20).w
-		clr.b	($FFFFFE1B).w
-		move.l	($FFFFFE38).w,($FFFFFE22).w
-		move.b	#59,($FFFFFE25).w
-		subq.b	#1,($FFFFFE24).w
-		move.b	($FFFFFE3C).w,($FFFFF742).w
-		move.b	($FFFFFE52).w,($FFFFF64D).w
-		move.w	($FFFFFE3E).w,($FFFFF72E).w
-		move.w	($FFFFFE3E).w,($FFFFF726).w
-		move.w	($FFFFFE40).w,($FFFFF700).w
-		move.w	($FFFFFE42).w,($FFFFF704).w
-		move.w	($FFFFFE44).w,($FFFFF708).w
-		move.w	($FFFFFE46).w,($FFFFF70C).w
-		move.w	($FFFFFE48).w,($FFFFF710).w
-		move.w	($FFFFFE4A).w,($FFFFF714).w
-		move.w	($FFFFFE4C).w,($FFFFF718).w
-		move.w	($FFFFFE4E).w,($FFFFF71C).w
-		cmpi.b	#1,($FFFFFE10).w
-		bne.s	loc_170E4
-		move.w	($FFFFFE50).w,($FFFFF648).w
-		move.b	($FFFFFE52).w,($FFFFF64D).w
-		move.b	($FFFFFE53).w,($FFFFF64E).w
-
-loc_170E4:
-		tst.b	($FFFFFE30).w
-		bpl.s	locret_170F6
-		move.w	($FFFFFE32).w,d0
-		subi.w	#$A0,d0
-		move.w	d0,($FFFFF728).w
-
-locret_170F6:
-		rts	
-; End of function Obj79_LoadInfo
-
+		
 ; loc_1F4C4:
 Obj79_MakeSpecialStars:
     moveq    #4-1,d1 ; execute the loop 4 times (1 for each star)
     moveq    #0,d2
 
-Obj79_MakeStarsLoop: jsr    SingleObjLoad2
+Obj79_MakeStarsLoop: 
+    jsr    SingleObjLoad2
     bne.s    return_1F534
     move.b    0(a0),0(a1) ; load obj79
     move.l    #Map_obj79b,4(a1)
@@ -30050,6 +29976,81 @@ loc_1F5D7
     move.b    d0,$1A(a0)
     jmp    MarkObjGone
 ; ===========================================================================
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to	store information when you hit a lamppost
+; ---------------------------------------------------------------------------
+
+Obj79_StoreInfo:			; XREF: Obj79_HitLamp
+		move.b	$28(a0),($FFFFFE30).w 		; lamppost number
+		move.b	($FFFFFE30).w,($FFFFFE31).w
+		move.w	8(a0),($FFFFFE32).w		; x-position
+		move.w	$C(a0),($FFFFFE34).w		; y-position
+		move.w	($FFFFFE20).w,($FFFFFE36).w 	; rings
+		move.b	($FFFFFE1B).w,($FFFFFE54).w 	; lives
+		move.l	($FFFFFE22).w,($FFFFFE38).w 	; time
+		move.b	($FFFFF742).w,($FFFFFE3C).w 	; routine counter for dynamic level mod
+		move.w	($FFFFF72E).w,($FFFFFE3E).w 	; lower y-boundary of level
+		move.w	($FFFFF700).w,($FFFFFE40).w 	; screen x-position
+		move.w	($FFFFF704).w,($FFFFFE42).w 	; screen y-position
+		move.w	($FFFFF708).w,($FFFFFE44).w 	; bg position
+		move.w	($FFFFF70C).w,($FFFFFE46).w 	; bg position
+		move.w	($FFFFF710).w,($FFFFFE48).w 	; bg position
+		move.w	($FFFFF714).w,($FFFFFE4A).w 	; bg position
+		move.w	($FFFFF718).w,($FFFFFE4C).w 	; bg position
+		move.w	($FFFFF71C).w,($FFFFFE4E).w 	; bg position
+		move.w	($FFFFF648).w,($FFFFFE50).w 	; water height
+		move.b	($FFFFF64D).w,($FFFFFE52).w 	; rountine counter for water
+		move.b	($FFFFF64E).w,($FFFFFE53).w 	; water direction
+		rts	
+
+; ---------------------------------------------------------------------------
+; Subroutine to	load stored info when you start	a level	from a lamppost
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+Obj79_LoadInfo:				; XREF: LevelSizeLoad
+		move.b	($FFFFFE31).w,($FFFFFE30).w
+		move.w	($FFFFFE32).w,($FFFFD008).w
+		move.w	($FFFFFE34).w,($FFFFD00C).w
+		move.w	($FFFFFE36).w,($FFFFFE20).w
+		move.b	($FFFFFE54).w,($FFFFFE1B).w
+		clr.w	($FFFFFE20).w
+		clr.b	($FFFFFE1B).w
+		move.l	($FFFFFE38).w,($FFFFFE22).w
+		move.b	#59,($FFFFFE25).w
+		subq.b	#1,($FFFFFE24).w
+		move.b	($FFFFFE3C).w,($FFFFF742).w
+		move.b	($FFFFFE52).w,($FFFFF64D).w
+		move.w	($FFFFFE3E).w,($FFFFF72E).w
+		move.w	($FFFFFE3E).w,($FFFFF726).w
+		move.w	($FFFFFE40).w,($FFFFF700).w
+		move.w	($FFFFFE42).w,($FFFFF704).w
+		move.w	($FFFFFE44).w,($FFFFF708).w
+		move.w	($FFFFFE46).w,($FFFFF70C).w
+		move.w	($FFFFFE48).w,($FFFFF710).w
+		move.w	($FFFFFE4A).w,($FFFFF714).w
+		move.w	($FFFFFE4C).w,($FFFFF718).w
+		move.w	($FFFFFE4E).w,($FFFFF71C).w
+		cmpi.b	#1,($FFFFFE10).w
+		bne.s	loc_170E4
+		move.w	($FFFFFE50).w,($FFFFF648).w
+		move.b	($FFFFFE52).w,($FFFFF64D).w
+		move.b	($FFFFFE53).w,($FFFFF64E).w
+
+loc_170E4:
+		tst.b	($FFFFFE30).w
+		bpl.s	locret_170F6
+		move.w	($FFFFFE32).w,d0
+		subi.w	#$A0,d0
+		move.w	d0,($FFFFF728).w
+
+locret_170F6:
+		rts	
+; End of function Obj79_LoadInfo
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------

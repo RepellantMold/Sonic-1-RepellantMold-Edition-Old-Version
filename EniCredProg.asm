@@ -9,6 +9,7 @@ Credits_Mappings:
 		dc.l	EniCred_7	; credit id = 7
 		dc.l	EniCred_8	; credit id = 8
 		dc.l	EniCred_9	; credit id = 9
+		even
 
 Credits_MapLoad:
 		move.b	($FFFFFFF4).w,d0
