@@ -24101,6 +24101,8 @@ Obj01_InWater:
 		move.w	($FFFFF646).w,d0
 		cmp.w	$C(a0),d0	; is Sonic above the water?
 		bge.s	Obj01_OutWater	; if yes, branch
+		tst.w	$12(a0)		; check if player is moving upward (i.e. from jumping)
+		bmi.s	locret_12D80	; if yes, skip routine
 		bset	#6,$22(a0)
 		bne.s	locret_12D80
 		bsr.w	ResumeMusic
@@ -24999,6 +25001,14 @@ loc2_1ACF4:
 		bset	#2,$22(a0)		; set unused (in s1) flag
 		clr.b	($FFFFD1DC).w	; clear Spin Dash dust animation.
 		move.b	#$BC,($FFFFF00B).w	; spin release sound
+		move.b	$26(a0),d0
+		jsr	(CalcSine).l
+		muls.w	$14(a0),d1
+		asr.l	#8,d1
+		move.w	d1,$10(a0)
+		muls.w	$14(a0),d0
+		asr.l	#8,d0
+		move.w	d0,$12(a0)
 		bra.s	loc2_1AD78
 ; ===========================================================================
 Dash_Speeds:	dc.w  $800		; 0

@@ -21,8 +21,9 @@ A repository of one of my ROM hacks, *nuff said.* :neckbeard:
   * Inferno/ProjectFM - Per-act music via math
   * Bright Neon Colors - Porting Sonic 2's HUD to Sonic 1 guide
   * Fukuller - Enigma credits guide
+  * Sik - SLZ/UFTC compression (not used yet)
 ### Music Credits
-  * JexuBandicoot527 - Sonic CD (US) boss theme
+  * JexuBandicoot527 - Sonic CD (US) boss theme (original MIDI)
   * Jazzdog5 - Title screen/bad ending/good ending
   * AuroraFields - SMPS2ASM
   * Crash - 50 Hz PAL fix guide
