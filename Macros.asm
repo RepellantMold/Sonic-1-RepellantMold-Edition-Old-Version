@@ -48,7 +48,7 @@ fillVRAM:	macro value,length,loc
 		lea	(VdpCtrl).l,a5
 		move.w	#VDPREG_INCR+1,(a5)
 		move.l	#$94000000+((length&$FF00)<<8)+VDPREG_DMALEN_L+(length&$FF),(a5)
-		move.w	#$9780,(a5)
+		move.w	#VDPREG_DMASRC_H+%10000000,(a5)
 		move.l	#VRAM_DMA_CMD+((loc&$3FFF)<<16)+((loc&vram_fg)>>14),(a5)
 		move.w	#value,(VdpData).l
 		endm

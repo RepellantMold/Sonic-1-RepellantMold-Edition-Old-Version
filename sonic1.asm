@@ -121,7 +121,7 @@ PSGInitLoop:
 		dbf	d5,PSGInitLoop
 		move.w	d0,(a2)
 		movem.l	(a6),d0-a6	; clear	all registers
-		move	#$2700,sr	; set the sr
+		disable_ints	; set the sr
 
 PortC_Ok:
 		bra.s	GameProgram
@@ -186,8 +186,8 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 		dc.b $36, $E9		; ld	(hl),E9h
 		dc.b $E9		; jp	(hl)
 
-		dc.w VDPREG_MODE2+4	; VDP display mode
-		dc.w VDPREG_INCR+2	; VDP increment
+		dc.w VDPREG_MODE2+%0100	; VDP display mode
+		dc.w VDPREG_INCR+%0010	; VDP increment
 		dc.l CRAM_ADDR_CMD	; CRAM write mode
 		dc.l VSRAM_ADDR_CMD	; VSRAM address 0
 
@@ -540,7 +540,7 @@ loc_10D4:				; XREF: sub_106E
 
 
 PalToCRAM:
-		move	#$2700,sr
+		disable_ints
 		tst.w	($FFFFF644).w
 		beq.s	locret_119C
 		clr.w	($FFFFF644).w
@@ -632,21 +632,21 @@ VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
 		move.l	d1,-(sp)
-		fillVRAM	0,$FFFF,0
+		fillVRAM	0,-1,0
 
 	.waitforDMA:
 		move.w	(a5),d1
 		btst	#1,d1		; is DMA (fillVRAM) still running?
 		bne.s	.waitforDMA	; if yes, branch
 
-		move.w	#VDPREG_INCR+2,(a5)	; set VDP increment size
+		move.w	#VDPREG_INCR+%0010,(a5)	; set VDP increment size
 		move.l	(sp)+,d1
 		rts	
 ; End of function VDPSetupGame
 
 ; ===========================================================================
-VDPSetupArray:	dc.w VDPREG_MODE1+4		; 8-colour mode
-		dc.w VDPREG_MODE2+$34		; enable V.interrupts, enable DMA
+VDPSetupArray:	dc.w VDPREG_MODE1+%0100		; 8-colour mode
+		dc.w VDPREG_MODE2+%00110100		; enable V.interrupts, enable DMA
 		dc.w VDPREG_PLANEA+(vram_fg>>10) 	; set foreground nametable address
 		dc.w VDPREG_WINDOW+($A000>>10)	; set window nametable address
 		dc.w VDPREG_PLANEB+(vram_bg>>13) 	; set background nametable address
@@ -657,10 +657,10 @@ VDPSetupArray:	dc.w VDPREG_MODE1+4		; 8-colour mode
 		dc.w $8900		; unused
 		dc.w VDPREG_HRATE	; default H.interrupt register
 		dc.w VDPREG_MODE3		; full-screen vertical scrolling
-		dc.w VDPREG_MODE4+$81		; 40-cell display mode
+		dc.w VDPREG_MODE4+%10000001		; 40-cell display mode
 		dc.w VDPREG_HSCROLL+(vram_hscroll>>10) 	; set background hscroll address
 		dc.w $8E00		; unused
-		dc.w VDPREG_INCR+2		; set VDP increment size
+		dc.w VDPREG_INCR+%0010		; set VDP increment size
 		dc.w VDPREG_SIZE+1		; 64-cell hscroll size
 		dc.w VDPREG_WINX		; window horizontal position
 		dc.w VDPREG_WINY		; window vertical position
@@ -673,14 +673,14 @@ VDPSetupArray:	dc.w VDPREG_MODE1+4		; 8-colour mode
 
 
 ClearScreen:
-		fillVRAM	0,$FFF,$C000 ; clear foreground namespace
+		fillVRAM	0,$FFF,vram_fg ; clear foreground namespace
 
 	.wait1:
 		move.w	(a5),d1
 		btst	#1,d1
 		bne.s	.wait1
 
-		move.w	#VDPREG_INCR+2,(a5)
+		move.w	#VDPREG_INCR+%0010,(a5)
 		fillVRAM	0,$FFF,$E000 ; clear background namespace
 
 	.wait2:
@@ -688,7 +688,7 @@ ClearScreen:
 		btst	#1,d1
 		bne.s	.wait2
 
-		move.w	#VDPREG_INCR+2,(a5)
+		move.w	#VDPREG_INCR+%0010,(a5)
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
 
@@ -2325,6 +2325,7 @@ CalcSine:				; XREF: SS_BGAnimate; et al
 ; ===========================================================================
 
 Sine_Data:	incbin	misc\sinewave.bin	; values for a 360º sine wave
+		even
 
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -2390,6 +2391,7 @@ loc_2D04:				; XREF: CalcAngle
 ; ===========================================================================
 
 Angle_Data:	incbin	misc\angles.bin
+		even
 
 ; ===========================================================================
 
@@ -2402,35 +2404,31 @@ SegaScreen:				; XREF: GameModeArray
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
 		lea	(VdpCtrl).l,a6
-		move.w	#$8004,(a6)
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$8700,(a6)
-		move.w	#$8B00,(a6)
+		move.w	#VDPREG_MODE1+%0100,(a6)
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6)
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6)
+		move.w	#VDPREG_BGCOL,(a6)
+		move.w	#VDPREG_MODE3,(a6)
 		clr.b	($FFFFF64E).w
-		move	#$2700,sr
+		disable_ints
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
 		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
 		lea	(Twim_SegaLogo).l,a0			; load compressed art data address
-		move.w	#$0,d0					; set VRAM address to decompress to (0)
+		moveq	#$0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($FF0000).l,a1
 		lea	(Eni_SegaLogo).l,a0 ; load Sega	logo mappings
 		move.w	#0,d0
 		bsr.w	EniDec
 		SetGfxMode GFXMODE_256x224
-		lea	($FF0000).l,a1
-		move.l	#$65100003,d0
-		moveq	#$17,d1
-		moveq	#7,d2
-		bsr.w	ShowVDPGraphics
-		lea	($FF0180).l,a1
-		move.l	#$40000003,d0
-		moveq	#$27,d1
-		moveq	#$1B,d2
-		bsr.w	ShowVDPGraphics
+		copyTilemap	$FF0000,$E510,$17,7
+		copyTilemap	$FF0180,vram_fg,$27,$1B
+		tst.b   ($FFFFFFF8).w	; is console Japanese?
+		bmi.s   .loadpal
+		copyTilemap	$FF0A40,$C53A,2,1 ; hide "TM" with a white rectangle
+.loadpal:
         	lea	($FFFFFB80).l,a3
         	moveq	#$3F,d7
  
@@ -2479,15 +2477,15 @@ TitleScreen:				; XREF: GameModeArray
 		move.b	#$E4,($FFFFF00B).w ; stop music
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
-		move	#$2700,sr
+		disable_ints
 		lea	(VdpCtrl).l,a6
-		move.w	#$8004,(a6)
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$9001,(a6)
-		move.w	#$9200,(a6)
-		move.w	#$8B03,(a6)
-		move.w	#$8720,(a6)
+		move.w	#VDPREG_MODE1+%0100,(a6)
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6)
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6)
+		move.w	#VDPREG_SIZE+%0001,(a6)
+		move.w	#VDPREG_WINY,(a6)
+		move.w	#VDPREG_MODE3+%0011,(a6)
+		move.w	#VDPREG_BGCOL|VRAM_PAL1,(a6)
 		clr.b	($FFFFF64E).w
 		bsr.w	ClearScreen
 		lea	($FFFFD000).w,a1
@@ -2499,7 +2497,7 @@ Title_ClrObjRam:
 		dbf	d1,Title_ClrObjRam ; fill object RAM ($D000-$EFFF) with	$0
 		SetGfxMode GFXMODE_320x224_SH
 		lea	(Twim_JCrdts).l,a0			; load compressed art data address
-		move.w	#0,d0					; set VRAM address to decompress to (0)
+		moveq	#0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
 		move.l	#$54C00000,(VdpCtrl).l
 		lea	(Nem_CreditText).l,a0 ;	load alphabet
@@ -2507,11 +2505,7 @@ Title_ClrObjRam:
 		lea	($FF0000).l,a1
 		lea	(Twiz_JCrdts).l,a0 ; load mappings for	Japanese credits
 		jsr	TwizDec
-		lea	($FF0000).l,a1
-		move.l	#$40000003,d0
-		moveq	#$27,d1
-		moveq	#$1B,d2
-		bsr.w	ShowVDPGraphics
+		copyTilemap	$FF0000,vram_fg,$27,$1B
 		lea	($FFFFFB80).w,a1
 		moveq	#0,d0
 		move.w	#$1F,d1
@@ -2527,7 +2521,7 @@ Title_ClrPallet:
 		jsr	ObjectsLoad
 		jsr	BuildSprites
 		bsr.w	Pal_FadeTo
-		move	#$2700,sr
+		disable_ints
 		lea	(Twim_TitleFg).l,a0			; load compressed art data address
 		move.w	#$4000,d0				; set VRAM address to decompress to ($4000)
 		jsr	TwimDec					; decompress and dump to VRAM
@@ -2554,7 +2548,7 @@ Title_ClrPallet:
 		jsr	TwizDec
 		bsr.w	LevelLayoutLoad
 		bsr.w	Pal_FadeFrom
-		move	#$2700,sr
+		disable_ints
 		bsr.w	ClearScreen
 		lea	(VdpCtrl).l,a5
 		lea	(VdpData).l,a6
@@ -2564,16 +2558,11 @@ Title_ClrPallet:
 		bsr.w	LoadTilesFromStart2
 		lea	($FF0000).l,a1
 		lea	(Eni_Title).l,a0 ; load	title screen mappings
-		move.w	#0,d0
+		moveq	#0,d0
 		bsr.w	EniDec
-		lea	($FF0000).l,a1
-		move.l	#$42080003,d0
-		moveq	#$21,d1
-		moveq	#$15,d2
-		bsr.w	ShowVDPGraphics
-
+		copyTilemap	$FF0000,$C208,$21,$15
         	lea 	(Twim_Title).l,a0          ; load compressed art data address
-        	move.w  #0,d0               ; set VRAM address to decompress to (0)
+        	moveq  	#0,d0               ; set VRAM address to decompress to (0)
         	jsr 	TwimDec                 ; decompress and dump to VRAM
 		moveq	#1,d0		; load title screen pallet
 		bsr.w	PalLoad1
@@ -2692,7 +2681,7 @@ Title_ClrScroll:
 		move.w	(a5)+,(a6)
 		dbf	d1,.LoadText ; load uncompressed text patterns
 		move.l	d0,($FFFFF616).w
-		move	#$2700,sr
+		disable_ints
 		moveq	#2,d0
 		bsr.w	PalLoad1	; load level select pallet
 		bsr.w	LevSelTextLoad
@@ -2832,7 +2821,7 @@ LevSel_NoMove:
 
 
 LevSelTextLoad:				; XREF: TitleScreen
-	textpos:	= (VRAM_ADDR_CMD+(($E210&$3FFF)<<16)+(($E210&$C000)>>14))
+	textpos:	= (VRAM_ADDR_CMD+(($E210&$3FFF)<<16)+(($E210&vram_fg)>>14))
 		lea	(LevelMenuText).l,a1
 		lea	(VdpData).l,a6
 		move.l	#textpos,d4	; screen position (text)
@@ -2910,9 +2899,9 @@ loc_3588:
 ; ===========================================================================
 
 loc_3598:				; XREF: LevSel_ChgLine
-		cmp.w   #$40, d0    	; Check for $40 (End of ASCII number area)
+		cmp.w   #$40,d0    	; Check for $40 (End of ASCII number area)
                 blt.s   .notText    	; If this is not an ASCII text character, branch
-                sub.w   #$3,d0      	; Subtract an extra 3 (Compensate for missing characters in the font)
+                subq.w  #3,d0      	; Subtract an extra 3 (Compensate for missing characters in the font)
     .notText:
                 sub.w   #$30,d0     	; Subtract #$33 (Convert to S2 font from ASCII)
                 add.w   d3,d0       	; combine char with VRAM setting
@@ -3079,12 +3068,12 @@ loc_37B6:
 		bsr.w	Pal_FadeFrom
 		tst.w	($FFFFFFF0).w
 		bmi.s	Level_ClrRam
-		move	#$2700,sr
+		disable_ints
 	        move.l  #$70000002,(VdpCtrl)        ; set mode "VRAM Write to $B000"
 	        lea 	Nem_TitleCard,a0        ; load title card patterns
 	        move.l  #((Nem_TitleCard_End-Nem_TitleCard)/32)-1,d0; the title card art lenght, in tiles
         	jsr 	LoadUncArt          ; load uncompressed art
-		move	#$2300,sr
+		enable_ints
 		moveq	#0,d0
 		move.b	($FFFFFE10).w,d0
 		lsl.w	#4,d0
@@ -3132,23 +3121,23 @@ Level_ClrVars3:
 		move.l	d0,(a1)+
 		dbf	d1,Level_ClrVars3 ; clear object variables
                 SetGfxMode GFXMODE_320x224
-		move	#$2700,sr
+		disable_ints
 		bsr.w	ClearScreen
 		lea	(VdpCtrl).l,a6
-		move.w	#$8B03,(a6)
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$857C,(a6)
-		move.w	#$9001,(a6)
-		move.w	#$8004,(a6)
-		move.w	#$8720,(a6)
-		move.w	#$8ADF,($FFFFF624).w
+		move.w	#VDPREG_MODE3+%0011,(a6)	; line scroll mode
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6) ; set foreground nametable address
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6) ; set background nametable address
+		move.w	#VDPREG_SPRITE+(vram_sprites>>9),(a6) ; set sprite table address
+		move.w	#VDPREG_SIZE+%0001,(a6)		; 64-cell hscroll size
+		move.w	#VDPREG_MODE1+%0100,(a6)		; 8-colour mode
+		move.w	#VDPREG_BGCOL+$20,(a6)		; set background colour (line 3; colour 0)
+		move.w	#VDPREG_HRATE+223,($FFFFF624).w
 		move.w	($FFFFF624).w,(a6)
 		clr.w	($FFFFC800).w
 		move.l	#$FFFFC800,($FFFFC8FC).w
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
 		bne.s	Level_LoadPal	; if not, branch
-		move.w	#$8014,(a6)
+		move.w	#VDPREG_MODE1+%00010100,(a6)
 		moveq	#0,d0
 		move.b	($FFFFFE11).w,d0
 		add.w	d0,d0
@@ -3163,7 +3152,7 @@ Level_ClrVars3:
 
 Level_LoadPal:
 		move.w	#$1E,($FFFFFE14).w
-		move	#$2300,sr
+		enable_ints
 		moveq	#3,d0
 		bsr.w	PalLoad2	; load Sonic's pallet line
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ?
@@ -3364,52 +3353,52 @@ loc_3B14:
 		bsr.w	ChangeRingFrame
 		bsr.w	SignpostArtLoad
 		cmpi.b	#8,($FFFFF600).w
-		beq.s	Level_ChkDemo	; if screen mode is 08 (demo), branch
+		beq.s	Level_MainLoop	; if screen mode is 08 (demo), branch
 		cmpi.b	#$C,($FFFFF600).w
 		beq.s	Level_MainLoop	; if screen mode is $0C	(level), branch
-		rts	
-; ===========================================================================
-
-Level_ChkDemo:				; XREF: Level_MainLoop
-		tst.w	($FFFFFE02).w	; is level set to restart?
-		bne.s	Level_EndDemo	; if yes, branch
-		tst.w	($FFFFF614).w	; is there time	left on	the demo?
-		beq.s	Level_EndDemo	; if not, branch
-		cmpi.b	#8,($FFFFF600).w
-		beq.w	Level_MainLoop	; if screen mode is 08 (demo), branch
-		clr.b	($FFFFF600).w; go to Sega screen
 		rts
 ; ===========================================================================
 
-Level_EndDemo:				; XREF: Level_ChkDemo
-		cmpi.b	#8,($FFFFF600).w ; is screen mode 08 (demo)?
-		bne.s	loc_3B88	; if not, branch
-		clr.b	($FFFFF600).w 	; go to Sega screen
-		tst.w	($FFFFFFF0).w	; is demo mode on?
-		bpl.s	loc_3B88	; if yes, branch
-		move.b	#$1C,($FFFFF600).w ; go	to credits
+;Level_ChkDemo:				; XREF: Level_MainLoop
+;		tst.w	($FFFFFE02).w	; is level set to restart?
+;		bne.s	Level_EndDemo	; if yes, branch
+;		tst.w	($FFFFF614).w	; is there time	left on	the demo?
+;		beq.s	Level_EndDemo	; if not, branch
+;		cmpi.b	#8,($FFFFF600).w
+;		beq.w	Level_MainLoop	; if screen mode is 08 (demo), branch
+;		clr.b	($FFFFF600).w; go to Sega screen
+;		rts
+; ===========================================================================
 
-loc_3B88:
-		move.w	#$3C,($FFFFF614).w
-		move.w	#$3F,($FFFFF626).w
-		clr.w	($FFFFF794).w
+;Level_EndDemo:				; XREF: Level_ChkDemo
+;		cmpi.b	#8,($FFFFF600).w ; is screen mode 08 (demo)?
+;		bne.s	loc_3B88	; if not, branch
+;		clr.b	($FFFFF600).w 	; go to Sega screen
+;		tst.w	($FFFFFFF0).w	; is demo mode on?
+;		bpl.s	loc_3B88	; if yes, branch
+;		move.b	#$1C,($FFFFF600).w ; go	to credits
 
-loc_3B98:
-		move.b	#8,($FFFFF62A).w
-		waitvblank
-		;bsr.w	MoveSonicInDemo
-		jsr	ObjectsLoad
-		jsr	BuildSprites
-		jsr	ObjPosLoad
-		subq.w	#1,($FFFFF794).w
-		bpl.s	loc_3BC8
-		move.w	#2,($FFFFF794).w
-		bsr.w	Pal_FadeOut
+;loc_3B88:
+;		move.w	#$3C,($FFFFF614).w
+;		move.w	#$3F,($FFFFF626).w
+;		clr.w	($FFFFF794).w
 
-loc_3BC8:
-		tst.w	($FFFFF614).w
-		bne.s	loc_3B98
-		rts	
+;loc_3B98:
+;		move.b	#8,($FFFFF62A).w
+;		waitvblank
+;		;bsr.w	MoveSonicInDemo
+;		jsr	ObjectsLoad
+;		jsr	BuildSprites
+;		jsr	ObjPosLoad
+;		subq.w	#1,($FFFFF794).w
+;		bpl.s	loc_3BC8
+;		move.w	#2,($FFFFF794).w
+;		bsr.w	Pal_FadeOut
+
+;loc_3BC8:
+;		tst.w	($FFFFF614).w
+;		bne.s	loc_3B98
+;		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Subroutine to	do special water effects in Labyrinth Zone
@@ -4074,29 +4063,24 @@ Demo_SS:;	incbin	demodata\i_ss.bin
 SpecialStage:				; XREF: GameModeArray
 		move.b	#$CA,($FFFFF00B).w ; play special stage entry sound
 		bsr.w	Pal_MakeFlash
-		move	#$2700,sr
+		disable_ints
 		lea	(VdpCtrl).l,a6
-		move.w	#$8B03,(a6)
-		move.w	#$8004,(a6)
-		move.w	#$8AAF,($FFFFF624).w
-		move.w	#$9011,(a6)
+		move.w	#VDPREG_MODE3+%0011,(a6)
+		move.w	#VDPREG_MODE1+%0100,(a6)
+		move.w	#VDPREG_HRATE+175,($FFFFF624).w
+		move.w	#VDPREG_SIZE+%00010001,(a6)
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
 		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
-		move	#$2300,sr
-		lea	(VdpCtrl).l,a5
-		move.w	#$8F01,(a5)
-		move.l	#$946F93FF,(a5)
-		move.w	#$9780,(a5)
-		move.l	#$50000081,(a5)
-		move.w	#0,(VdpData).l
+		enable_ints
+		fillVRAM	0,$6FFF,$5000
 
 loc_463C:
 		move.w	(a5),d1
 		btst	#1,d1
 		bne.s	loc_463C
-		move.w	#$8F02,(a5)
+		move.w	#VDPREG_INCR+%0010,(a5)
 		bsr.w	SS_BGLoad
 		moveq	#$14,d0
 		bsr.w	RunPLC_ROM	; load special stage patterns
@@ -4221,11 +4205,11 @@ loc_47D4:
 		tst.w	($FFFFF614).w
 		bne.s	SS_EndLoop
 
-		move	#$2700,sr
+		disable_ints
 		lea	(VdpCtrl).l,a6
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$9001,(a6)
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6) ; set foreground nametable address
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6) ; set background nametable address
+		move.w	#VDPREG_SIZE+%0001,(a6)		; 64-cell hscroll size
 		bsr.w	ClearScreen
 	        move.l  #$70000002,(VdpCtrl)        ; set mode "VRAM Write to $B000"
 	        lea 	Nem_TitleCard,a0        ; load title card patterns
@@ -4234,7 +4218,7 @@ loc_47D4:
 		jsr	Hud_Base
 		clr.w	($FFFFC800).w
 		move.l	#$FFFFC800,($FFFFC8FC).w
-		move	#$2300,sr
+		enable_ints
 		moveq	#$11,d0
 		bsr.w	PalLoad2	; load results screen pallet
 		moveq	#0,d0
@@ -4571,12 +4555,12 @@ byte_4CCC:	dc.b 8,	2, 4, $FF, 2, 3, 8, $FF, 4, 2, 2, 3, 8,	$FD, 4,	2, 2, 3, 2, $
 
 ContinueScreen:				; XREF: GameModeArray
 		bsr.w	Pal_FadeFrom
-		move	#$2700,sr
+		disable_ints
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
 		move.w	d0,(VdpCtrl).l
 		lea	(VdpCtrl).l,a6
-		move.w	#VDPREG_MODE1+4,(a6)
+		move.w	#VDPREG_MODE1+%0100,(a6)
 		move.w	#VDPREG_BGCOL,(a6)
 		bsr.w	ClearScreen
 		lea	($FFFFD000).w,a1
@@ -4629,12 +4613,12 @@ Cont_MainLoop:
 		waitvblank
 		cmpi.b	#6,($FFFFD024).w
 		bcc.s	loc_4DF2
-		move	#$2700,sr
+		disable_ints
 		move.w	($FFFFF614).w,d1
 		divu.w	#$3C,d1
 		andi.l	#$F,d1
 		jsr	ContScrCounter
-		move	#$2300,sr
+		enable_ints
 
 loc_4DF2:
 		jsr	ObjectsLoad
@@ -4882,20 +4866,20 @@ End_ClrRam3:
 		move.l	d0,(a1)+
 		dbf	d1,End_ClrRam3	; clear	variables
 
-		move	#$2700,sr
+		disable_ints
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
 		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
 		lea	(VdpCtrl).l,a6
-		move.w	#$8B03,(a6)
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$857C,(a6)
-		move.w	#$9001,(a6)
-		move.w	#$8004,(a6)
-		move.w	#$8720,(a6)
-		move.w	#$8ADF,($FFFFF624).w
+		move.w	#VDPREG_MODE3+%0011,(a6)	; line scroll mode
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6) ; set foreground nametable address
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6) ; set background nametable address
+		move.w	#VDPREG_SPRITE+(vram_sprites>>9),(a6) ; set sprite table address
+		move.w	#VDPREG_SIZE+%0001,(a6)		; 64-cell hscroll size
+		move.w	#VDPREG_MODE1+%0100,(a6)		; 8-colour mode
+		move.w	#VDPREG_BGCOL+$20,(a6)		; set background colour (line 3; colour 0)
+		move.w	#VDPREG_HRATE+223,($FFFFF624).w
 		move.w	($FFFFF624).w,(a6)
 		move.w	#$1E,($FFFFFE14).w
 		move.w	#$600,($FFFFFE10).w ; set level	number to 0600 (extra flowers)
@@ -4914,7 +4898,7 @@ End_LoadData:
 		bsr.w	MainLoadBlockLoad
 		bsr.w	LoadTilesFromStart
 		move.l	#Col_GHZ,($FFFFF796).w ; load collision	index
-		move	#$2300,sr
+		enable_ints
 		lea	(Kos_EndFlowers).l,a0 ;	load extra flower patterns
 		lea	($FFFF9400).w,a1 ; RAM address to buffer the patterns
 		bsr.w	KosDec
@@ -5341,13 +5325,13 @@ Credits:				; XREF: GameModeArray
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
 		lea	(VdpCtrl).l,a6
-		move.w	#$8004,(a6)
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$9001,(a6)
-		move.w	#$9200,(a6)
-		move.w	#$8B03,(a6)
-		move.w	#$8720,(a6)
+		move.w	#VDPREG_MODE1+%0100,(a6)
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6) ; set foreground nametable address
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6) ; set background nametable address
+		move.w	#VDPREG_SIZE+%0001,(a6)		; 64-cell hscroll size
+		move.w	#VDPREG_WINY,(a6)		; window vertical position
+		move.w	#VDPREG_MODE3+%0011,(a6)		; line scroll mode
+		move.w	#VDPREG_BGCOL+$20,(a6)		; set background colour (line 3; colour 0)
 		clr.b	($FFFFF64E).w
 		bsr.w	ClearScreen
 		SetGfxMode GFXMODE_256x224
@@ -5396,13 +5380,13 @@ TryAgainEnd:				; XREF: Credits
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
 		lea	(VdpCtrl).l,a6
-		move.w	#$8004,(a6)
-		move.w	#$8230,(a6)
-		move.w	#$8407,(a6)
-		move.w	#$9001,(a6)
-		move.w	#$9200,(a6)
-		move.w	#$8B03,(a6)
-		move.w	#$8720,(a6)
+		move.w	#VDPREG_MODE1+%0100,(a6)	; use 8-colour mode
+		move.w	#VDPREG_PLANEA+(vram_fg>>10),(a6) ; set foreground nametable address
+		move.w	#VDPREG_PLANEB+(vram_bg>>13),(a6) ; set background nametable address
+		move.w	#VDPREG_SIZE+%0001,(a6)	; 64-cell hscroll size
+		move.w	#VDPREG_WINY,(a6)	; window vertical position
+		move.w	#VDPREG_MODE3+%0011,(a6)	; line scroll mode
+		move.w	#VDPREG_BGCOL+$20,(a6)	; set background colour (line 3; colour 0)
 		clr.b	($FFFFF64E).w
 		bsr.w	ClearScreen
 		lea	($FFFFD000).w,a1
@@ -37143,7 +37127,7 @@ AddPoints:
 		add.l	d0,(a3)		; add d0*10 to the score
 		move.l	#999999,d1
 		cmp.l	(a3),d1		; is #999999 higher than the score?
-		bhi.w	loc_1C6AC	; if yes, branch
+		bhi.s	loc_1C6AC	; if yes, branch
 		move.l	d1,(a3)		; reset	score to #999999
 		move.l	d1,(a2)
 
