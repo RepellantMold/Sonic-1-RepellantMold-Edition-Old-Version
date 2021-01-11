@@ -68,6 +68,10 @@ IoData1:      equ $A10003  ; I/O data port 1P
 IoData2:      equ $A10005  ; I/O data port 2P
 IoDataExt:    equ $A10007  ; I/O data port modem
 
+Z80Ram:     equ $A00000  ; Where Z80 RAM starts
+Z80BusReq:  equ $A11100  ; Z80 bus request line
+Z80Reset:   equ $A11200  ; Z80 reset line
+
 ; VRAM data
 vram_fg:	equ $C000	; foreground namespace
 vram_bg:	equ $E000	; background namespace

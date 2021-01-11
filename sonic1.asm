@@ -43,7 +43,7 @@ Checksum:	dc.w 0
 RomStartLoc:	dc.l StartOfRom		; ROM start
 RomEndLoc:	dc.l EndOfRom-1		; ROM end
 RamStartLoc:	dc.l $FF0000		; RAM start
-RamEndLoc:	dc.l $FFFFFF		; RAM end
+RamEndLoc:	dc.l -1			; RAM end
 SRAMSupport:	dc.b "RA",$a0,$20	; SRAM support (Nonsaving - 16-bit addresses)
 		dc.l $200000		; SRAM start
 		dc.l $2007FF		; SRAM end (only doing 2KB to start with)
@@ -130,14 +130,14 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 		dc.w $3FFF		; size of RAM/4
 		dc.w $100		; VDP register diff
 
-		dc.l $A00000		; start	of Z80 RAM
-		dc.l $A11100		; Z80 bus request
-		dc.l $A11200		; Z80 reset
+		dc.l Z80Ram		; start	of Z80 RAM
+		dc.l Z80BusReq		; Z80 bus request
+		dc.l Z80Reset		; Z80 reset
 		dc.l VdpData
 		dc.l VdpCtrl		; address for VDP registers
 
-		dc.b 4			; VDP $80 - 8-colour mode
-		dc.b $14		; VDP $81 - Megadrive mode, DMA enable
+		dc.b %0100		; VDP $80 - 8-colour mode
+		dc.b %00010100		; VDP $81 - Megadrive mode, DMA enable
 		dc.b (vram_fg>>10)	; VDP $82 - foreground nametable address
 		dc.b (vram_sonic>>10)	; VDP $83 - window nametable address
 		dc.b (vram_bg>>13)	; VDP $84 - background nametable address
@@ -148,16 +148,16 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 		dc.b 0			; VDP $89 - unused
 		dc.b 255		; VDP $8A - HBlank register
 		dc.b 0			; VDP $8B - full screen scroll
-		dc.b $81		; VDP $8C - 40 cell display
+		dc.b %10000001		; VDP $8C - 40 cell display
 		dc.b ($DC00>>10)	; VDP $8D - hscroll table address
 		dc.b 0			; VDP $8E - unused
 		dc.b 1			; VDP $8F - VDP increment
-		dc.b 1			; VDP $90 - 64 cell hscroll size
+		dc.b %0001		; VDP $90 - 64 cell hscroll size
 		dc.b 0			; VDP $91 - window h position
 		dc.b 0			; VDP $92 - window v position
 		dc.w -1			; VDP $93/94 - DMA length
 		dc.w 0			; VDP $95/96 - DMA source
-		dc.b $80		; VDP $97 - DMA fill VRAM
+		dc.b %10000000		; VDP $97 - DMA fill VRAM
 		dc.l VRAM_DMA_CMD	; VRAM address 0
 
 		dc.b $AF		; xor	a
@@ -718,14 +718,14 @@ ClearScreen:
 
 
 SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
-		move.w	#$100,($A11100).l ; stop the Z80
-		move.w	#$100,($A11200).l ; reset the Z80
+		move.w	#$100,(Z80BusReq).l ; stop the Z80
+		move.w	#$100,(Z80Reset).l ; reset the Z80
 		lea	(Kos_Z80).l,a0	; load sound driver
-		lea	($A00000).l,a1
+		lea	(Z80Ram).l,a1
 		jsr	TwizDec		; decompress
-		move.w	#0,($A11200).l
-		move.w	#$100,($A11200).l ; reset the Z80
-		move.w	#0,($A11100).l	; start	the Z80
+		move.w	#0,(Z80Reset).l
+		move.w	#$100,(Z80Reset).l ; reset the Z80
+		move.w	#0,(Z80BusReq).l	; start	the Z80
 		rts
 ; End of function SoundDriverLoad
 
@@ -4065,7 +4065,7 @@ SpecialStage:				; XREF: GameModeArray
 		bsr.w	Pal_MakeFlash
 		disable_ints
 		lea	(VdpCtrl).l,a6
-		move.w	#VDPREG_MODE3+%0011,(a6)
+		move.w	#VDPREG_MODE3+%0000,(a6)
 		move.w	#VDPREG_MODE1+%0100,(a6)
 		move.w	#VDPREG_HRATE+175,($FFFFF624).w
 		move.w	#VDPREG_SIZE+%00010001,(a6)
