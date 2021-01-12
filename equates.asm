@@ -95,3 +95,4 @@ Second_palette:			equ	Normal_palette_line4+$20; 32 bytes - $FFFFFB80, listed lik
 Second_palette_line2:		equ	Second_palette+$20	; 32 bytes - $FFFFFBA0, listed like this in case of RAM shifting
 Second_palette_line3:		equ	Second_palette_line2+$20; 32 bytes - $FFFFFBC0, listed like this in case of RAM shifting
 Second_palette_line4:		equ	Second_palette_line3+$20; 32 bytes - $FFFFFBE0, listed like this in case of RAM shifting
+v_spritequeue:	equ $FFFFAC00	; sprite display queue, in order of priority ($400 bytes)

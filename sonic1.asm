@@ -12148,7 +12148,7 @@ Obj37_ChkDel:				; XREF: Obj37_Bounce
 		rts
 		
 Obj37_Display:
-		lea	($FFFFAC00+$180).w,a1
+		lea	(v_spritequeue+$180).w,a1
 		cmpi.w	#$7E,(a1)
 		bcc.s	.locret
 		addq.w	#2,(a1)
@@ -12168,7 +12168,7 @@ Obj37_Collect:				; XREF: Obj37_Index
 Obj37_Sparkle:				; XREF: Obj37_Index
 		lea	(Ani_obj25).l,a1
 		bsr.w	AnimateSprite
-        lea     ($FFFFAC00).w,a1
+        lea     (v_spritequeue).w,a1
         adda.w  #$80,a1
         cmpi.w  #$7E,(a1)
         bcc.s   .locret
@@ -16388,11 +16388,10 @@ SpeedToPos:
 
 
 DisplaySprite:
-		lea	($FFFFAC00).w,a1
-		move.w	$18(a0),d0
-		lsr.w	#1,d0
-		andi.w	#$380,d0
-		adda.w	d0,a1
+   	      	moveq   #0,d0
+   		move.b  $18(a0),d0
+   		add.w   d0,d0
+   		movea.w	Priority2InputAddrTable(pc,d0.w),a1
 		cmpi.w	#$7E,(a1)
 		bcc.s	locret_D620
 		addq.w	#2,(a1)
@@ -16404,6 +16403,17 @@ locret_D620:
 ; End of function DisplaySprite
 
 ; ---------------------------------------------------------------------------
+Priority2InputAddrTable:
+   dc.w   v_spritequeue
+   dc.w   v_spritequeue+$80
+   dc.w   v_spritequeue+$100
+   dc.w   v_spritequeue+$180
+   dc.w   v_spritequeue+$200
+   dc.w   v_spritequeue+$280
+   dc.w   v_spritequeue+$300
+   dc.w   v_spritequeue+$380
+
+; ---------------------------------------------------------------------------
 ; Subroutine to	display	a 2nd sprite/object, when a1 is	the object RAM
 ; ---------------------------------------------------------------------------
 
@@ -16411,11 +16421,10 @@ locret_D620:
 
 
 DisplaySprite2:
-		lea	($FFFFAC00).w,a2
-		move.w	$18(a1),d0
-		lsr.w	#1,d0
-		andi.w	#$380,d0
-		adda.w	d0,a2
+   	      	moveq   #0,d0
+   		move.b  $18(a1),d0
+   		add.w   d0,d0
+   		movea.w	Priority2InputAddrTable(pc,d0.w),a2
 		cmpi.w	#$7E,(a2)
 		bcc.s	locret_D63E
 		addq.w	#2,(a2)
@@ -16466,7 +16475,7 @@ BuildSprites:                ; XREF: TitleScreen; et al
         beq.s    BuildSprites_2
         jsr    loc_40804
 BuildSprites_2:
-        lea    ($FFFFAC00).w,a4
+        lea    (v_spritequeue).w,a4
         moveq    #7,d7
 
 loc_D66A:
@@ -18796,6 +18805,107 @@ Obj4E_Move2:				; XREF: Obj4E_Index
 
 Obj4E_Delete:				; XREF: Obj4E_Index
 		bra.w	DeleteObject
+; ===========================================================================
+Obj4F:                              ; DATA XREF: ROM:AllObjects?o
+                moveq   #0,d0
+                move.b  $24(a0),d0
+                move.w  Obj4F_Index(pc,d0.w),d1
+                jmp     Obj4F_Index(pc,d1.w)
+; ---------------------------------------------------------------------------
+Obj4F_Index:
+        dc.w Obj4F_Main-Obj4F_Index
+        dc.w loc_D246-Obj4F_Index 
+        dc.w Obj4F_Move-Obj4F_Index
+        dc.w Obj4F_Fall-Obj4F_Index
+; ---------------------------------------------------------------------------
+
+Obj4F_Main:                         ; DATA XREF: ROM:Obj4F_Index?o
+                addq.b  #2,$24(a0)
+                move.l  #Map_obj4f,4(a0)
+                move.w  #$24E4,2(a0)
+                move.b  #4,1(a0)
+                move.b  #4,$18(a0)
+                move.b  #$C,$19(a0)
+                move.b  #$14,$16(a0)
+                move.b  #2,$20(a0)
+                tst.b   $28(a0)         ; Test subtype
+                beq.s   loc_D246        ; Subtype 0, branch
+                move.w  #$300,d2
+                bra.s   Obj4F_CheckRight
+; ---------------------------------------------------------------------------
+
+loc_D246:                               ; CODE XREF: ROM:0000D23E?j
+                                        ; DATA XREF: ROM:Obj4F_Index?o
+                move.w  #$E0,d2
+
+Obj4F_CheckRight:                   ; CODE XREF: ROM:0000D244?j
+                move.w  #$100,d1
+                bset    #0,1(a0)
+                move.w  ($FFFFD008).w,d0 ; Move Sonic's X position to d0
+                sub.w   8(a0),d0     ; Check distance between Splats and Sonic
+                bcc.s   Obj4F_Left        ; Check if Splats is to the left of Sonic
+                neg.w   d0
+                neg.w   d1
+                bclr    #0,1(a0)
+
+Obj4F_Left:                               ; CODE XREF: ROM:0000D25C?j
+                cmp.w   d2,d0
+                bcc.s   Obj4F_Move
+                move.w  d1,$10(a0)
+                addq.b  #2,$24(a0)
+
+Obj4F_Move:                         ; CODE XREF: ROM:0000D26A?j
+                                        ; DATA XREF: ROM:Obj4F_Index?o
+                bsr.w   ObjectFall
+                move.b  #1,$1B(a0)
+                tst.w   $12(a0)
+                bmi.s   Obj4F_CheckWall
+                move.b  #0,$1B(a0)
+                bsr.w   ObjHitFloor
+                tst.w   d1
+                bpl.s   Obj4F_CheckWall
+                move.w  (a1),d0
+                andi.w  #$3FF,d0
+                cmpi.w  #$2D2,d0
+                bcs.s   Obj4F_Bounce
+                addq.b  #2,$24(a0)
+                bra.s   Obj4F_CheckWall
+; ---------------------------------------------------------------------------
+
+Obj4F_Bounce:                       ; CODE XREF: ROM:0000D29C?j
+                add.w   d1,$C(a0)
+                move.w  #-$400,$12(a0)
+
+Obj4F_CheckWall:                    ; CODE XREF: ROM:0000D282?j
+                                        ; ROM:0000D290?j ...
+                bsr.w   Obj50_ChkWall
+                beq.s   Obj4F_Delete
+                neg.w   $10(a0)
+                bchg    #0,1(a0)
+                bchg    #0,$22(a0)
+
+Obj4F_Delete:                       ; CODE XREF: ROM:0000D2B2?j
+                bra.w   MarkObjGone
+; ---------------------------------------------------------------------------
+
+Obj4F_Fall:                         ; DATA XREF: ROM:Obj4F_Index?o
+                bsr.w   ObjectFall
+                bsr.w   DisplaySprite
+                tst.b   1(a0)
+                bpl.w   DeleteObject
+                rts
+
+Map_obj4f:
+                dc.w byte_D310-Map_obj4f
+                dc.w byte_D31B-Map_obj4f
+                                        ; DATA XREF: ROM:0000D20E?o
+                                        ; !<out unknown/Map_obj4f.map>
+byte_D310:      dc.b 2                  ; DATA XREF: ROM:Map_obj4f?o
+                dc.b $EC, $B, 0, 0, $F4
+                dc.b $C, 8, 0, $C, $F4
+byte_D31B:      dc.b 2                  ; DATA XREF: ROM:Map_obj4f?o
+                dc.b $EC, $B, 0, $F, $F4
+                dc.b $C, 4, 0, $1B, $FB ; !<print>!<out>!<ins even>!<part>
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 54 - invisible	lava tag (MZ)

@@ -144,7 +144,7 @@ PLC_LZ2:	dc.w $B
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - Marble
 ; ---------------------------------------------------------------------------
-PLC_MZ:		dc.w 8
+PLC_MZ:		dc.w 9
 		dc.l Nem_MzMetal	; metal	blocks
 		dc.w $6000
 		dc.l Nem_MzFire		; fireballs
@@ -163,6 +163,8 @@ PLC_MZ:		dc.w 8
 		dc.w $9700
 		dc.l Nem_Cater		; caterkiller enemy
 		dc.w $9FE0
+		dc.l Nem_Splats
+		dc.w $9C80
 PLC_MZ2:	dc.w 4
 		dc.l Nem_MzSwitch	; switch
 		dc.w $A260
