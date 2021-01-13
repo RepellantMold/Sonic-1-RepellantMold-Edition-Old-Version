@@ -82,22 +82,23 @@ copyTilemap:	macro source,loc,width,height
 		endm
 
 ; ---------------------------------------------------------------------------
-; stop the Z80
+; PlutieDev's Z80 macros
 ; ---------------------------------------------------------------------------
 
-stopZ80:	macro
-		move.w	#$100,(Z80BusReq).l
-	.wait:	btst	#0,(Z80BusReq).l
-		bne.s	.wait
-		endm
-
-; ---------------------------------------------------------------------------
-; start the Z80
-; ---------------------------------------------------------------------------
-
-startZ80:	macro
-		move.w	#0,(Z80BusReq).l
-		endm
+PauseZ80: macro
+    move.w  #$100,(Z80BusReq).l
+.WaitZ80\@:
+    cmpi.w  #$100,(Z80BusReq).l
+    bne.s   .WaitZ80\@
+    endm
+    
+FastPauseZ80: macro
+    move.w  #$100,(Z80BusReq).l
+    endm
+    
+ResumeZ80: macro
+    move.w  #$000,(Z80BusReq).l
+    endm
 
 ; ---------------------------------------------------------------------------
 ; bankswitch between SRAM and ROM

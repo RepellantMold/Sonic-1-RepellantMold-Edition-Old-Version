@@ -72,10 +72,10 @@ SoundTypes:	dc.b $90, $90, $90, $90, $90, $90, $90,	$90, $90, $90, $90, $90, $90
 
 
 sub_71B4C:				; XREF: loc_B10; PalToCRAM
-		stopZ80
+		FastPauseZ80
 		btst	#7,($A01FFD).l
 		beq.s	loc_71B82
-		startZ80
+		ResumeZ80
 		bra.s	sub_71B4C
 ; ===========================================================================
 
@@ -184,7 +184,7 @@ loc_71C38:
 		jsr	sub_72850(pc)
 
 loc_71C44:
-		startZ80	; start	the Z80
+		ResumeZ80	; start	the Z80
 		btst 	#6,($FFFFFFF8).w; is Genesis/Megadrive PAL?
      		beq.s 	.dontcount 		; if not, branch
       	     	cmpi.b 	#5,($FFFFFFBF).w; 5th frame?
@@ -1988,7 +1988,7 @@ loc_72B78:
 		move.b	#$80,$24(a6)
 		move.b	#$28,$26(a6)
 		clr.b	$27(a6)
-		startZ80
+		ResumeZ80
 		addq.w	#8,sp
 		rts	
 ; ===========================================================================

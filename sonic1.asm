@@ -146,7 +146,7 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 		dc.b 0			; VDP $87 - background colour
 		dc.b 0			; VDP $88 - unused
 		dc.b 0			; VDP $89 - unused
-		dc.b 255		; VDP $8A - HBlank register
+		dc.b -1			; VDP $8A - HBlank register
 		dc.b 0			; VDP $8B - full screen scroll
 		dc.b %10000001		; VDP $8C - 40 cell display
 		dc.b ($DC00>>10)	; VDP $8D - hscroll table address
@@ -198,7 +198,7 @@ GameProgram:
 		tst.w	(VdpCtrl).l
 		btst	#6,(IoCtrlExt).l
 		beq.s	CheckSumCheck
-		cmpi.b	#'E',($FFFFFFFF).w 	; has checksum routine already run?
+		cmpi.b	#-1,($FFFFFFFF).w 	; has checksum routine already run?
 		beq.s	GameInit		; if yes, branch
 
 CheckSumCheck:
@@ -239,7 +239,7 @@ loc_348:
 		move.b	($A10001).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,($FFFFFFF8).w
-		move.b	#'E',($FFFFFFFF).w 	; set flag so checksum won't be run again
+		move.b	#-1,($FFFFFFFF).w 	; set flag so checksum won't be run again
 
 GameInit:
 		lea	(RamStartLoc).l,a6
@@ -718,14 +718,14 @@ ClearScreen:
 
 
 SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
-		move.w	#$100,(Z80BusReq).l ; stop the Z80
+		FastPauseZ80 ; stop the Z80
 		move.w	#$100,(Z80Reset).l ; reset the Z80
 		lea	(Kos_Z80).l,a0	; load sound driver
 		lea	(Z80Ram).l,a1
 		jsr	TwizDec		; decompress
 		move.w	#0,(Z80Reset).l
 		move.w	#$100,(Z80Reset).l ; reset the Z80
-		move.w	#0,(Z80BusReq).l	; start	the Z80
+		ResumeZ80	; start	the Z80
 		rts
 ; End of function SoundDriverLoad
 
