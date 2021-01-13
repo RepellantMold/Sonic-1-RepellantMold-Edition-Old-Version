@@ -95,7 +95,7 @@ PauseZ80: macro
 FastPauseZ80: macro
     move.w  #$100,(Z80BusReq).l
     endm
-    
+
 ResumeZ80: macro
     move.w  #$000,(Z80BusReq).l
     endm
@@ -223,3 +223,9 @@ jmi:		macro loc
 SetGfxMode: 	macro mode
     		move.w  #VDPREG_MODE4|(mode),(VdpCtrl)
 		endm
+		
+waitYM macro
+.wait\@
+    btst    #7,(a0)
+    bne.s    .wait\@
+    endm

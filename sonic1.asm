@@ -717,16 +717,20 @@ ClearScreen:
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-SoundDriverLoad:			; XREF: GameClrRAM; TitleScreen
-		FastPauseZ80 ; stop the Z80
-		move.w	#$100,(Z80Reset).l ; reset the Z80
-		lea	(Kos_Z80).l,a0	; load sound driver
-		lea	(Z80Ram).l,a1
-		jsr	TwizDec		; decompress
-		move.w	#0,(Z80Reset).l
-		move.w	#$100,(Z80Reset).l ; reset the Z80
-		ResumeZ80	; start	the Z80
-		rts
+SoundDriverLoad:            ; XREF: GameClrRAM; TitleScreen
+        move.w    #$100,d0
+        move.w    d0,(Z80BusReq).l
+        move.w    d0,(Z80Reset).l
+        lea    (MegaPCM).l,a0
+        lea    (Z80Ram).l,a1
+        move.w    #(MegaPCM_End-MegaPCM)-1,d1
+.Load:  move.b    (a0)+,(a1)+
+        dbf    d1,.Load
+        moveq    #0,d1
+        move.w    d1,(Z80Reset).l
+        move.w    d0,(Z80Reset).l
+        move.w    d1,(Z80BusReq).l
+        rts
 ; End of function SoundDriverLoad
 
 ; ---------------------------------------------------------------------------

@@ -72,14 +72,6 @@ SoundTypes:	dc.b $90, $90, $90, $90, $90, $90, $90,	$90, $90, $90, $90, $90, $90
 
 
 sub_71B4C:				; XREF: loc_B10; PalToCRAM
-		FastPauseZ80
-		btst	#7,($A01FFD).l
-		beq.s	loc_71B82
-		ResumeZ80
-		bra.s	sub_71B4C
-; ===========================================================================
-
-loc_71B82:
 		lea	($FFF000).l,a6
 		clr.b	$E(a6)
 		tst.b	3(a6)		; is music paused?
@@ -184,7 +176,6 @@ loc_71C38:
 		jsr	sub_72850(pc)
 
 loc_71C44:
-		ResumeZ80	; start	the Z80
 		btst 	#6,($FFFFFFF8).w; is Genesis/Megadrive PAL?
      		beq.s 	.dontcount 		; if not, branch
       	     	cmpi.b 	#5,($FFFFFFBF).w; 5th frame?
@@ -238,24 +229,12 @@ loc_71C88:
 		move.b	$10(a5),d0
 		cmpi.b	#$80,d0
 		beq.s	locret_71CAA
-		btst	#3,d0
-		bne.s	loc_71CAC
+		FastPauseZ80
 		move.b	d0,($A01FFF).l
+		ResumeZ80
 
 locret_71CAA:
-		rts	
-; ===========================================================================
-
-loc_71CAC:
-		subi.b	#$88,d0
-		move.b	byte_71CC4(pc,d0.w),d0
-		move.b	d0,($A000C0).l
-		move.b	#$83,($A01FFF).l
-		rts	
-; End of function sub_71C4E
-
-; ===========================================================================
-byte_71CC4:	dc.b $12, $15, $1C, $1D, $FF, $FF
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -510,6 +489,9 @@ loc_71E7C:
 		dbf	d3,loc_71E7C
 
 		jsr	sub_729B6(pc)
+		FastPauseZ80
+		move.b  #$7F,($A01FFF).l; pause DAC
+		ResumeZ80
 		bra.w	loc_71C44
 ; ===========================================================================
 
@@ -545,17 +527,22 @@ loc_71EC4:
 		jsr	sub_72722(pc)
 
 loc_71EDC:
-		adda.w	d3,a5
-		dbf	d4,loc_71EC4
-
-		lea	$340(a6),a5
-		btst	#7,(a5)
-		beq.s	loc_71EFE
-		btst	#2,(a5)
-		bne.s	loc_71EFE
-		move.b	#-$4C,d0
-		move.b	$A(a5),d1
-		jsr	sub_72722(pc)
+        adda.w    d3,a5
+        dbf    d4,loc_71EC4
+ 
+        lea    $340(a6),a5
+        btst    #7,(a5)
+        beq.s    @UnpauseDAC
+        btst    #2,(a5)
+        bne.s    @UnpauseDAC
+        move.b    #-$4C,d0
+        move.b    $A(a5),d1
+        jsr    sub_72722(pc)
+ 
+@UnpauseDAC:
+	    FastPauseZ80
+        move.b    #0,($A01FFF).l    ; unpause DAC
+        ResumeZ80
 
 loc_71EFE:
 		bra.w	loc_71C44
@@ -654,6 +641,7 @@ Sound_E1:
 	 	move.b  #$B6, d0    			; Register: FM3/6 Panning
 		move.b  #$C0, d1    			; Value: Enable both channels
         	jsr 	sub_72764(pc)   		; Write to YM2612 Port 1 (for FM6) [sub_72764]
+		FastPauseZ80
 		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports
 		move.l	#(SegaPCM_End-SegaPCM),d3			; Load the size of the SEGA PCM sample into d3
 		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel
@@ -670,6 +658,7 @@ PlayPCM_Loop:
 		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K
 		beq.s	PlayPCM_Loop			; Otherwise, continue playing PCM sample
 return_PlayPCM:
+		ResumeZ80
 		addq.w	#4,sp
 		rts
 ; ===========================================================================
@@ -1363,6 +1352,9 @@ loc_725B6:
 
 		move.b	#$80,9(a6)	; set music to $80 (silence)
 		jsr	sub_7256A(pc)
+		FastPauseZ80
+        	move.b    #$80,($A01FFF).l ; stop DAC playback
+        	ResumeZ80
 		bra.w	sub_729B6
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -1560,36 +1552,39 @@ sub_72722:				; XREF: sub_71E18; sub_72C4E; sub_72CB4
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-sub_7272E:				; XREF: loc_71E6A
-		lea	($A04000).l,a0
-.loop:  	btst	#7,(a0)
-        	bne.s	.loop
-        	move.b	d0,(a0)
-.loop1:		btst    #7,(a0)
-        	bne.s	.loop1
-        	move.b	d1,1(a0)
-		rts
+sub_7272E:                ; XREF: loc_71E6
+        FastPauseZ80
+        lea    ($A04000).l,a0
+        waitYM
+        move.b    d0,(a0)
+        waitYM
+        move.b    d1,1(a0)
+        move.b    #$2A,(a0)
+        ResumeZ80
+        rts
 ; End of function sub_7272E
-
+ 
 ; ===========================================================================
-
-loc_7275A:				; XREF: sub_72722
-		move.b	1(a5),d2
-		bclr	#2,d2
-		add.b	d2,d0
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-sub_72764:				; XREF: loc_71E6A; Sound_ChkValue; sub_7256A; sub_72764
-        	lea 	($A04000).l,a0
-.loop:		btst	#7,(a0)
-        	bne.s	.loop
-        	move.b	d0,2(a0)
-.loop1:		btst	#7,(a0)
-        	bne.s	.loop1
-        	move.b	d1,3(a0)
-        	rts
+ 
+loc_7275A:                ; XREF: sub_72722
+        move.b    1(a5),d2
+        bclr    #2,d2
+        add.b    d2,d0
+ 
+; ||||||||||||||| S U B    R O U T    I N E |||||||||||||||||||||||||||||||||||||||
+ 
+ 
+sub_72764:                ; XREF: loc_71E6A; Sound_ChkValue; sub_7256A; sub_72764
+        FastPauseZ80
+        lea    ($A04000).l,a0
+        waitYM
+        move.b    d0,2(a0)
+        waitYM
+        move.b    d1,3(a0)
+        move.b    #$2A,(a0)
+        ResumeZ80
+        rts
+ 
 ; End of function sub_72764
 
 ; ===========================================================================
@@ -2352,8 +2347,7 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-Kos_Z80:	incbin	sound\snd.twiz
-		even
+    include    'MegaPCM.asm'
 		include "smps2asm.asm"
 
 Music81:	include	sound\music81.asm
