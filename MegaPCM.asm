@@ -33,7 +33,7 @@ DAC_Entry macro Pitch,Offset,Flags
 	z80word	(\Offset)|$8000		; 04h	- Start Offset (in Start bank)
 	z80word	(\Offset\_End-1)|$8000	; 06h	- End Offset (in End bank)
 	endm
-	
+
 IncludeDAC macro Name,Extension
 \Name:
 	if strcmp('\extension','wav')
@@ -49,7 +49,7 @@ IncludeDAC macro Name,Extension
 ; ---------------------------------------------------------------
 
 MegaPCM:
-	incbin	'MegaPCM.z80'
+	include	'MegaPCM.z80.asm'
 
 ; ---------------------------------------------------------------
 ; DAC Samples Table

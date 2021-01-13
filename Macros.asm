@@ -10,7 +10,7 @@ align:	macro
 	dcb.b \1-(*%\1),\2
 	endc
 	endm
-	
+
 ; ---------------------------------------------------------------------------
 ; Set a VRAM address via the VDP control port.
 ; input: 16-bit VRAM address, control port (default is ($C00004).l)
@@ -23,7 +23,7 @@ locVRAM:	macro loc,controlport
 		move.l	#(VRAM_ADDR_CMD+((loc&$3FFF)<<16)+((loc&vram_fg)>>14)),controlport
 		endc
 		endm
-		
+
 ; ---------------------------------------------------------------------------
 ; DMA copy data from 68K (ROM/RAM) to the CRAM
 ; input: source, length, destination
@@ -52,7 +52,7 @@ fillVRAM:	macro value,length,loc
 		move.l	#VRAM_DMA_CMD+((loc&$3FFF)<<16)+((loc&vram_fg)>>14),(a5)
 		move.w	#value,(VdpData).l
 		endm
-		
+
 ; ---------------------------------------------------------------------------
 ; DMA copy data from 68K (ROM/RAM) to the VRAM
 ; input: source, length, destination
@@ -67,7 +67,7 @@ writeVRAM:	macro
 		move.w	#$80+((\3&vram_fg)>>14),($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
 		endm
-		
+
 ; ---------------------------------------------------------------------------
 ; Copy a tilemap from 68K (ROM/RAM) to the VRAM without using DMA
 ; input: source, destination, width [cells], height [cells]
@@ -91,7 +91,7 @@ PauseZ80: macro
     cmpi.w  #$100,(Z80BusReq).l
     bne.s   .WaitZ80\@
     endm
-    
+
 FastPauseZ80: macro
     move.w  #$100,(Z80BusReq).l
     endm
@@ -106,13 +106,13 @@ ResumeZ80: macro
 ; ---------------------------------------------------------------------------
 
 gotoSRAM:	macro
-		move.b  #1,($A130F1).l
+		move.b	#1,($A130F1).l
 		endm
 
 gotoROM:	macro
-		move.b  #0,($A130F1).l
+		move.b	#0,($A130F1).l
 		endm
-		
+
 ; ---------------------------------------------------------------------------
 ; disable interrupts
 ; ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ disable_ints:	macro
 enable_ints:	macro
 		move	#$2300,sr
 		endm
-	
+
 waitvblank:	macro
 		enable_ints
 .wait\@:	tst.b	($FFFFF62A).w
@@ -221,9 +221,9 @@ jmi:		macro loc
 
 ; VDP Stuff
 SetGfxMode: 	macro mode
-    		move.w  #VDPREG_MODE4|(mode),(VdpCtrl)
+    		move.w	#VDPREG_MODE4|(mode),(VdpCtrl)
 		endm
-		
+
 waitYM macro
 .wait\@
     btst    #7,(a0)

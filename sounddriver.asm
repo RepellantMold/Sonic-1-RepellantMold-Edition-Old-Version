@@ -76,14 +76,14 @@ sub_71B4C:				; XREF: loc_B10; PalToCRAM
 		clr.b	$E(a6)
 		tst.b	3(a6)		; is music paused?
 		bne.w	loc_71E50	; if yes, branch
-        	move.b  2(a6),d0        ; get tempo to d0
-        	add.b   d0,1(a6)        ; add to accumulator
-        	bcc.s   loc_71B9E        ; if carry clear, branch
+		move.b	2(a6),d0	; get tempo to d0
+		add.b	d0,1(a6)	; add to accumulator
+		bcc.s	loc_71B9E	 ; if carry clear, branch
 
-.ch =    $40+$E
+.ch =	 $40+$E
     rept 10
-               	addq.b  #1,.ch(a6)        ; add 1 to duration
-.ch =        .ch+$30
+	       	addq.b	#1,.ch(a6)	  ; add 1 to duration
+.ch =	     .ch+$30
     endr
 
 loc_71B9E:
@@ -300,7 +300,7 @@ sub_71D22:				; XREF: sub_71CEC
 		lea	word_72790(pc),a0
 		move.w	(a0,d5.w),d6
 		move.w	d6,$10(a5)
-		rts	
+		rts
 ; End of function sub_71D22
 
 
@@ -321,7 +321,7 @@ loc_71D46:
 loc_71D4E:
 		move.b	d0,$F(a5)
 		move.b	d0,$E(a5)
-		rts	
+		rts
 ; End of function sub_71D40
 
 ; ===========================================================================
@@ -352,7 +352,7 @@ sub_71D60:				; XREF: sub_71CEC; sub_72878; sub_728AC
 		clr.w	$1C(a5)
 
 locret_71D9C:
-		rts	
+		rts
 ; End of function sub_71D60
 
 
@@ -369,7 +369,7 @@ sub_71D9E:				; XREF: sub_71CCA; sub_72850
 		bmi.w	loc_71DBE
 		jsr	sub_726FE(pc)
 		addq.w	#4,sp
-		rts	
+		rts
 ; ===========================================================================
 
 loc_71DBE:
@@ -377,7 +377,7 @@ loc_71DBE:
 		addq.w	#4,sp
 
 locret_71DC4:
-		rts	
+		rts
 ; End of function sub_71D9E
 
 
@@ -385,47 +385,47 @@ locret_71DC4:
 
 
 sub_71DC6:				; XREF: sub_71CCA; sub_72850
-        btst    #1,(a5)     ; Is note playing?
-        bne.s   .dontreturn ; no - return
-        btst    #3,(a5)     ; Is modulation active?
-        beq.s   .dontreturn ; Return if not
-        tst.b   $18(a5)     ; Has modulation wait expired?
-        beq.s   .waitdone   ; If yes, branch
-        subq.b  #1,$18(a5)  ; Update wait timeout
-       
+	btst	#1,(a5)     ; Is note playing?
+	bne.s	.dontreturn ; no - return
+	btst	#3,(a5)     ; Is modulation active?
+	beq.s	.dontreturn ; Return if not
+	tst.b	$18(a5)     ; Has modulation wait expired?
+	beq.s	.waitdone   ; If yes, branch
+	subq.b	#1,$18(a5)  ; Update wait timeout
+
 .dontreturn:
-        addq.w  #4,sp       ; ++ Do not return to caller (but see below)
-        rts
+	addq.w	#4,sp	    ; ++ Do not return to caller (but see below)
+	rts
 ; ===========================================================================
- 
+
 .waitdone:
-        subq.b  #1,$19(a5)  ; Update speed
-        beq.s   .updatemodulation   ; If it expired, want to update modulation
-        addq.w  #4,sp       ; ++ Do not return to caller (but see below)
-        rts
+	subq.b	#1,$19(a5)  ; Update speed
+	beq.s	.updatemodulation   ; If it expired, want to update modulation
+	addq.w	#4,sp	    ; ++ Do not return to caller (but see below)
+	rts
 ; ===========================================================================
- 
+
 .updatemodulation:
-        movea.l $14(a5),a0  ; Get modulation data
-        move.b  1(a0),$19(a5)   ; Restore modulation speed
-        tst.b   $1B(a5)     ; Check number of steps
-        bne.s   .calcfreq   ; If nonzero, branch
-        move.b  3(a0),$1B(a5)   ; Restore from modulation data
-        neg.b   $1A(a5)     ; Negate modulation delta
-        addq.w  #4,sp       ; ++ Do not return to caller (but see below)
-        rts
+	movea.l $14(a5),a0  ; Get modulation data
+	move.b	1(a0),$19(a5)	; Restore modulation speed
+	tst.b	$1B(a5)     ; Check number of steps
+	bne.s	.calcfreq   ; If nonzero, branch
+	move.b	3(a0),$1B(a5)	; Restore from modulation data
+	neg.b	$1A(a5)     ; Negate modulation delta
+	addq.w	#4,sp	    ; ++ Do not return to caller (but see below)
+	rts
 ; ===========================================================================
- 
+
 .calcfreq:
-        subq.b  #1,$1B(a5)  ; Update modulation steps
-        move.b  $1A(a5),d6  ; Get modulation delta
-        ext.w   d6
-        add.w   $1C(a5),d6  ; Add cumulative modulation change
-        move.w  d6,$1C(a5)  ; Store it
-        add.w   $10(a5),d6  ; Add note frequency to it
- 
+	subq.b	#1,$1B(a5)  ; Update modulation steps
+	move.b	$1A(a5),d6  ; Get modulation delta
+	ext.w	d6
+	add.w	$1C(a5),d6  ; Add cumulative modulation change
+	move.w	d6,$1C(a5)  ; Store it
+	add.w	$10(a5),d6  ; Add note frequency to it
+
 .locret:
-        rts
+	rts
 ; End of function sub_71DC6
 
 
@@ -453,12 +453,12 @@ loc_71E24:				; XREF: sub_71CCA
 		jsr	sub_72722(pc)
 
 locret_71E48:
-		rts	
+		rts
 ; ===========================================================================
 
 loc_71E4A:
 		bset	#1,(a5)
-		rts	
+		rts
 ; End of function sub_71E18
 
 ; ===========================================================================
@@ -490,7 +490,7 @@ loc_71E7C:
 
 		jsr	sub_729B6(pc)
 		FastPauseZ80
-		move.b  #$7F,($A01FFF).l; pause DAC
+		move.b	#$7F,($A01FFF).l; pause DAC
 		ResumeZ80
 		bra.w	loc_71C44
 ; ===========================================================================
@@ -527,22 +527,22 @@ loc_71EC4:
 		jsr	sub_72722(pc)
 
 loc_71EDC:
-        adda.w    d3,a5
-        dbf    d4,loc_71EC4
- 
-        lea    $340(a6),a5
-        btst    #7,(a5)
-        beq.s    @UnpauseDAC
-        btst    #2,(a5)
-        bne.s    @UnpauseDAC
-        move.b    #-$4C,d0
-        move.b    $A(a5),d1
-        jsr    sub_72722(pc)
- 
+	adda.w	  d3,a5
+	dbf    d4,loc_71EC4
+
+	lea    $340(a6),a5
+	btst	#7,(a5)
+	beq.s	 @UnpauseDAC
+	btst	#2,(a5)
+	bne.s	 @UnpauseDAC
+	move.b	  #-$4C,d0
+	move.b	  $A(a5),d1
+	jsr    sub_72722(pc)
+
 @UnpauseDAC:
 	    FastPauseZ80
-        move.b    #0,($A01FFF).l    ; unpause DAC
-        ResumeZ80
+	move.b	  #0,($A01FFF).l    ; unpause DAC
+	ResumeZ80
 
 loc_71EFE:
 		bra.w	loc_71C44
@@ -588,7 +588,7 @@ loc_71F3E:
 		move.b	d3,0(a6)
 
 locret_71F4A:
-		rts	
+		rts
 ; End of function Sound_Play
 
 
@@ -613,7 +613,7 @@ Sound_ChkValue:				; XREF: sub_71B4C
 		bls.s	Sound_E0toE4	; sound	$E0-$E4
 
 locret_71F8C:
-		rts	
+		rts
 ; ===========================================================================
 
 Sound_E0toE4:				; XREF: Sound_ChkValue
@@ -638,12 +638,12 @@ Sound_ExIndex:
 ; ---------------------------------------------------------------------------
 
 Sound_E1:
-	 	move.b  #$B6, d0    			; Register: FM3/6 Panning
-		move.b  #$C0, d1    			; Value: Enable both channels
-        	jsr 	sub_72764(pc)   		; Write to YM2612 Port 1 (for FM6) [sub_72764]
+	 	moveq	#$B6, d0    			; Register: FM3/6 Panning
+		moveq	#$C0, d1    			; Value: Enable both channels
+		jsr 	sub_72764(pc)			; Write to YM2612 Port 1 (for FM6) [sub_72764]
 		FastPauseZ80
 		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports
-		move.l	#(SegaPCM_End-SegaPCM),d3			; Load the size of the SEGA PCM sample into d3
+		move.l	#(SegaPCM_End-SegaPCM),d3	; Load the size of the SEGA PCM sample into d3
 		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel
 PlayPCM_Loop:
 		move.b	(a2)+,($A04001).l		; Write the PCM data (contained in a2) to $A04001 (YM2612 register D0)
@@ -724,7 +724,7 @@ loc_7202C:
 
 loc_72068:
 		move.b	d0,2(a6)
-		clr.b   1(a6)
+		clr.b	1(a6)
 		moveq	#0,d1
 		movea.l	a4,a3
 		addq.w	#6,a4
@@ -858,7 +858,7 @@ loc_721AC:
 
 loc_721B6:
 		addq.w	#4,sp
-		rts	
+		rts
 ; ===========================================================================
 byte_721BA:	dc.b 6,	0, 1, 2, 4, 5, 6, 0
 		even
@@ -880,18 +880,18 @@ Sound_D1toDF:
 		tst.b	($FFFFC901).w	; is the Spin Dash timer active?
 		bne.s	.cont1		; if it is, branch
 		move.b	#-1,d0		; otherwise, reset frequency (becomes 0 on next line)
-		
+
 .cont1:
 		addq.b	#1,d0
 		cmp.b	#$F,d0		; has the limit been reached?
 		bcc.s	.cont2		; if it has, branch
 		move.b	d0,($FFFFC902).w	; otherwise, set new frequency
-		
+
 .cont2:
 		move.b	#1,($FFFFC900).w	; set flag
 		move.b	#60,($FFFFC901).w	; set timer
 		move.w	(sp)+,d0
-		
+
 .cont3:
 		movea.l	(Go_SoundIndex).l,a0
 		sub.b	#$A1,d7
@@ -989,7 +989,7 @@ loc_72276:
 		move.b	($FFFFC902).w,d0
 		add.b	d0,8(a5)
 		move.w	(sp)+,d0
-		
+
 .cont:
 		move.b	#1,$E(a5)
 		move.b	d6,$D(a5)
@@ -1011,12 +1011,12 @@ loc_722B8:
 		bset	#2,$370(a6)
 
 locret_722C4:
-		rts	
+		rts
 ; ===========================================================================
 
 loc_722C6:
 		clr.b	0(a6)
-		rts	
+		rts
 ; ===========================================================================
 dword_722CC:	dc.l $FFF0D0
 		dc.l 0
@@ -1111,7 +1111,7 @@ loc_723A6:
 		move.b	d4,($C00011).l
 
 locret_723C6:
-		rts	
+		rts
 ; End of function Sound_ChkValue
 
 ; ===========================================================================
@@ -1182,7 +1182,7 @@ loc_72472:
 		adda.w	#$30,a5
 		dbf	d7,loc_723EA
 
-		rts	
+		rts
 ; End of function Snd_FadeOut1
 
 
@@ -1224,7 +1224,7 @@ loc_724AE:
 		move.b	$1F(a5),($C00011).l
 
 locret_724E4:
-		rts	
+		rts
 ; End of function Snd_FadeOut2
 
 ; ===========================================================================
@@ -1239,7 +1239,7 @@ Sound_E0:				; XREF: Sound_ExIndex
 		move.b	#$28,4(a6)
 		clr.b	$40(a6)
 		clr.b	$2A(a6)
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -1248,7 +1248,7 @@ sub_72504:				; XREF: sub_71B4C
 		move.b	6(a6),d0
 		beq.s	loc_72510
 		subq.b	#1,6(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72510:
@@ -1294,7 +1294,7 @@ loc_72560:
 		adda.w	#$30,a5
 		dbf	d7,loc_72542
 
-		rts	
+		rts
 ; End of function sub_72504
 
 
@@ -1328,7 +1328,7 @@ loc_72586:
 		subi.b	#$F,d0
 		dbf	d4,loc_72584
 
-		rts	
+		rts
 ; End of function sub_7256A
 
 ; ===========================================================================
@@ -1353,8 +1353,8 @@ loc_725B6:
 		move.b	#$80,9(a6)	; set music to $80 (silence)
 		jsr	sub_7256A(pc)
 		FastPauseZ80
-        	move.b    #$80,($A01FFF).l ; stop DAC playback
-        	ResumeZ80
+		move.b	  #$80,($A01FFF).l ; stop DAC playback
+		ResumeZ80
 		bra.w	sub_729B6
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -1412,14 +1412,14 @@ Sound_E2:				; XREF: Sound_ExIndex
 		move.b	$29(a6),2(a6)
 		move.b	$29(a6),1(a6)
 		move.b	#$80,$2A(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_7263E:
 		move.b	$3C9(a6),$3A2(a6)
 		move.b	$3C9(a6),$3A1(a6)
 		move.b	#$80,$3CA(a6)
-		rts	
+		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Change music back to normal speed
@@ -1431,14 +1431,14 @@ Sound_E3:				; XREF: Sound_ExIndex
 		move.b	$28(a6),2(a6)
 		move.b	$28(a6),1(a6)
 		clr.b	$2A(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_7266A:
 		move.b	$3C8(a6),$3A2(a6)
 		move.b	$3C8(a6),$3A1(a6)
 		clr.b	$3CA(a6)
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -1447,7 +1447,7 @@ sub_7267C:				; XREF: sub_71B4C
 		tst.b	$25(a6)
 		beq.s	loc_72688
 		subq.b	#1,$25(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72688:
@@ -1484,13 +1484,13 @@ loc_726B4:
 loc_726CC:
 		adda.w	#$30,a5
 		dbf	d7,loc_726B4
-		rts	
+		rts
 ; ===========================================================================
 
 loc_726D6:
 		bclr	#2,$40(a6)
 		clr.b	$24(a6)
-		rts	
+		rts
 ; End of function sub_7267C
 
 ; ===========================================================================
@@ -1507,7 +1507,7 @@ loc_726E2:				; XREF: sub_71CCA
 ; ===========================================================================
 
 locret_726FC:
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -1525,7 +1525,7 @@ loc_7270A:				; XREF: Snd_FadeOut2
 ; ===========================================================================
 
 locret_72714:
-		rts	
+		rts
 ; End of function sub_726FE
 
 ; ===========================================================================
@@ -1537,7 +1537,7 @@ loc_72716:				; XREF: sub_72A5A
 ; ===========================================================================
 
 locret_72720:
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -1552,39 +1552,39 @@ sub_72722:				; XREF: sub_71E18; sub_72C4E; sub_72CB4
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
 
-sub_7272E:                ; XREF: loc_71E6
-        FastPauseZ80
-        lea    ($A04000).l,a0
-        waitYM
-        move.b    d0,(a0)
-        waitYM
-        move.b    d1,1(a0)
-        move.b    #$2A,(a0)
-        ResumeZ80
-        rts
+sub_7272E:		  ; XREF: loc_71E6
+	FastPauseZ80
+	lea    ($A04000).l,a0
+	waitYM
+	move.b	  d0,(a0)
+	waitYM
+	move.b	  d1,1(a0)
+	move.b	  #$2A,(a0)
+	ResumeZ80
+	rts
 ; End of function sub_7272E
- 
+
 ; ===========================================================================
- 
-loc_7275A:                ; XREF: sub_72722
-        move.b    1(a5),d2
-        bclr    #2,d2
-        add.b    d2,d0
- 
+
+loc_7275A:		  ; XREF: sub_72722
+	move.b	  1(a5),d2
+	bclr	#2,d2
+	add.b	 d2,d0
+
 ; ||||||||||||||| S U B    R O U T    I N E |||||||||||||||||||||||||||||||||||||||
- 
- 
-sub_72764:                ; XREF: loc_71E6A; Sound_ChkValue; sub_7256A; sub_72764
-        FastPauseZ80
-        lea    ($A04000).l,a0
-        waitYM
-        move.b    d0,2(a0)
-        waitYM
-        move.b    d1,3(a0)
-        move.b    #$2A,(a0)
-        ResumeZ80
-        rts
- 
+
+
+sub_72764:		  ; XREF: loc_71E6A; Sound_ChkValue; sub_7256A; sub_72764
+	FastPauseZ80
+	lea    ($A04000).l,a0
+	waitYM
+	move.b	  d0,2(a0)
+	waitYM
+	move.b	  d1,3(a0)
+	move.b	  #$2A,(a0)
+	ResumeZ80
+	rts
+
 ; End of function sub_72764
 
 ; ===========================================================================
@@ -1618,7 +1618,7 @@ loc_72866:
 		jsr	sub_72926(pc)
 		jsr	sub_71DC6(pc)
 		jsr	sub_728E2(pc)
-		rts	
+		rts
 ; End of function sub_72850
 
 
@@ -1712,14 +1712,14 @@ loc_72904:
 		move.b	d6,($C00011).l
 
 locret_7291E:
-		rts	
+		rts
 ; End of function sub_728E2
 
 ; ===========================================================================
 
 loc_72920:				; XREF: sub_728DC
 		bset	#1,(a5)
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -1765,9 +1765,9 @@ sub_7296A:				; XREF: sub_72504; sub_7267C; sub_72926
 		bne.s	loc_7298C
 
 loc_7297C:
-          	cmpi.b  #$10, d6    ; Is volume $10 or higher?
-        	blo.s   L_psgsendvol    ; Branch if not
-        	moveq   #$F, d6     ; Limit to silence and fall through
+	  	cmpi.b	#$10, d6    ; Is volume $10 or higher?
+		blo.s	L_psgsendvol	; Branch if not
+		moveq	#$F, d6     ; Limit to silence and fall through
 L_psgsendvol:
 		or.b	1(a5),d6
 		addi.b	#$10,d6
@@ -1782,14 +1782,14 @@ loc_7298C:
 		beq.s	loc_7297C
 		tst.b	$12(a5)
 		bne.s	loc_7297C
-		rts	
+		rts
 ; End of function sub_7296A
 
 ; ===========================================================================
 
 loc_7299A:				; XREF: sub_72926
 		subq.b	#1,$C(a5)
-		rts	
+		rts
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
 
@@ -1804,7 +1804,7 @@ loc_729A6:				; XREF: Snd_FadeOut2
 		move.b	d0,($C00011).l
 
 locret_729B4:
-		rts	
+		rts
 ; End of function sub_729A0
 
 
@@ -1817,7 +1817,7 @@ sub_729B6:				; XREF: loc_71E7C
 		move.b	#$BF,(a0)
 		move.b	#$DF,(a0)
 		move.b	#$FF,(a0)
-		rts	
+		rts
 ; End of function sub_729B6
 
 ; ===========================================================================
@@ -1908,17 +1908,17 @@ loc_72ACC:				; XREF: loc_72A64
 ; ===========================================================================
 
 locret_72AEA:
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72AEC:				; XREF: loc_72A64
 		move.b	(a4)+,$1E(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72AF2:				; XREF: loc_72A64
 		move.b	(a4)+,7(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72AF8:				; XREF: loc_72A64
@@ -1929,7 +1929,7 @@ loc_72AF8:				; XREF: loc_72A64
 		addq.w	#2,a4
 		addq.b	#4,d0
 		move.b	d0,$D(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72B14:				; XREF: loc_72A64
@@ -1972,9 +1972,9 @@ loc_72B66:
 		bset	#1,(a5)
 		jsr	sub_729A0(pc)
 		add.b	d6,9(a5)
-        	cmpi.b  #$E0, 1(a5) ; is this the Noise Channel?
-        	bne.s   loc_72B78  ; no - skip
-        	move.b  $1F(a5), ($C00011).l    ; restore Noise setting
+		cmpi.b	#$E0, 1(a5) ; is this the Noise Channel?
+		bne.s	loc_72B78  ; no - skip
+		move.b	$1F(a5), ($C00011).l	; restore Noise setting
 
 loc_72B78:
 		adda.w	#$30,a5
@@ -1985,12 +1985,12 @@ loc_72B78:
 		clr.b	$27(a6)
 		ResumeZ80
 		addq.w	#8,sp
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72B9E:				; XREF: loc_72A64
 		move.b	(a4)+,2(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BA4:				; XREF: loc_72A64
@@ -2001,25 +2001,25 @@ loc_72BA4:				; XREF: loc_72A64
 
 loc_72BAE:				; XREF: loc_72A64
 		bset	#4,(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BB4:				; XREF: loc_72A64
 		move.b	(a4),$12(a5)
 		move.b	(a4)+,$13(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BBE:				; XREF: loc_72A64
 		move.b	(a4)+,d0
 		add.b	d0,8(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BC6:				; XREF: loc_72A64
 		move.b	(a4),2(a6)
 		move.b	(a4)+,1(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BD0:				; XREF: loc_72A64
@@ -2033,18 +2033,18 @@ loc_72BDA:
 		adda.w	d1,a0
 		dbf	d2,loc_72BDA
 
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BE6:				; XREF: loc_72A64
 		move.b	(a4)+,d0
 		add.b	d0,9(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BEE:				; XREF: loc_72A64
 		clr.b	$2C(a6)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72BF4:				; XREF: loc_72A64
@@ -2064,7 +2064,7 @@ loc_72BF4:				; XREF: loc_72A64
 
 loc_72C22:
 		addq.w	#8,sp
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72C26:				; XREF: loc_72A64
@@ -2127,7 +2127,7 @@ loc_72C96:
 		jsr	sub_72722(pc)
 
 locret_72CAA:
-		rts	
+		rts
 ; End of function sub_72C4E
 
 ; ===========================================================================
@@ -2181,7 +2181,7 @@ loc_72D12:
 		dbf	d5,loc_72D02
 
 locret_72D16:
-		rts	
+		rts
 ; End of function sub_72CB4
 
 ; ===========================================================================
@@ -2200,12 +2200,12 @@ loc_72D30:				; XREF: loc_72A64
 		lsr.b	#1,d0
 		move.b	d0,$1B(a5)
 		clr.w	$1C(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72D52:				; XREF: loc_72A64
 		bset	#3,(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72D58:				; XREF: loc_72A64
@@ -2282,7 +2282,7 @@ loc_72DEA:
 
 loc_72E02:
 		addq.w	#8,sp
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72E06:				; XREF: loc_72A64
@@ -2293,17 +2293,17 @@ loc_72E06:				; XREF: loc_72A64
 		move.b	-1(a4),($C00011).l
 
 locret_72E1E:
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72E20:				; XREF: loc_72A64
 		bclr	#3,(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72E26:				; XREF: loc_72A64
 		move.b	(a4)+,$B(a5)
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72E2C:				; XREF: loc_72A64
@@ -2312,7 +2312,7 @@ loc_72E2C:				; XREF: loc_72A64
 		move.b	(a4)+,d0
 		adda.w	d0,a4
 		subq.w	#1,a4
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72E38:				; XREF: loc_72A64
@@ -2327,7 +2327,7 @@ loc_72E48:
 		subq.b	#1,$24(a5,d0.w)
 		bne.s	loc_72E2C
 		addq.w	#2,a4
-		rts	
+		rts
 ; ===========================================================================
 
 loc_72E52:				; XREF: loc_72A64
@@ -2347,7 +2347,7 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-    include    'MegaPCM.asm'
+    		include	"MegaPCM.asm"  
 		include "smps2asm.asm"
 
 Music81:	include	sound\music81.asm
