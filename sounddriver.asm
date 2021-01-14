@@ -644,7 +644,8 @@ Sound_E1:
 		FastPauseZ80
 		lea	(SegaPCM).l,a2			; Load the SEGA PCM sample into a2. It's important that we use a2 since a0 and a1 are going to be used up ahead when reading the joypad ports
 		move.l	#(SegaPCM_End-SegaPCM),d3	; Load the size of the SEGA PCM sample into d3
-		move.b	#$2A,($A04000).l		; $A04000 = $2A -> Write to DAC channel
+		move.w	($A04000).l,d7
+		moveq	#$2A,d7                         ; $A04000 = $2A -> Write to DAC channel
 PlayPCM_Loop:
 		move.b	(a2)+,($A04001).l		; Write the PCM data (contained in a2) to $A04001 (YM2612 register D0)
 		;move.w	#$14,d0				; Write the pitch ($14 in this case) to d0
@@ -653,7 +654,20 @@ PlayPCM_Loop:
 		beq.s	return_PlayPCM			; If d3 = 0, we finished playing the PCM sample, so stop playing, leave this loop, and unfreeze the 68K
 		lea	($FFFFF604).w,a0		; address where JoyPad states are written
 		lea	($A10003).l,a1			; address where JoyPad states are read from
-		jsr	(Joypad_Read).w			; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that
+		move.b	#0,(a1)				; Read only the first joypad port. It's important that we do NOT do the two ports, we don't have the cycles for that
+		move.b	(a1),d0                         ; This is from the Joypad_Read routine, I decided to duplicate it.
+		lsl.b	#2,d0
+		andi.b	#$C0,d0
+		move.b	#$40,(a1)
+		move.b	(a1),d1
+		andi.b	#$3F,d1
+		or.b	d1,d0
+		not.b	d0
+		move.b	(a0),d1
+		eor.b	d0,d1
+		move.b	d0,(a0)+
+		and.b	d0,d1
+		move.b	d1,(a0)+
 		btst	#7,($FFFFF604).w		; Check for Start button
 		bne.s	return_PlayPCM			; If start is pressed, stop playing, leave this loop, and unfreeze the 68K
 		beq.s	PlayPCM_Loop			; Otherwise, continue playing PCM sample
@@ -2347,7 +2361,7 @@ loc_72E64:				; XREF: loc_72A64
 		move.b	#$F,d1
 		bra.w	sub_7272E
 ; ===========================================================================
-    		include	"MegaPCM.asm"  
+    		include	"MegaPCM.asm"
 		include "smps2asm.asm"
 
 Music81:	include	sound\music81.asm

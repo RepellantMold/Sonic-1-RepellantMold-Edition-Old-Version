@@ -56,7 +56,7 @@ MegaPCM:
 ; ---------------------------------------------------------------
 
 	DAC_Entry	$17, Kick, dpcm			; $81	- Kick
-	DAC_Entry	$01, Snare, dpcm		; $82	- Snare
+	DAC_Entry	$05, Snare, dpcm		; $82	- Snare
 	DAC_Entry	$1B, Timpani, dpcm		; $83	- Timpani
 	dc.l	0,0					; $84	- <Free>
 	dc.l	0,0					; $85	- <Free>
