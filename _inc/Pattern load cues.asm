@@ -30,17 +30,13 @@ PLC_Main:	dc.w 4
 		dc.l Nem_Ring		; rings
 		dc.w $F640
 		dc.l Nem_Points		; points from enemy
-		dc.w $F2E0
+		dc.w $ABC0
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - standard block 2
 ; ---------------------------------------------------------------------------
 PLC_Main2:	dc.w 0
 		dc.l Nem_Monitors	; monitors
 		dc.w $D000
-		;dc.l Nem_Shield		; shield
-		;dc.w $A820
-		;dc.l Nem_Stars		; invincibility	stars
-		;dc.w $AB80
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - explosion
 ; ---------------------------------------------------------------------------

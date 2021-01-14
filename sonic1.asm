@@ -5049,9 +5049,9 @@ End_MoveSonic2:				; XREF: End_MoveSonic
 		move.w	d0,($FFFFF602).w ; stop	Sonic moving
 		move.w	d0,($FFFFD014).w
 		move.b	#$81,($FFFFF7C8).w
-		move.b	#3,($FFFFD01A).w
+		move.b	#6,($FFFFD01A).w
 		move.w	#$505,($FFFFD01C).w ; use "standing" animation
-		move.b	#3,($FFFFD01E).w
+		move.b	#6,($FFFFD01E).w
 		rts
 ; ===========================================================================
 
@@ -11398,7 +11398,7 @@ Obj29_Index:	dc.w Obj29_Main-Obj29_Index
 Obj29_Main:				; XREF: Obj29_Index
 		addq.b	#2,$24(a0)
 		move.l	#Map_obj29,4(a0)
-		move.w	#$2797,2(a0)
+		move.w	#$255E,2(a0)
 		move.b	#4,1(a0)
 		move.b	#1,$18(a0)
 		move.b	#8,$19(a0)
@@ -25674,7 +25674,8 @@ SAnim_Do2:
 		moveq	#0,d1
 		move.b	$1B(a0),d1	; load current frame number
 		move.b	1(a1,d1.w),d0	; read sprite number from script
-		bmi.s	SAnim_End_FF	; if animation is complete, branch
+		cmpi.b	#$FD,d0
+		bhs.s   SAnim_End_FF    ; if animation is complete, branch
 
 SAnim_Next:
 		move.b	d0,$1A(a0)	; load sprite number
@@ -25745,9 +25746,7 @@ loc_13A9C:
 		cmpi.w	#$600,d2	; is Sonic at running speed?
 		bcc.s	loc_13AB4	; if yes, branch
 		lea	(SonAni_Walk).l,a1 ; use walking animation
-		move.b	d0,d1
-		lsr.b	#1,d1
-		add.b	d1,d0
+		add.b	d0,d0
 
 loc_13AB4:
 		add.b	d0,d0
@@ -34914,7 +34913,7 @@ TouchResponse:				; XREF: Obj01
 		move.b	$16(a0),d5	; load Sonic's height
 		subq.b	#3,d5
 		sub.w	d5,d3
-		cmpi.b	#$39,$1A(a0)	; is Sonic ducking?
+		cmpi.b	#9,$1A(a0)	; is Sonic ducking?
 		bne.s	Touch_NoDuck	; if not, branch
 		addi.w	#$C,d3
 		moveq	#$A,d5
@@ -38087,7 +38086,7 @@ Map_Sonic:
 ; Uncompressed graphics	loading	array for Sonic
 ; ---------------------------------------------------------------------------
 SonicDynPLC:
-	include "_inc\Sonic dynamic pattern load cues.asm"
+	incbin "_inc\Sonic dynamic pattern load cues.bin"
 
 		align $8000
 ; ---------------------------------------------------------------------------
