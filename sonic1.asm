@@ -16,7 +16,7 @@
     include   "Debugger.asm"
     include	"equates.asm"
          include "lang.asm"
-    
+
     org 0
 
 StartOfRom:
@@ -408,7 +408,24 @@ loc_CD4:				; XREF: loc_C76
 		move.w	($FFFFF624).w,(a5)
 		writeVRAM	v_hscrolltablebuffer,$380,vram_hscroll
 		writeVRAM	v_spritetablebuffer,$280,vram_sprites
-		jsr	(ProcessDMAQueue).l
+		lea	(VdpCtrl).l,a5
+		lea	($FFFFC800).w,a1
+.Loop:
+		move.w	(a1)+,d0
+		beq.s	.Done ; branch if we reached a stop token
+		; issue a set of VDP commands...
+		move.w	d0,(a5)		; transfer length
+		move.w	(a1)+,(a5)	; transfer length
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; destination
+		move.w	(a1)+,(a5)	; destination
+		cmpa.w	#$C8FC,a1
+		bne.s	.Loop ; loop if we haven't reached the end of the buffer
+.Done:
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
 
 loc_D50:
 		movem.l	($FFFFF700).w,d0-d7
@@ -445,7 +462,24 @@ loc_DAE:
 		writeVRAM	v_spritetablebuffer,$280,vram_sprites
 		writeVRAM	v_hscrolltablebuffer,$380,vram_hscroll
 		bsr.w	PalCycle_SS
-		jsr	(ProcessDMAQueue).l
+		lea	(VdpCtrl).l,a5
+		lea	($FFFFC800).w,a1
+.Loop2:
+		move.w	(a1)+,d0
+		beq.s	.Done2 ; branch if we reached a stop token
+		; issue a set of VDP commands...
+		move.w	d0,(a5)		; transfer length
+		move.w	(a1)+,(a5)	; transfer length
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; destination
+		move.w	(a1)+,(a5)	; destination
+		cmpa.w	#$C8FC,a1
+		bne.s	.Loop2 ; loop if we haven't reached the end of the buffer
+.Done2:
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
 
 loc_E64:
 		tst.w	($FFFFF614).w
@@ -471,7 +505,24 @@ loc_ED8:				; XREF: loc_E7A
 		move.w	($FFFFF624).w,(a5)
 		writeVRAM	v_hscrolltablebuffer,$380,vram_hscroll
 		writeVRAM	v_spritetablebuffer,$280,vram_sprites
-		jsr	(ProcessDMAQueue).l
+		lea	(VdpCtrl).l,a5
+		lea	($FFFFC800).w,a1
+.Loop3:
+		move.w	(a1)+,d0
+		beq.s	.Done3 ; branch if we reached a stop token
+		; issue a set of VDP commands...
+		move.w	d0,(a5)		; transfer length
+		move.w	(a1)+,(a5)	; transfer length
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; destination
+		move.w	(a1)+,(a5)	; destination
+		cmpa.w	#$C8FC,a1
+		bne.s	.Loop3 ; loop if we haven't reached the end of the buffer
+.Done3:
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
 
 loc_F54:
 		movem.l	($FFFFF700).w,d0-d7
@@ -504,7 +555,24 @@ loc_FAE:
 		writeCRAM	Normal_palette,$80,0
 		writeVRAM	v_spritetablebuffer,$280,vram_sprites
 		writeVRAM	v_hscrolltablebuffer,$380,vram_hscroll
-		jsr	(ProcessDMAQueue).l
+		lea	(VdpCtrl).l,a5
+		lea	($FFFFC800).w,a1
+.Loop4:
+		move.w	(a1)+,d0
+		beq.s	.Done4 ; branch if we reached a stop token
+		; issue a set of VDP commands...
+		move.w	d0,(a5)		; transfer length
+		move.w	(a1)+,(a5)	; transfer length
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; source address
+		move.w	(a1)+,(a5)	; destination
+		move.w	(a1)+,(a5)	; destination
+		cmpa.w	#$C8FC,a1
+		bne.s	.Loop4 ; loop if we haven't reached the end of the buffer
+.Done4:
+		clr.w	($FFFFC800).w
+		move.l	#$FFFFC800,($FFFFC8FC).w
 
 loc_1060:
 		tst.w	($FFFFF614).w
@@ -1418,6 +1486,15 @@ RunPLC_Loop:
 
 
   		  include "compression/slz.68k"
+  		  
+; ---------------------------------------------------------------------------
+; UFTC decompression algorithm
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+  		  include "compression/uftc.68k"
 
 ; ---------------------------------------------------------------------------
 ; Pallet cycling routine loading subroutine
@@ -4906,9 +4983,9 @@ End_LoadData:
 		bsr.w	LoadTilesFromStart
 		move.l	#Col_GHZ,($FFFFF796).w ; load collision	index
 		enable_ints
-		lea	(Kos_EndFlowers).l,a0 ;	load extra flower patterns
-		lea	($FFFF9400).w,a1 ; RAM address to buffer the patterns
-		bsr.w	KosDec
+		lea	(UFTC_EndFlowers).l,a6 ;	load extra flower patterns
+		lea	($FFFF9400).w,a5 ; RAM address to buffer the patterns
+		bsr.w	DecompressUftc
 		moveq	#3,d0
 		bsr.w	PalLoad1	; load Sonic's pallet
 		move.b	#$8B,($FFFFF00A).w; play ending sequence music
@@ -11389,6 +11466,10 @@ Obj29:					; XREF: Obj_Index
 		move.b	$24(a0),d0
 		move.w	Obj29_Index(pc,d0.w),d1
 		jsr	Obj29_Index(pc,d1.w)
+		move.l 	#UnC_Points,d1
+		move.w 	#$ABC0,d2
+		move.w 	#UnC_PointsEnd-UnC_Points,d3
+		jsr 	(QueueDMATransfer).l
 		bra.w	DisplaySprite
 ; ===========================================================================
 Obj29_Index:	dc.w Obj29_Main-Obj29_Index
@@ -11402,7 +11483,7 @@ Obj29_Main:				; XREF: Obj29_Index
 		move.b	#4,1(a0)
 		move.b	#1,$18(a0)
 		move.b	#8,$19(a0)
-		move.w	#-$300,$12(a0)	; move object upwards
+		move.w	#-$350,$12(a0)	; move object upwards
 
 Obj29_Slower:				; XREF: Obj29_Index
 		tst.w	$12(a0)		; is object moving?
@@ -26253,7 +26334,7 @@ Obj38_Shield:				; XREF: Obj38_Index
 		move.l 	#UnC_Shield,d1 ; Call for Regular Shield Art
        		move.w 	#$A820,d2 ; Load Art from this location (VRAM location*20)
 ; In this case, VRAM = $541*20
-     	  	move.w 	#$200,d3
+     	  	move.w 	#UnC_ShieldEnd-UnC_Shield,d3
        	       	jsr 	(QueueDMATransfer).l
 		move.w	($FFFFD008).w,8(a0)
 		move.w	($FFFFD00C).w,$C(a0)
@@ -26274,7 +26355,7 @@ Obj38_Stars:				; XREF: Obj38_Index
 		jeq	DeleteObject	; if not, branch
 		move.l 	#UnC_Stars,d1
 		move.w 	#$A820,d2
-		move.w 	#$200,d3
+		move.w 	#UnC_StarsEnd-UnC_Stars,d3
 		jsr 	(QueueDMATransfer).l
 		move.w	($FFFFF7A8).w,d0
 		move.b	$1C(a0),d1
@@ -26303,6 +26384,7 @@ Obj38_StarTrail2:
 		jsr	AnimateSprite
 		jmp	DisplaySprite
 ; ===========================================================================
+
 Ani_obj38:
 	include "_anim\obj38.asm"
 
@@ -38342,8 +38424,8 @@ Nem_Monitors:	incbin	artnem\monitors.bin	; monitors
 		even
 Nem_Explode:	incbin	artnem\explosio.bin	; explosion
 		even
-Nem_Points:	incbin	artnem\points.bin	; points from destroyed enemy or object
-		even
+UnC_Points:	incbin	artnem_u\points.bin	; points from destroyed enemy or object
+UnC_PointsEnd:	even
 Nem_GameOver:	incbin	artnem\gameover.bin	; game over / time over
 		even
 Nem_HSpring:	incbin	artnem\springh.bin	; horizontal spring
@@ -38359,9 +38441,9 @@ Nem_BigFlash:	incbin	artnem\rngflash.bin	; flash from giant ring
 Nem_Bonus:	incbin	artnem\bonus.bin	; hidden bonuses at end of a level
 		even
 UnC_Shield:	incbin	artnem_u\shield.bin	; shield
-		even
+UnC_ShieldEnd:	even
 UnC_Stars:	incbin	artnem_u\invstars.bin	; invincibility stars
-		even
+UnC_StarsEnd:	even
 ; ---------------------------------------------------------------------------
 ; Compressed graphics - bosses and ending sequence
 ; ---------------------------------------------------------------------------
@@ -38385,7 +38467,7 @@ Nem_EndSonic:	incbin	artnem\endsonic.bin	; ending sequence Sonic
 		even
 Nem_TryAgain:	incbin	artnem\tryagain.bin	; ending "try again" screen
 		even
-Kos_EndFlowers:	incbin	artkos\flowers.bin	; ending sequence animated flowers
+UFTC_EndFlowers:incbin	artuftc\flowers.bin	; ending sequence animated flowers
 		even
 Nem_EndFlower:	incbin	artnem\endflowe.bin	; ending sequence flowers
 		even

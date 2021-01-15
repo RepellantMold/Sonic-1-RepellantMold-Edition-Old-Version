@@ -35,8 +35,9 @@ enum	macro	num, lable
 	enum 0, 	  m00
 ; ---------------------------------------------------------------------------------------------
 ; DAC Equates
-	enum $81, dKick,dSnare,dTimpani
-	enum $88, dHiTimpani,dMidTimpani,dLowTimpani,dFloorTimpani
+	enum $81,dKick,dSnare,dClap,dScratch,dTimpani,dHiTom,dNull,dHiTimpani
+	enum dHiTimpani+1,dMidTimpani,dLowTimpani,dFloorTimpani,dMidTom,dLowTom
+	enum dLowTom+1,dFloorTom;,	dHiClap,dMidClapdLowClap
 ; ---------------------------------------------------------------------------------------------
 ; Channel IDs for SFX
 cPSG1 =		$80

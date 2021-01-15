@@ -57,15 +57,18 @@ MegaPCM:
 
 	DAC_Entry	$17, Kick, dpcm			; $81	- Kick
 	DAC_Entry	$05, Snare, dpcm		; $82	- Snare
-	DAC_Entry	$1B, Timpani, dpcm		; $83	- Timpani
-	dc.l	0,0					; $84	- <Free>
-	dc.l	0,0					; $85	- <Free>
-	dc.l	0,0					; $86	- <Free>
-	dc.l	0,0					; $87	- <Free>
-	DAC_Entry	$12, Timpani, dpcm		; $88	- Hi-Timpani
-	DAC_Entry	$15, Timpani, dpcm		; $89	- Mid-Timpani
-	DAC_Entry	$1C, Timpani, dpcm		; $8A	- Mid-Low-Timpani
-	DAC_Entry	$1D, Timpani, dpcm		; $8B	- Low-Timpani
+	DAC_Entry	$0A, Clap, dpcm			; $83	- Clap
+	DAC_Entry	$1B, Scratch, dpcm		; $84	- Scratch
+	DAC_Entry	$17, Timpani, dpcm		; $85	- Timpani
+	DAC_Entry	$09, Tom, dpcm			; $86	- Tom
+	dc.l	0,0					; $87	- Null
+	DAC_Entry	$14, Timpani, dpcm		; $88	- Hi-Timpani
+	DAC_Entry	$17, Timpani, dpcm		; $89	- Mid-Timpani
+	DAC_Entry	$1E, Timpani, dpcm		; $8A	- Mid-Low-Timpani
+	DAC_Entry	$20, Timpani, dpcm		; $8B	- Low-Timpani
+	DAC_Entry	$0A, Tom, dpcm			; $8C	- Hi-Tom
+	DAC_Entry	$0D, Tom, dpcm			; $8D	- Mid-Tom
+	DAC_Entry	$0E, Tom, dpcm			; $8E	- Low-Tom
 
 MegaPCM_End:
 
@@ -75,6 +78,9 @@ MegaPCM_End:
 
 	IncludeDAC	Kick, bin
 	IncludeDAC	Snare, bin
+	IncludeDAC	Clap, bin
+	IncludeDAC	Scratch, bin
 	IncludeDAC	Timpani, bin
+	IncludeDAC	Tom, bin
 	even
 

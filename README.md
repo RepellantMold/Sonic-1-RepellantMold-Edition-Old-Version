@@ -14,7 +14,7 @@ A repository of one of my ROM hacks, *nuff said.* :neckbeard:
   * SoullessSentinel - ASCII level select guide
   * Stardust Gear - S3K background deformation guide
   * MarkeyJester - Twizzler compression/decompression (seldom-used) and faster checksum processing guide
-  * AuroraFields - the S3K tempo algorithim, and the title card art/pre-loaded PLC's guide
+  * Aurora Fields - the S3K tempo algorithim, speeding up level loading and the Z80 macro set for ASM68K
   * Mercury's ReadySonic - Some quirks, like holding a button to speed up the score tally
   * Alex Field/ValleyBell - Bugfixes for the Sonic 1 sound driver guide
   * Vladikcomper - Slightly less hacky VBlank/HBlank guide, and MegaPCM

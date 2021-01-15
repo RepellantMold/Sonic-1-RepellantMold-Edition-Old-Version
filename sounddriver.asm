@@ -2445,7 +2445,7 @@ SoundIndex:	dc.l SoundA0, SoundA1, SoundA2
 		dc.l SoundC7, SoundC8, SoundC9
 		dc.l SoundCA, SoundCB, SoundCC
 		dc.l SoundCD, SoundCE, SoundCF
-		dc.l SoundD1, SoundD2, SoundD2
+		dc.l SoundD1, SoundD2, SoundD3
 SoundD0Index:	dc.l SoundD0
 SoundA0:	incbin	sound\soundA0.bin
 		even
@@ -2548,6 +2548,8 @@ SoundD0:	include	sound\soundD0.asm
 SoundD1:	incbin	sound\soundD1.bin
 		even
 SoundD2:	include	sound\soundD2.asm
+		even
+SoundD3:	include	sound\soundD3.asm
 		even
 SegaPCM:	incbin	sound\segapcm.bin
 SegaPCM_End:	even
