@@ -3,10 +3,12 @@ SN 68k version 2.53
 
 C:\USERS\ADMINISTRATOR\DOCUMENTS\GITHUB\SONIC-1-JACOB-EDITION\SONIC1.ASM(285) : Warning : Operand value 128 will be sign extended
  moveq #cram_size,d7
+C:\USERS\ADMINISTRATOR\DOCUMENTS\GITHUB\SONIC-1-JACOB-EDITION\SONIC1.ASM(2752) : Warning : Operand value 223 will be sign extended
+ moveq #$df,d1
 C:\USERS\ADMINISTRATOR\DOCUMENTS\GITHUB\SONIC-1-JACOB-EDITION\SOUNDDRIVER.ASM(641) : Warning : Operand value 182 will be sign extended
  moveq #$b6,d0
 C:\USERS\ADMINISTRATOR\DOCUMENTS\GITHUB\SONIC-1-JACOB-EDITION\SOUNDDRIVER.ASM(642) : Warning : Operand value 192 will be sign extended
  moveq #$c0,d1
 
 Assembly completed.
-0 error(s) from 104725 lines in 0.6 seconds
+0 error(s) from 104737 lines in 0.6 seconds

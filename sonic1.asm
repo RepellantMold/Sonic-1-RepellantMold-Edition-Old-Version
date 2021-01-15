@@ -363,9 +363,9 @@ loc_C32:				; XREF: off_B6E
 		bsr.w	sub_106E
 
 loc_C36:				; XREF: off_B6E
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		beq.s	locret_C42
-		subq.w	#1,($FFFFF614).w
+		subq.b	#1,($FFFFF614).w
 
 locret_C42:
 		rts
@@ -375,9 +375,9 @@ loc_C44:				; XREF: off_B6E
 		bsr.w	sub_106E
 		bsr.w	sub_6886
 		bsr.w	sub_1642
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		beq.s	locret_C5C
-		subq.w	#1,($FFFFF614).w
+		subq.b	#1,($FFFFF614).w
 
 locret_C5C:
 		rts
@@ -445,9 +445,9 @@ Demo_Time:				; XREF: loc_D50; PalToCRAM
 		jsr	AniArt_Load
 		jsr	HudUpdate
 		bsr.w	sub_165E
-		tst.w	($FFFFF614).w	; is there time	left on	the demo?
+		tst.b	($FFFFF614).w	; is there time	left on	the demo?
 		beq.s	Demo_TimeEnd	; if not, branch
-		subq.w	#1,($FFFFF614).w ; subtract 1 from time	left
+		subq.b	#1,($FFFFF614).w ; subtract 1 from time	left
 
 Demo_TimeEnd:
 		rts
@@ -482,9 +482,9 @@ loc_DAE:
 		move.l	#$FFFFC800,($FFFFC8FC).w
 
 loc_E64:
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		beq.s	locret_E70
-		subq.w	#1,($FFFFF614).w
+		subq.b	#1,($FFFFF614).w
 
 locret_E70:
 		rts
@@ -575,9 +575,9 @@ loc_FAE:
 		move.l	#$FFFFC800,($FFFFC8FC).w
 
 loc_1060:
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		beq.s	locret_106C
-		subq.w	#1,($FFFFF614).w
+		subq.b	#1,($FFFFF614).w
 
 locret_106C:
 		rts
@@ -2467,7 +2467,7 @@ loc_2CFE:
 ; ===========================================================================
 
 loc_2D04:				; XREF: CalcAngle
-		move.w	#$40,d0
+		moveq	#$40,d0
 		movem.l	(sp)+,d3-d4
 		rts
 ; End of function CalcAngle
@@ -2500,11 +2500,11 @@ SegaScreen:				; XREF: GameModeArray
 		move.w	d0,(VdpCtrl).l
 		bsr.w	ClearScreen
 		lea	(Twim_SegaLogo).l,a0			; load compressed art data address
-		moveq	#$0,d0					; set VRAM address to decompress to (0)
+		moveq	#0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
 		lea	($FF0000).l,a1
 		lea	(Eni_SegaLogo).l,a0 ; load Sega	logo mappings
-		move.w	#0,d0
+		moveq	#0,d0
 		bsr.w	EniDec
 		SetGfxMode GFXMODE_256x224
 		copyTilemap	$FF0000,$E510,$17,7
@@ -2538,12 +2538,12 @@ Sega_WaitPallet:
 		move.b	#$E1,($FFFFF00B).w ; play "SEGA"	sound
 		move.b	#$14,($FFFFF62A).w
 		waitvblank
-		move.w	#$1E,($FFFFF614).w
+		move.b	#$1E,($FFFFF614).w
 
 Sega_WaitEnd:
 		move.b	#2,($FFFFF62A).w
 		waitvblank
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		beq.s	Sega_GotoTitle
 		andi.b	#$80,($FFFFF605).w ; is	Start button pressed?
 		beq.s	Sega_WaitEnd	; if not, branch
@@ -2592,7 +2592,7 @@ Title_ClrObjRam:
 		copyTilemap	$FF0000,vram_fg,$27,$1B
 		lea	($FFFFFB80).w,a1
 		moveq	#0,d0
-		move.w	#$1F,d1
+		moveq	#$1F,d1
 
 Title_ClrPallet:
 		move.l	d0,(a1)+
@@ -2625,7 +2625,7 @@ Title_ClrPallet:
 		bsr.w	DeformBgLayer
 		lea	($FFFFB000).w,a1
 		lea	(Blk16_TS).l,a0 ; load	TS 16x16 mappings
-		move.w	#0,d0
+		moveq	#0,d0
 		jsr	TwizDec
 		lea	(Blk256_TS).l,a0 ; load TS 256x256 mappings
 		lea	($FF0000).l,a1
@@ -2652,10 +2652,10 @@ Title_ClrPallet:
 		bsr.w	PalLoad1
 		move.b	#$8A,($FFFFF00B).w		; play title screen music
 		clr.b	($FFFFFFFA).w ; disable debug mode
-		move.w	#-1,($FFFFF614).w ; run title	screen for $178	frames
+		move.b	#-1,($FFFFF614).w ; run title	screen for $178	frames
 		lea	($FFFFD080).w,a1
 		moveq	#0,d0
-		move.w	#$F,d1
+		moveq	#$F,d1
 
 Title_ClrObjRam2:
 		move.l	d0,(a1)+
@@ -2749,7 +2749,7 @@ Title_ChkLevSel:
 		beq.w	PlayLevel	; if not, play level
 		lea	($FFFFCC00).w,a1
 		moveq	#0,d0
-		move.w	#$DF,d1
+		moveq	#$DF,d1
 
 Title_ClrScroll:
 		move.l	d0,(a1)+
@@ -2958,7 +2958,7 @@ LevSel_ChgSnd:				; XREF: LevSelTextLoad
 		andi.w	#$F,d0
 		cmpi.b	#$A,d0
 		bcs.s	loc_3580
-		addi.b	#4,d0
+		addq.b	#4,d0
 
 loc_3580:
 		add.w	d3,d0
@@ -2987,7 +2987,7 @@ loc_3598:				; XREF: LevSel_ChgLine
                 blt.s   .notText    	; If this is not an ASCII text character, branch
                 subq.w  #3,d0      	; Subtract an extra 3 (Compensate for missing characters in the font)
     .notText:
-                sub.w   #$30,d0     	; Subtract #$33 (Convert to S2 font from ASCII)
+                subi.w   #$30,d0     	; Subtract #$33 (Convert to S2 font from ASCII)
                 add.w   d3,d0       	; combine char with VRAM setting
                 move.w  d0,(a6)     	; send to VRAM
                 dbf     d2,loc_3588
@@ -3078,7 +3078,7 @@ PlayLevel:				; XREF: ROM:00003246j ...
 ; ---------------------------------------------------------------------------
 
 Demo:					; XREF: TitleScreen
-		move.w	#$1E,($FFFFF614).w
+		move.b	#$1E,($FFFFF614).w
 
 loc_33B6:				; XREF: loc_33E4
 		move.b	#4,($FFFFF62A).w
@@ -3098,7 +3098,7 @@ loc_33B6:				; XREF: loc_33E4
 loc_33E4:				; XREF: Demo
 		andi.b	#$80,($FFFFF605).w ; is	Start button pressed?
 		bne.w	Title_ChkLevSel	; if yes, branch
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		bne.w	loc_33B6
 		move.b	#$E0,($FFFFF00B).w ; fade out music
 		move.w	($FFFFFFF2).w,d0 ; load	demo number
@@ -3357,13 +3357,13 @@ loc_39E8:
 Level_Demo:
 		move.b	1(a1),($FFFFF792).w ; load key press duration
 		subq.b	#1,($FFFFF792).w ; subtract 1 from duration
-		move.w	#1800,($FFFFF614).w
+		move.b	#99,($FFFFF614).w
 		tst.w	($FFFFFFF0).w
 		bpl.s	Level_ChkWaterPal
-		move.w	#540,($FFFFF614).w
+		move.b	#-1,($FFFFF614).w
 		cmpi.b	#4,($FFFFFFF4).w
 		bne.s	Level_ChkWaterPal
-		move.w	#510,($FFFFF614).w
+		move.b	#-1,($FFFFF614).w
 
 Level_ChkWaterPal:
 		cmpi.b	#1,($FFFFFE10).w ; is level LZ/SBZ3?
@@ -3446,7 +3446,7 @@ loc_3B14:
 ;Level_ChkDemo:				; XREF: Level_MainLoop
 ;		tst.w	($FFFFFE02).w	; is level set to restart?
 ;		bne.s	Level_EndDemo	; if yes, branch
-;		tst.w	($FFFFF614).w	; is there time	left on	the demo?
+;		tst.b	($FFFFF614).w	; is there time	left on	the demo?
 ;		beq.s	Level_EndDemo	; if not, branch
 ;		cmpi.b	#8,($FFFFF600).w
 ;		beq.w	Level_MainLoop	; if screen mode is 08 (demo), branch
@@ -3463,7 +3463,7 @@ loc_3B14:
 ;		move.b	#$1C,($FFFFF600).w ; go	to credits
 
 ;loc_3B88:
-;		move.w	#$3C,($FFFFF614).w
+;		move.b	#$3C,($FFFFF614).w
 ;		move.w	#$3F,($FFFFF626).w
 ;		clr.w	($FFFFF794).w
 
@@ -3480,7 +3480,7 @@ loc_3B14:
 ;		bsr.w	Pal_FadeOut
 
 ;loc_3BC8:
-;		tst.w	($FFFFF614).w
+;		tst.b	($FFFFF614).w
 ;		bne.s	loc_3B98
 ;		rts
 ; ===========================================================================
@@ -4167,7 +4167,7 @@ loc_463C:
 		move.w	#VDPREG_INCR+%0010,(a5)
 		bsr.w	SS_BGLoad
 		moveq	#$14,d0
-		bsr.w	RunPLC_ROM	; load special stage patterns
+		bsr.w	RunPLC_ROM	; load special stage patterns        
 		lea	($FFFFD000).w,a1
 		moveq	#0,d0
 		move.w	#$7FF,d1
@@ -4178,7 +4178,7 @@ SS_ClrObjRam:
 
 		lea	($FFFFF700).w,a1
 		moveq	#0,d0
-		move.w	#$3F,d1
+		moveq	#$3F,d1
 
 SS_ClrRam:
 		move.l	d0,(a1)+
@@ -4186,7 +4186,7 @@ SS_ClrRam:
 
 		lea	($FFFFFE60).w,a1
 		moveq	#0,d0
-		move.w	#$27,d1
+		moveq	#$27,d1
 
 SS_ClrRam2:
 		move.l	d0,(a1)+
@@ -4194,7 +4194,7 @@ SS_ClrRam2:
 
 		lea	($FFFFAA00).w,a1
 		moveq	#0,d0
-		move.w	#$7F,d1
+		moveq	#$7F,d1
 
 SS_ClrNemRam:
 		move.l	d0,(a1)+
@@ -4223,7 +4223,7 @@ SS_ClrNemRam:
 		clr.w	($FFFFFE20).w
 		clr.b	($FFFFFE1B).w
 		clr.w	($FFFFFE08).w
-		move.w	#1800,($FFFFF614).w
+		move.b	#-1,($FFFFF614).w
 		tst.b	($FFFFFFE2).w	; has debug cheat been entered?
 		beq.s	SS_NoDebug	; if not, branch
 		btst	#6,($FFFFF604).w ; is A	button pressed?
@@ -4252,7 +4252,7 @@ SS_MainLoop:
 		bsr.w	SS_BGAnimate
 		tst.w	($FFFFFFF0).w	; is demo mode on?
 		beq.s	SS_ChkEnd	; if not, branch
-		tst.w	($FFFFF614).w	; is there time	left on	the demo?
+		tst.b	($FFFFF614).w	; is there time	left on	the demo?
 		beq.w	SS_ToSegaScreen	; if not, branch
 
 SS_ChkEnd:
@@ -4267,7 +4267,7 @@ SS_ChkEnd:
 		clr.w	($FFFFFE10).w	; set to GHZ1
 
 SS_End:
-		move.w	#60,($FFFFF614).w ; set	delay time to 1	second
+		move.b	#60,($FFFFF614).w ; set	delay time to 1	second
 		move.w	#$3F,($FFFFF626).w
 		clr.w	($FFFFF794).w
 
@@ -4286,7 +4286,7 @@ SS_EndLoop:
 		bsr.w	Pal_ToWhite
 
 loc_47D4:
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		bne.s	SS_EndLoop
 
 		disable_ints
@@ -4670,7 +4670,7 @@ Cont_ClrObjRam:
 		moveq	#$12,d0
 		bsr.w	PalLoad1	; load continue	screen pallet
 		move.b	#$90,($FFFFF00A).w	; play continue	music
-		move.w	#659,($FFFFF614).w ; set time delay to 11 seconds
+		move.b	#-1,($FFFFF614).w ; set time delay to 11 seconds
 		clr.l	($FFFFF700).w
 		move.l	#$1000000,($FFFFF704).w
 		move.b	#$81,($FFFFD000).w ; load Sonic	object
@@ -4698,7 +4698,7 @@ Cont_MainLoop:
 		cmpi.b	#6,($FFFFD024).w
 		bcc.s	loc_4DF2
 		disable_ints
-		move.w	($FFFFF614).w,d1
+		move.b	($FFFFF614).w,d1
 		divu.w	#$3C,d1
 		andi.l	#$F,d1
 		jsr	ContScrCounter
@@ -4711,7 +4711,7 @@ loc_4DF2:
 		bcc.s	Cont_GotoLevel	; if yes, branch
 		cmpi.b	#6,($FFFFD024).w
 		bcc.s	Cont_MainLoop
-		tst.w	($FFFFF614).w
+		tst.b	($FFFFF614).w
 		bne.w	Cont_MainLoop
 		clr.b	($FFFFF600).w ; go to Sega screen
 		rts
@@ -4983,9 +4983,9 @@ End_LoadData:
 		bsr.w	LoadTilesFromStart
 		move.l	#Col_GHZ,($FFFFF796).w ; load collision	index
 		enable_ints
-		lea	(UFTC_EndFlowers).l,a6 ;	load extra flower patterns
-		lea	($FFFF9400).w,a5 ; RAM address to buffer the patterns
-		bsr.w	DecompressUftc
+		lea	(Kos_EndFlowers).l,a0 ;	load extra flower patterns
+		lea	($FFFF9400).w,a1 ; RAM address to buffer the patterns
+		bsr.w	KosDec
 		moveq	#3,d0
 		bsr.w	PalLoad1	; load Sonic's pallet
 		move.b	#$8B,($FFFFF00A).w; play ending sequence music
@@ -5022,7 +5022,7 @@ End_LoadSonic:
 		move.b	#1,($FFFFFE1F).w
 		move.b	#1,($FFFFFE1D).w
 		clr.b	($FFFFFE1E).w
-		move.w	#1800,($FFFFF614).w
+		move.b	#-1,($FFFFF614).w
 		move.b	#$18,($FFFFF62A).w
 		waitvblank
 		move.w	($FFFFF60C).w,d0
@@ -5443,14 +5443,14 @@ Cred_ClrPallet:
 		bsr.w	PalLoad1	; load Sonic's pallet
 		jsr	Credits_MapLoad
 		addq.b  #1,($FFFFFFF4).w
-		move.w	#120,($FFFFF614).w ; display a credit for 2 seconds
+		move.b	#120,($FFFFF614).w ; display a credit for 2 seconds
 		bsr.w	Pal_FadeTo
 
 Cred_WaitLoop:
 		move.b	#4,($FFFFF62A).w
 		waitvblank
 		bsr.w	RunPLC_RAM
-		tst.w	($FFFFF614).w	; have 2 seconds elapsed?
+		tst.b	($FFFFF614).w	; have 2 seconds elapsed?
 		bne.s	Cred_WaitLoop	; if not, branch
 		cmpi.b	#9,($FFFFFFF4).w ; have	the credits finished?
 		beq.s	TryAgainEnd	; if yes, branch
@@ -5497,7 +5497,7 @@ TryAg_ClrPallet:
 		move.b	#$8B,($FFFFD080).w ; load Eggman object
 		jsr	ObjectsLoad
 		jsr	BuildSprites
-		move.w	#1800,($FFFFF614).w ; show screen for 30 seconds
+		move.b	#-1,($FFFFF614).w ; show screen for 30 seconds
 		bsr.w	Pal_FadeTo
 
 ; ---------------------------------------------------------------------------
@@ -5511,7 +5511,7 @@ TryAg_MainLoop:
 		jsr	BuildSprites
 		andi.b	#$80,($FFFFF605).w ; is	Start button pressed?
 		bne.s	TryAg_Exit	; if yes, branch
-		tst.w	($FFFFF614).w	; has 30 seconds elapsed?
+		tst.b	($FFFFF614).w	; has 30 seconds elapsed?
 		beq.s	TryAg_Exit	; if yes, branch
 		cmpi.b	#$1C,($FFFFF600).w
 		beq.s	TryAg_MainLoop
@@ -8056,7 +8056,7 @@ MainLoadBlockLoad:			; XREF: Level; EndingSequence
 		addq.l	#4,a2
 		movea.l	(a2)+,a0
 		lea	($FFFFB000).w,a1 ; RAM address for 16x16 mappings
-		move.w	#0,d0
+		moveq	#0,d0
 		bsr.w	EniDec
 		movea.l	(a2)+,a0
 		lea	($FF0000).l,a1	; RAM address for 256x256 mappings
@@ -11483,7 +11483,7 @@ Obj29_Main:				; XREF: Obj29_Index
 		move.b	#4,1(a0)
 		move.b	#1,$18(a0)
 		move.b	#8,$19(a0)
-		move.w	#-$350,$12(a0)	; move object upwards
+		move.w	#-$380,$12(a0)	; move object upwards
 
 Obj29_Slower:				; XREF: Obj29_Index
 		tst.w	$12(a0)		; is object moving?
@@ -24968,7 +24968,14 @@ loc_1341C:
 		addq.l	#4,sp
 		move.b	#1,$3C(a0)
 		clr.b	$38(a0)
+        	tst.b	($FFFFFFFD).w
+		bne.s   High_Jump2
 		move.b	#$A0,($FFFFF00B).w ;	play jumping sound
+		bra.s	Continue
+
+High_Jump2:
+		move.b	#$D3,($FFFFF00B).w ;	play jumping sound
+Continue:
 		move.b	#$E,$16(a0)
 		move.b	#7,$17(a0)
         	btst    #2,$22(a0)
@@ -35841,7 +35848,12 @@ SS_LayoutIndex:
 ; ---------------------------------------------------------------------------
 ; Special stage	start locations
 ; ---------------------------------------------------------------------------
-SS_StartLoc:	incbin	misc\sloc_ss.bin
+SS_StartLoc:	incbin	startpos\ss1.bin
+		incbin	startpos\ss2.bin
+		incbin	startpos\ss3.bin
+		incbin	startpos\ss4.bin
+		incbin	startpos\ss5.bin
+		incbin	startpos\ss6.bin
 		even
 
 ; ---------------------------------------------------------------------------
@@ -35884,7 +35896,7 @@ SS_LoadData:
 		move.w	(a1)+,($FFFFD00C).w
 		movea.l	SS_LayoutIndex(pc,d0.w),a0
 		lea	($FF4000).l,a1
-		move.w	#0,d0
+		moveq	#0,d0
 		jsr	(EniDec).l
 		lea	($FF0000).l,a1
 		move.w	#$FFF,d0
@@ -35919,7 +35931,7 @@ loc_1B714:
 		dbf	d1,loc_1B714
 
 		lea	($FF4400).l,a1
-		move.w	#$3F,d1
+		moveq	#$3F,d1
 
 loc_1B730:
 
@@ -38467,7 +38479,7 @@ Nem_EndSonic:	incbin	artnem\endsonic.bin	; ending sequence Sonic
 		even
 Nem_TryAgain:	incbin	artnem\tryagain.bin	; ending "try again" screen
 		even
-UFTC_EndFlowers:incbin	artuftc\flowers.bin	; ending sequence animated flowers
+Kos_EndFlowers:	incbin	artkos\flowers.bin	; ending sequence animated flowers
 		even
 Nem_EndFlower:	incbin	artnem\endflowe.bin	; ending sequence flowers
 		even
