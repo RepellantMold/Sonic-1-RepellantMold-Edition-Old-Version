@@ -294,7 +294,7 @@ PLC_TitleCard:	dc.w (((PLC_Boss-PLC_TitleCard-2)/6)-1)
 ; ---------------------------------------------------------------------------
 ; Pattern load cues - act 3 boss
 ; ---------------------------------------------------------------------------
-PLC_Boss:	dc.w (((PLC_Boss-PLC_Boss-2)/6)-1)
+PLC_Boss:	dc.w (((PLC_Signpost-PLC_Boss-2)/6)-1)
 		dc.l Nem_Eggman		; Eggman main patterns
 		dc.w $8000
 		dc.l Nem_Weapons	; Eggman's weapons

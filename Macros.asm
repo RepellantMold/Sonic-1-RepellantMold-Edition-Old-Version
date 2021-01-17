@@ -219,11 +219,6 @@ jmi:		macro loc
 	.nojump\@:
 		endm
 
-; VDP Stuff
-SetGfxMode: 	macro mode
-    		move.w	#VDPREG_MODE4|(mode),(VdpCtrl)
-		endm
-
 waitYM macro
 .wait\@
     btst    #7,(a0)

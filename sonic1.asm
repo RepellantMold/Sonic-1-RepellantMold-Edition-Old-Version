@@ -37,16 +37,16 @@ Vectors:	dc.l $FFFE00, EntryPoint, BusError, AddressError
 		dc.l ErrorExcept,	ErrorExcept, ErrorExcept, ErrorExcept
 		dc.l ErrorExcept,	ErrorExcept, ErrorExcept, ErrorExcept
 		dc.b 'SEGA GENESIS    ' ; Hardware system ID
-		dc.b 'REPMLD  ???.2021' ; Release date
-		dc.b 'SONIC THE HEDGEHOG REPELLANTMOLD EDITION        ' ; Domestic name
-		dc.b 'SONIC THE HEDGEHOG REPELLANTMOLD EDITION        ' ; International name
+		dc.b 'REPLMLD MAY.2021' ; Release date
+		dc.b 'SONIC THE HEDGEHOG - REPELLANTMOLD EDITION      ' ; Domestic name
+		dc.b 'SONIC THE HEDGEHOG - REPELLANTMOLD EDITION      ' ; International name
 		dc.b 'GM 00004002-00'   ; Serial/version number
 Checksum:	dc.w 0
 		dc.b 'J               ' ; I/O support
 RomStartLoc:	dc.l StartOfRom		; ROM start
 RomEndLoc:	dc.l EndOfRom-1		; ROM end
 RamStartLoc:	dc.l $FF0000		; RAM start
-RamEndLoc:	dc.l -1			; RAM end
+RamEndLoc:	dc.l $FFFFFF		; RAM end
 SRAMSupport:	dc.b "RA",$A0,$20	; SRAM support (Nonsaving - 16-bit addresses)
 		dc.l $200000		; SRAM start
 		dc.l $2007FF		; SRAM end (only doing 2KB to start with)
@@ -140,7 +140,7 @@ SetupValues:	dc.w VDPREG_MODE1	; VDP register start number
 		dc.l VdpCtrl		; address for VDP registers
 
 		dc.b %0100		; VDP $80 - 8-colour mode
-		dc.b %00010100		; VDP $81 - Megadrive mode, DMA enable
+		dc.b %00010100		; VDP $81 - Genesis mode, DMA enable
 		dc.b (vram_fg>>10)	; VDP $82 - foreground nametable address
 		dc.b (vram_sonic>>10)	; VDP $83 - window nametable address
 		dc.b (vram_bg>>13)	; VDP $84 - background nametable address
@@ -230,7 +230,7 @@ CS_Remains:
 
 CS_Finish:
 	  	cmp.w 	(Checksum).w,d0 	; does the checksum match?
-      		bne.s 	CheckSumError 		; if not, branch
+      		bne.w 	CheckSumError 		; if not, branch
 
 		lea	($FFFFFE00).w,a6
 		moveq	#0,d7
@@ -252,9 +252,61 @@ GameInit:
 GameClrRAM:
 		move.l	d7,(a6)+
 		dbf	d6,GameClrRAM	; fill RAM ($0000-$FDFF) with $0
-		bsr.w	VDPSetupGame
-		bsr.w	SoundDriverLoad
-		bsr.w	JoypadInit
+		lea	(VdpCtrl).l,a0
+		lea	(VdpData).l,a1
+		lea	(VDPSetupArray).l,a2
+		moveq	#$12,d7
+
+	.setreg1:
+		move.w	(a2)+,(a0)
+		dbf	d7,.setreg1			; set the VDP registers
+
+		move.w	(VDPSetupArray+2).l,d0
+		move.w	d0,($FFFFF60C).w
+		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
+		beq.s	.notPAL		; if not, branch
+		move.w	#VDPREG_HRATE+240-1,($FFFFF624).w	; H-INT every 240th scanline
+		move.w	#VDPREG_MODE2|%01111100,(VdpCtrl).l
+		bra.s	.continue
+.notPAL:
+		move.w	#VDPREG_HRATE+224-1,($FFFFF624).w	; H-INT every 224th scanline
+.continue:
+		moveq	#0,d0
+		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l 		; set VDP to CRAM write
+		moveq	#$3F,d7
+
+	.clrCRAM1:
+		move.w	d0,(a1)
+		dbf	d7,.clrCRAM1	; clear	the CRAM
+
+		clr.l	($FFFFF616).w
+		clr.l	($FFFFF61A).w
+		move.l	d1,-(sp)
+		fillVRAM	0,-1,0
+
+	.waitforDMA1:
+		move.w	(a5),d1
+		btst	#1,d1		; is DMA (fillVRAM) still running?
+		bne.s	.waitforDMA1	; if yes, branch
+
+		move.w	#VDPREG_INCR+%0010,(a5)	; set VDP increment size
+		move.l	(sp)+,d1
+        	move.w  #$100,d0
+        	move.w  d0,(Z80BusReq).l
+        	move.w  d0,(Z80Reset).l
+        	lea    	(MegaPCM).l,a0
+        	lea    	(Z80Ram).l,a1
+        	move.w  #(MegaPCM_End-MegaPCM)-1,d1
+.Load:  	move.b  (a0)+,(a1)+
+        	dbf    	d1,.Load
+        	moveq   #0,d1
+        	move.w  d1,(Z80Reset).l
+        	move.w  d0,(Z80Reset).l
+        	move.w  d1,(Z80BusReq).l
+		moveq	#$40,d0
+		move.b	d0,(IoCtrl1).l	; init port 1 (joypad 1)
+		move.b	d0,(IoCtrl2).l	; init port 2 (joypad 2)
+		move.b	d0,(IoCtrlExt).l	; init port 3 (extra)
 		clr.b	($FFFFF600).w ; set Game Mode to Sega Screen
 
 MainGameLoop:
@@ -280,7 +332,45 @@ GameModeArray:
 ; ===========================================================================
 
 CheckSumError:
-		bsr.w	VDPSetupGame
+		lea	(VdpCtrl).l,a0
+		lea	(VdpData).l,a1
+		lea	(VDPSetupArray).l,a2
+		moveq	#$12,d7
+
+	.setreg2:
+		move.w	(a2)+,(a0)
+		dbf	d7,.setreg2			; set the VDP registers
+
+		move.w	(VDPSetupArray+2).l,d0
+		move.w	d0,($FFFFF60C).w
+		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
+		beq.s	.notPAL		; if not, branch
+		move.w	#VDPREG_HRATE+240-1,($FFFFF624).w	; H-INT every 240th scanline
+		move.w	#VDPREG_MODE2|%01111100,(VdpCtrl).l
+		bra.s	.continue
+.notPAL:
+		move.w	#VDPREG_HRATE+224-1,($FFFFF624).w	; H-INT every 224th scanline
+.continue:
+		moveq	#0,d0
+		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l 		; set VDP to CRAM write
+		moveq	#$3F,d7
+
+	.clrCRAM2:
+		move.w	d0,(a1)
+		dbf	d7,.clrCRAM2	; clear	the CRAM
+
+		clr.l	($FFFFF616).w
+		clr.l	($FFFFF61A).w
+		move.l	d1,-(sp)
+		fillVRAM	0,-1,0
+
+	.waitforDMA2:
+		move.w	(a5),d1
+		btst	#1,d1		; is DMA (fillVRAM) still running?
+		bne.s	.waitforDMA2	; if yes, branch
+
+		move.w	#VDPREG_INCR+%0010,(a5)	; set VDP increment size
+		move.l	(sp)+,d1
 		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l ; set VDP to CRAM write
 		moveq	#CRAM_SIZE,d7
 
@@ -290,6 +380,26 @@ CheckSum_Red:
 
 CheckSum_Loop:
 		bra.s	CheckSum_Loop
+; ===========================================================================
+VDPSetupArray:	dc.w VDPREG_MODE1+%0100		; 8-colour mode
+		dc.w VDPREG_MODE2+%00110100		; enable V.interrupts, enable DMA
+		dc.w VDPREG_PLANEA+(vram_fg>>10) 	; set foreground nametable address
+		dc.w VDPREG_WINDOW+($A000>>10)	; set window nametable address
+		dc.w VDPREG_PLANEB+(vram_bg>>13) 	; set background nametable address
+		dc.w VDPREG_SPRITE+(vram_sprites>>9) 	; set sprite table address
+		dc.w $8600		; unused
+		dc.w VDPREG_BGCOL	; set background colour (palette entry 0)
+		dc.w $8800		; unused
+		dc.w $8900		; unused
+		dc.w VDPREG_HRATE	; default H.interrupt register
+		dc.w VDPREG_MODE3		; full-screen vertical scrolling
+		dc.w VDPREG_MODE4+%10000001		; 40-cell display mode
+		dc.w VDPREG_HSCROLL+(vram_hscroll>>10) 	; set background hscroll address
+		dc.w $8E00		; unused
+		dc.w VDPREG_INCR+%0010		; set VDP increment size
+		dc.w VDPREG_SIZE+1		; 64-cell hscroll size
+		dc.w VDPREG_WINX		; window horizontal position
+		dc.w VDPREG_WINY		; window vertical position
 ; ===========================================================================
 
 Art_Text:	incbin	artunc\menutext.bin	; text used in level select and debug mode
@@ -630,21 +740,6 @@ locret_119C:
 ; End of function PalToCRAM
 
 ; ---------------------------------------------------------------------------
-; Subroutine to	initialise joypads
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-JoypadInit:				; XREF: GameClrRAM
-		moveq	#$40,d0
-		move.b	d0,(IoCtrl1).l	; init port 1 (joypad 1)
-		move.b	d0,(IoCtrl2).l	; init port 2 (joypad 2)
-		move.b	d0,(IoCtrlExt).l	; init port 3 (extra)
-		rts
-; End of function JoypadInit
-
-; ---------------------------------------------------------------------------
 ; Subroutine to	read joypad input, and send it to the RAM
 ; ---------------------------------------------------------------------------
 
@@ -674,67 +769,6 @@ Joypad_Read:
 		move.b	d1,(a0)+
 		rts
 ; End of function ReadJoypads
-
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-VDPSetupGame:				; XREF: GameClrRAM; ChecksumError
-		lea	(VdpCtrl).l,a0
-		lea	(VdpData).l,a1
-		lea	(VDPSetupArray).l,a2
-		moveq	#$12,d7
-
-	.setreg:
-		move.w	(a2)+,(a0)
-		dbf	d7,.setreg			; set the VDP registers
-
-		move.w	(VDPSetupArray+2).l,d0
-		move.w	d0,($FFFFF60C).w
-		move.w	#VDPREG_HRATE+223,($FFFFF624).w	; H-INT every 224th scanline
-		moveq	#0,d0
-		move.l	#CRAM_ADDR_CMD,(VdpCtrl).l 		; set VDP to CRAM write
-		move.w	#$3F,d7
-
-	.clrCRAM:
-		move.w	d0,(a1)
-		dbf	d7,.clrCRAM	; clear	the CRAM
-
-		clr.l	($FFFFF616).w
-		clr.l	($FFFFF61A).w
-		move.l	d1,-(sp)
-		fillVRAM	0,-1,0
-
-	.waitforDMA:
-		move.w	(a5),d1
-		btst	#1,d1		; is DMA (fillVRAM) still running?
-		bne.s	.waitforDMA	; if yes, branch
-
-		move.w	#VDPREG_INCR+%0010,(a5)	; set VDP increment size
-		move.l	(sp)+,d1
-		rts
-; End of function VDPSetupGame
-
-; ===========================================================================
-VDPSetupArray:	dc.w VDPREG_MODE1+%0100		; 8-colour mode
-		dc.w VDPREG_MODE2+%00110100		; enable V.interrupts, enable DMA
-		dc.w VDPREG_PLANEA+(vram_fg>>10) 	; set foreground nametable address
-		dc.w VDPREG_WINDOW+($A000>>10)	; set window nametable address
-		dc.w VDPREG_PLANEB+(vram_bg>>13) 	; set background nametable address
-		dc.w VDPREG_SPRITE+(vram_sprites>>9) 	; set sprite table address
-		dc.w $8600		; unused
-		dc.w VDPREG_BGCOL	; set background colour (palette entry 0)
-		dc.w $8800		; unused
-		dc.w $8900		; unused
-		dc.w VDPREG_HRATE	; default H.interrupt register
-		dc.w VDPREG_MODE3		; full-screen vertical scrolling
-		dc.w VDPREG_MODE4+%10000001		; 40-cell display mode
-		dc.w VDPREG_HSCROLL+(vram_hscroll>>10) 	; set background hscroll address
-		dc.w $8E00		; unused
-		dc.w VDPREG_INCR+%0010		; set VDP increment size
-		dc.w VDPREG_SIZE+1		; 64-cell hscroll size
-		dc.w VDPREG_WINX		; window horizontal position
-		dc.w VDPREG_WINY		; window vertical position
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	clear the screen
@@ -780,29 +814,6 @@ ClearScreen:
 		dbf	d1,.clearhscroll ; clear hscroll table (in RAM)
 		rts
 ; End of function ClearScreen
-
-; ---------------------------------------------------------------------------
-; Subroutine to	load the sound driver
-; ---------------------------------------------------------------------------
-
-; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
-
-
-SoundDriverLoad:            ; XREF: GameClrRAM; TitleScreen
-        move.w    #$100,d0
-        move.w    d0,(Z80BusReq).l
-        move.w    d0,(Z80Reset).l
-        lea    (MegaPCM).l,a0
-        lea    (Z80Ram).l,a1
-        move.w    #(MegaPCM_End-MegaPCM)-1,d1
-.Load:  move.b    (a0)+,(a1)+
-        dbf    d1,.Load
-        moveq    #0,d1
-        move.w    d1,(Z80Reset).l
-        move.w    d0,(Z80Reset).l
-        move.w    d1,(Z80BusReq).l
-        rts
-; End of function SoundDriverLoad
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	play a sound or	music track
@@ -983,7 +994,7 @@ QueueDMATransfer:
 		move.l	a1,($FFFFC8FC).w ; set the next free slot address
 		cmpa.w	#$C8FC,a1
 		beq.s	QueueDMATransfer_Done ; return if there's no more room in the buffer
-		move.w	#0,(a1) ; put a stop token at the end of the used part of the buffer
+		clr.w	(a1) ; put a stop token at the end of the used part of the buffer
 ; return_14AA:
 QueueDMATransfer_Done:
 		rts
@@ -1232,6 +1243,33 @@ LoadArt_Loop:
         dbf d0, LoadArt_Loop; loop until d0 = 0
         enable_ints   ; enable interrupts
         rts
+        
+; ---------------------------------------------------------------------------
+; Subroutine to load the art for the animals for the current zone
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
+
+
+LoadAnimalPLC:
+		moveq	#0,d0
+		move.b	($FFFFFE10).w,d0
+		cmpi.w	#7,d0
+		bhs.s	LoadAnimalPLC_New
+		addi.w	#$15,d0
+		bra.s	LoadPLC
+; ---------------------------------------------------------------------------
+
+LoadAnimalPLC_New:
+		subi.w	#7,d0
+		; multiply d0 by 3
+		move.w	d0,d1
+		add.w	d0,d0
+		add.w	d1,d0
+		; add $22 (this is the index of the animal PLC for the first added zone)
+		addi.w	#$22,d0
+		; bra.s	LoadPLC
+; End of function LoadAnimalPLC
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to	load pattern load cues
@@ -2425,17 +2463,17 @@ CalcAngle:
 		beq.s	loc_2D04
 		move.w	d2,d4
 		tst.w	d3
-		bpl.w	loc_2CC2
+		bpl.s	loc_2CC2
 		neg.w	d3
 
 loc_2CC2:
 		tst.w	d4
-		bpl.w	loc_2CCA
+		bpl.s	loc_2CCA
 		neg.w	d4
 
 loc_2CCA:
 		cmp.w	d3,d4
-		bcc.w	loc_2CDC
+		bcc.s	loc_2CDC
 		lsl.l	#8,d4
 		divu.w	d3,d4
 		moveq	#0,d0
@@ -2451,13 +2489,13 @@ loc_2CDC:				; XREF: CalcAngle
 
 loc_2CE6:
 		tst.w	d1
-		bpl.w	loc_2CF2
+		bpl.s	loc_2CF2
 		neg.w	d0
 		addi.w	#$80,d0
 
 loc_2CF2:
 		tst.w	d2
-		bpl.w	loc_2CFE
+		bpl.s	loc_2CFE
 		neg.w	d0
 		addi.w	#$100,d0
 
@@ -2506,7 +2544,6 @@ SegaScreen:				; XREF: GameModeArray
 		lea	(Eni_SegaLogo).l,a0 ; load Sega	logo mappings
 		moveq	#0,d0
 		bsr.w	EniDec
-		SetGfxMode GFXMODE_256x224
 		copyTilemap	$FF0000,$E510,$17,7
 		copyTilemap	$FF0180,vram_fg,$27,$1B
 		tst.b   ($FFFFFFF8).w	; is console Japanese?
@@ -2579,7 +2616,6 @@ TitleScreen:				; XREF: GameModeArray
 Title_ClrObjRam:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrObjRam ; fill object RAM ($D000-$EFFF) with	$0
-		SetGfxMode GFXMODE_320x224_SH
 		lea	(Twim_JCrdts).l,a0			; load compressed art data address
 		moveq	#0,d0					; set VRAM address to decompress to (0)
 		jsr	TwimDec					; decompress and dump to VRAM
@@ -2597,7 +2633,6 @@ Title_ClrObjRam:
 Title_ClrPallet:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrPallet ; fill pallet with 0	(black)
-		SetGfxMode GFXMODE_320x224
 		moveq	#3,d0		; load Sonic's pallet
 		bsr.w	PalLoad1
 		move.b	#$8A,($FFFFD080).w ; load "SONIC TEAM PRESENTS"	object
@@ -2755,7 +2790,6 @@ Title_ClrScroll:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrScroll ; fill scroll data with 0
 		bsr.w	ClearScreen
-		SetGfxMode GFXMODE_320x224
 		lea	(VdpData).l,a6
 		move.l	#$50000003,4(a6)
 		lea	(Art_Text).l,a5
@@ -2983,9 +3017,9 @@ loc_3588:
 ; ===========================================================================
 
 loc_3598:				; XREF: LevSel_ChgLine
-		cmp.w   #$40,d0    	; Check for $40 (End of ASCII number area)
+		cmpi.w	#$40,d0    	; Check for $40 (End of ASCII number area)
                 blt.s   .notText    	; If this is not an ASCII text character, branch
-                subq.w  #3,d0      	; Subtract an extra 3 (Compensate for missing characters in the font)
+                subq.w	#3,d0      	; Subtract an extra 3 (Compensate for missing characters in the font)
     .notText:
                 subi.w   #$30,d0     	; Subtract #$33 (Convert to S2 font from ASCII)
                 add.w   d3,d0       	; combine char with VRAM setting
@@ -3204,7 +3238,6 @@ Level_ClrVars2:
 Level_ClrVars3:
 		move.l	d0,(a1)+
 		dbf	d1,Level_ClrVars3 ; clear object variables
-                SetGfxMode GFXMODE_320x224
 		disable_ints
 		bsr.w	ClearScreen
 		lea	(VdpCtrl).l,a6
@@ -3215,7 +3248,14 @@ Level_ClrVars3:
 		move.w	#VDPREG_SIZE+%0001,(a6)		; 64-cell hscroll size
 		move.w	#VDPREG_MODE1+%0100,(a6)		; 8-colour mode
 		move.w	#VDPREG_BGCOL+$20,(a6)		; set background colour (line 3; colour 0)
-		move.w	#VDPREG_HRATE+223,($FFFFF624).w
+		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
+		beq.s	.notPAL		; if not, branch
+		move.w	#VDPREG_HRATE+240-1,($FFFFF624).w	; H-INT every 240th scanline
+		move.w	#VDPREG_MODE2|%01111100,(a6)
+		bra.s	.continue
+.notPAL:
+		move.w	#VDPREG_HRATE+224-1,($FFFFF624).w	; H-INT every 224th scanline
+.continue:
 		move.w	($FFFFF624).w,(a6)
 		clr.w	($FFFFC800).w
 		move.l	#$FFFFC800,($FFFFC8FC).w
@@ -3280,7 +3320,7 @@ Level_TtlCard:
         	move.w  ($FFFFD0C0+8).w,d0  ; fix for FZ crash and title card issue
         	cmp.w   ($FFFFD0C0+$30).w,d0    ; has title card sequence finished?
         	bne.s   Level_TtlCard       ; if not, branch
-        	subi.w  #1,$FFFFFE04.w      ; substract 1 from timer
+        	subq.w  #1,$FFFFFE04.w      ; substract 1 from timer
         	bne.s   Level_TtlCard       ; if timer is not 0, branch
         	jsr 	Hud_Base
 
@@ -3377,7 +3417,7 @@ Level_WaterPal2:
 		bsr.w	PalLoad4_Water
 
 Level_Delay:
-		move.w	#3,d1
+		moveq	#3,d1
 
 Level_DelayLoop:
 		move.b	#8,($FFFFF62A).w
@@ -3398,10 +3438,7 @@ Level_DelayLoop:
 Level_ClrCardArt:
 		moveq	#2,d0
 		jsr	(LoadPLC).l	; load explosion patterns
-		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
-		addi.w	#$15,d0
-		jsr	(LoadPLC).l	; load animal patterns (level no. + $15)
+		jsr	(LoadAnimalPLC).l ; load animal patterns
 
 Level_StartGame:
 		bclr	#7,($FFFFF600).w ; subtract 80 from screen mode
@@ -4963,7 +5000,14 @@ End_ClrRam3:
 		move.w	#VDPREG_SIZE+%0001,(a6)		; 64-cell hscroll size
 		move.w	#VDPREG_MODE1+%0100,(a6)		; 8-colour mode
 		move.w	#VDPREG_BGCOL+$20,(a6)		; set background colour (line 3; colour 0)
-		move.w	#VDPREG_HRATE+223,($FFFFF624).w
+		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
+		beq.s	.notPAL		; if not, branch
+		move.w	#VDPREG_HRATE+240-1,($FFFFF624).w	; H-INT every 240th scanline
+		move.w	#VDPREG_MODE2|%01111100,(a6)
+		bra.s	.continue
+.notPAL:
+		move.w	#VDPREG_HRATE+224-1,($FFFFF624).w	; H-INT every 224th scanline
+.continue:
 		move.w	($FFFFF624).w,(a6)
 		move.w	#$1E,($FFFFFE14).w
 		move.w	#$600,($FFFFFE10).w ; set level	number to 0600 (extra flowers)
@@ -5036,7 +5080,6 @@ End_LoadSonic:
 ; ---------------------------------------------------------------------------
 
 End_MainLoop:
-		bsr.w	PauseGame
 		move.b	#$18,($FFFFF62A).w
 		waitvblank
 		addq.w	#1,($FFFFFE04).w
@@ -5047,7 +5090,6 @@ End_MainLoop:
 		jsr	ObjPosLoad
 		bsr.w	PalCycle_Load
 		bsr.w	OscillateNumDo
-		bsr.w	ChangeRingFrame
 		cmpi.b	#$18,($FFFFF600).w ; is	scene number $18 (ending)?
 		beq.s	loc_52DA	; if yes, branch
 		move.b	#$1C,($FFFFF600).w ; set scene to $1C (credits)
@@ -5058,7 +5100,7 @@ End_MainLoop:
 
 loc_52DA:
 		tst.w	($FFFFFE02).w	; is level set to restart?
-		beq.w	End_MainLoop	; if not, branch
+		beq.s	End_MainLoop	; if not, branch
 
 		clr.w	($FFFFFE02).w
 		move.w	#$3F,($FFFFF626).w
@@ -5418,7 +5460,6 @@ Credits:				; XREF: GameModeArray
 		move.w	#VDPREG_BGCOL+$20,(a6)		; set background colour (line 3; colour 0)
 		clr.b	($FFFFF64E).w
 		bsr.w	ClearScreen
-		SetGfxMode GFXMODE_256x224
 		clr.b   ($FFFFFFD0).w
 		lea	($FFFFD000).w,a1
 		moveq	#0,d0
@@ -6610,7 +6651,13 @@ BGScrollSize_SBZ1:
 ; Block Size Format: Each word is Size, if bit 15 set - then force 1px scroll
 
 ProcessBGScroll:
+		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
+		beq.s	.notPAL		; if not, branch
+		move.w	#240-1,d1		; 240px
+		bra.s	.continue
+.notPAL:
 		move.w	#224-1,d1		; 224px
+.continue:
 
 ProcessBGScroll_ParamSize:	; for custom screen heights
 		lea	($FFFFCC00).w,a1
@@ -11084,22 +11131,35 @@ Obj28_Index:	dc.w Obj28_Ending-Obj28_Index, loc_912A-Obj28_Index
 		dc.w loc_9314-Obj28_Index, loc_9370-Obj28_Index
 		dc.w loc_92D6-Obj28_Index
 
-Obj28_VarIndex:	dc.b 0,	5, 2, 3, 6, 3, 4, 5, 4,	1, 0, 1
+Obj28_VarIndex:
+		dc.b 0, 5	; Pocky and Flicky in GHZ
+		dc.b 2, 3	; Pecky and Rocky in LZ
+		dc.b 6, 3	; Ricky and Rocky in MZ
+		dc.b 4, 5	; Picky and Flicky in SLZ
+		dc.b 4, 1	; Picky and Cucky in SYZ
+		dc.b 0, 1	; Pocky and Cucky in SBZ
+		dc.b 0, 5	; Pocky and Flicky in Ending (Unused)
+		dc.b 0, 5	; Pocky and Flicky in ABZ
 
-Obj28_Variables:dc.w $FE00, $FC00
+Obj28_Variables:
+		; horizontal speed, vertical speed
+		; mappings address
+		dc.w $FE00, $FC00	; Pocky and Flicky in GHZ
 		dc.l Map_obj28
-		dc.w $FE00, $FD00	; horizontal speed, vertical speed
-		dc.l Map_obj28a		; mappings address
-		dc.w $FE80, $FD00
+		dc.w $FE00, $FD00	; Pecky and Rocky in LZ
+		dc.l Map_obj28a
+		dc.w $FE80, $FD00	; Ricky and Rocky in MZ
 		dc.l Map_obj28
-		dc.w $FEC0, $FE80
+		dc.w $FEC0, $FE80	; Picky and Flicky in SLZ
 		dc.l Map_obj28a
-		dc.w $FE40, $FD00
+		dc.w $FE40, $FD00	; Picky and Cucky in SYZ
 		dc.l Map_obj28b
-		dc.w $FD00, $FC00
+		dc.w $FD00, $FC00	; Pocky and Cucky in SBZ
 		dc.l Map_obj28a
-		dc.w $FD80, $FC80
+		dc.w $FD80, $FC80	; Ending (Unused)
 		dc.l Map_obj28b
+		dc.w $FE00, $FC00	; Pocky and Flicky in ABZ
+		dc.l Map_obj28
 
 Obj28_EndSpeed:	dc.w $FBC0, $FC00, $FBC0, $FC00, $FBC0,	$FC00, $FD00, $FC00
 		dc.w $FD00, $FC00, $FE80, $FD00, $FE80,	$FD00, $FEC0, $FE80
@@ -15005,9 +15065,14 @@ Obj34_CheckSBZ3:			; XREF: Obj34_Index
 Obj34_CheckFZ:
 		move.w	d0,d2
 		cmpi.w	#$502,($FFFFFE10).w ; check if level is	FZ
-		bne.s	Obj34_LoadConfig
+		bne.s	Obj34_CheckNew
 		moveq	#6,d0		; load title card number 6 (FZ)
 		moveq	#$B,d2		; use "FINAL" mappings
+
+Obj34_CheckNew:
+		cmpi.b	#7,($FFFFFE10).w ; check if level is in the new zones
+		blo.s	Obj34_LoadConfig
+		addq.b	#$C-7,d2	; use correct mappings
 
 Obj34_LoadConfig:
 		lea	(Obj34_ConData).l,a3
@@ -15042,7 +15107,7 @@ Obj34_MakeSprite:
 		move.b	#$78,$19(a1)
 		move.b	#0,1(a1)
 		move.b	#0,$18(a1)
-		move.w	#60,$1E(a1)	; set time delay to 1 second
+		move.b	#60,$1F(a1)	; set time delay to 1 second
 		lea	$40(a1),a1	; next object
 		dbf	d1,Obj34_Loop	; repeat sequence another 3 times
 
@@ -15101,15 +15166,12 @@ locret_C412:
 
 Obj34_ChangeArt:			; XREF: Obj34_ChkPos2
 		cmpi.b	#4,$24(a0)
-		bne.s	Obj34_Delete
+		bne.w	DeleteObject
 		moveq	#2,d0
 		jsr	(LoadPLC).l	; load explosion patterns
-		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
-		addi.w	#$15,d0
-		jsr	(LoadPLC).l	; load animal patterns
+		jsr	(LoadAnimalPLC).l ; load animal patterns
 
-Obj34_Delete:
+;Obj34_Delete:
 		bra.w	DeleteObject
 ; ===========================================================================
 Obj34_ItemData:	dc.w $D0	; y-axis position
@@ -15301,7 +15363,7 @@ loc_C61A:				; XREF: Obj3A_ChkPos
 		cmpi.b	#4,$1A(a0)
 		bne.s	loc_C5FE
 		addq.b	#2,$24(a0)
-		move.w	#180,$1E(a0)	; set time delay to 3 seconds
+		move.b	#180,$1F(a0)	; set time delay to 3 seconds
 
 Obj3A_Wait:				; XREF: Obj3A_Index
 		subq.w	#1,$1E(a0)	; subtract 1 from time delay
@@ -15352,7 +15414,7 @@ Obj3A_ChkBonus:
 		addq.b	#4,$24(a0)
 
 Obj3A_SetDelay:
-		move.w	#180,$1E(a0)	; set time delay to 3 seconds
+		move.b	#180,$1F(a0)	; set time delay to 3 seconds
 
 locret_C692:
 		rts
@@ -15545,11 +15607,11 @@ loc_C86C:				; XREF: Obj7E_ChkPos
 		cmpi.b	#2,$1A(a0)
 		bne.s	loc_C85A
 		addq.b	#2,$24(a0)
-		move.w	#180,$1E(a0)	; set time delay to 3 seconds
+		move.b	#180,$1F(a0)	; set time delay to 3 seconds
 		move.b	#$7F,($FFFFD800).w ; load chaos	emerald	object
 
 Obj7E_Wait:				; XREF: Obj7E_Index
-		subq.w	#1,$1E(a0)	; subtract 1 from time delay
+		subq.b	#1,$1F(a0)	; subtract 1 from time delay
 		bne.w	DisplaySprite
 		addq.b	#2,$24(a0)
 
@@ -15587,10 +15649,10 @@ Obj7E_RingBonus:			; XREF: Obj7E_Index
 loc_C8C4:				; XREF: Obj7E_RingBonus
 		move.b	#$C5,($FFFFF00B).w ;	play "ker-ching" sound
 		addq.b	#2,$24(a0)
-		move.w	#180,$1E(a0)	; set time delay to 3 seconds
+		move.b	#180,$1F(a0)	; set time delay to 3 seconds
 		cmpi.w	#50,($FFFFFE20).w ; do you have	at least 50 rings?
 		bcs.s	locret_C8EA	; if not, branch
-		move.w	#60,$1E(a0)	; set time delay to 1 second
+		move.b	#60,$1F(a0)	; set time delay to 1 second
 		addq.b	#4,$24(a0)	; goto "Obj7E_Continue"	routine
 
 locret_C8EA:
@@ -15700,34 +15762,38 @@ Map_obj34:	dc.w byte_C9FE-Map_obj34
 		dc.w byte_CB3C-Map_obj34
 		dc.w byte_CB47-Map_obj34
 		dc.w byte_CB8A-Map_obj34
-byte_C9FE:	dc.b 9 			; GREEN HILL
-		dc.b $F8, 5, 0,	$18, $B4
-		dc.b $F8, 5, 0,	$3A, $C4
-		dc.b $F8, 5, 0,	$10, $D4
-		dc.b $F8, 5, 0,	$10, $E4
-		dc.b $F8, 5, 0,	$2E, $F4
-		dc.b $F8, 5, 0,	$1C, $14
-		dc.b $F8, 1, 0,	$20, $24
-		dc.b $F8, 5, 0,	$26, $2C
-		dc.b $F8, 5, 0,	$26, $3C
-byte_CA2C:	dc.b 9			; LABYRINTH
-		dc.b $F8, 5, 0,	$26, $BC
-		dc.b $F8, 5, 0,	0, $CC
-		dc.b $F8, 5, 0,	4, $DC
-		dc.b $F8, 5, 0,	$4A, $EC
-		dc.b $F8, 5, 0,	$3A, $FC
-		dc.b $F8, 1, 0,	$20, $C
-		dc.b $F8, 5, 0,	$2E, $14
-		dc.b $F8, 5, 0,	$42, $24
-		dc.b $F8, 5, 0,	$1C, $34
-byte_CA5A:	dc.b 6			; MARBLE
-		dc.b $F8, 5, 0,	$2A, $CF
-		dc.b $F8, 5, 0,	0, $E0
-		dc.b $F8, 5, 0,	$3A, $F0
-		dc.b $F8, 5, 0,	4, 0
-		dc.b $F8, 5, 0,	$26, $10
-		dc.b $F8, 5, 0,	$10, $20
-		dc.b 0
+byte_C9FE:	dc.b 11 		; GREEN HILL | EMERALD HILL
+		dc.b $f8, 5, 0, $10, $d4	; E
+		dc.b $f8, 5, 0, $2a, $e4	; M
+		dc.b $f8, 5, 0, $10, $f4	; E
+		dc.b $f8, 5, 0, $3a,  $4	; R
+		dc.b $f8, 5, 0,  $0, $14	; A
+		dc.b $f8, 5, 0, $26, $24	; L
+		dc.b $f8, 5, 0,  $c, $34	; D
+		; Space
+		dc.b $f8, 5, 0, $1c, $54	; H
+		dc.b $f8, 1, 0, $20, $64	; I
+		dc.b $f8, 5, 0, $26, $6c	; L
+		dc.b $f8, 5, 0, $26, $7c	; L
+		even
+byte_CA2C:	dc.b 9  		; LABYRINTH | INTRICACY
+		dc.b $f8, 1, 0, $20, $d4	; I
+		dc.b $f8, 5, 0, $2e, $dc	; N
+		dc.b $f8, 5, 0, $42, $ec	; T
+		dc.b $f8, 5, 0, $3a, $fc	; R
+		dc.b $f8, 1, 0, $20,  $c	; I
+		dc.b $f8, 5, 0,  $8, $14	; C
+		dc.b $f8, 5, 0,  $0, $24	; A
+		dc.b $f8, 5, 0,  $8, $34	; C
+		dc.b $f8, 5, 0, $4a, $44	; Y
+		even
+byte_CA5A:	dc.b 5  		; MARBLE | STONE
+		dc.b $f8, 5, 0, $3e, $d4	; S
+		dc.b $f8, 5, 0, $42, $e4	; T
+		dc.b $f8, 5, 0, $32, $f4	; O
+		dc.b $f8, 5, 0, $2e,  $4	; N
+		dc.b $f8, 5, 0, $10, $14	; E
+		even
 byte_CA7A:	dc.b 9			; STAR	LIGHT
 		dc.b $F8, 5, 0,	$3E, $B4
 		dc.b $F8, 5, 0,	$42, $C4
@@ -15750,18 +15816,17 @@ byte_CAA8:	dc.b $A			; SPRING YARD
 		dc.b $F8, 5, 0,	$3A, $34
 		dc.b $F8, 5, 0,	$C, $44
 		dc.b 0
-byte_CADC:	dc.b $A			; SCRAP BRAIN
-		dc.b $F8, 5, 0,	$3E, $AC
-		dc.b $F8, 5, 0,	8, $BC
-		dc.b $F8, 5, 0,	$3A, $CC
-		dc.b $F8, 5, 0,	0, $DC
-		dc.b $F8, 5, 0,	$36, $EC
-		dc.b $F8, 5, 0,	4, $C
-		dc.b $F8, 5, 0,	$3A, $1C
-		dc.b $F8, 5, 0,	0, $2C
-		dc.b $F8, 1, 0,	$20, $3C
-		dc.b $F8, 5, 0,	$2E, $44
-		dc.b 0
+byte_CADC:	dc.b 8  		; SCRAP BRAIN | DEATH EGG
+		dc.b $f8, 5, 0,  $c, $d4	; D
+		dc.b $f8, 5, 0, $10, $e4	; E
+		dc.b $f8, 5, 0,  $0, $f4	; A
+		dc.b $f8, 5, 0, $42,  $4	; T
+		dc.b $f8, 5, 0, $1c, $14	; H
+		; Space
+		dc.b $f8, 5, 0, $10, $34	; E
+		dc.b $f8, 5, 0, $18, $44	; G
+		dc.b $f8, 5, 0, $18, $54	; G
+		even
 byte_CB10:	dc.b 4			; ZONE
 		dc.b $F8, 5, 0,	$4E, $E0
 		dc.b $F8, 5, 0,	$32, $F0
@@ -16095,9 +16160,9 @@ Obj36_Type02:				; XREF: Obj36_TypeIndex
 ; ===========================================================================
 
 Obj36_Wait:
-		tst.w	$38(a0)		; is time delay	= zero?
+		tst.b	$39(a0)		; is time delay	= zero?
 		beq.s	loc_CFA4	; if yes, branch
-		subq.w	#1,$38(a0)	; subtract 1 from time delay
+		subq.b	#1,$39(a0)	; subtract 1 from time delay
 		bne.s	locret_CFE6
 		tst.b	1(a0)
 		bpl.s	locret_CFE6
@@ -16106,13 +16171,13 @@ Obj36_Wait:
 ; ===========================================================================
 
 loc_CFA4:
-		tst.w	$36(a0)
+		tst.b	$37(a0)
 		beq.s	loc_CFC6
 		subi.w	#$800,$34(a0)
 		bcc.s	locret_CFE6
-		move.w	#0,$34(a0)
-		move.w	#0,$36(a0)
-		move.w	#60,$38(a0)	; set time delay to 1 second
+		clr.w	$34(a0)
+		clr.b	$37(a0)
+		move.b	#60,$39(a0)	; set time delay to 1 second
 		bra.s	locret_CFE6
 ; ===========================================================================
 
@@ -16121,8 +16186,8 @@ loc_CFC6:
 		cmpi.w	#$2000,$34(a0)
 		bcs.s	locret_CFE6
 		move.w	#$2000,$34(a0)
-		move.w	#1,$36(a0)
-		move.w	#60,$38(a0)	; set time delay to 1 second
+		move.b	#1,$37(a0)
+		move.b	#60,$39(a0)	; set time delay to 1 second
 
 locret_CFE6:
 		rts
@@ -16549,7 +16614,7 @@ BldSpr_ScrPos:	dc.l 0			; blank
 		dc.l $FFF708		; background x-position	1
 		dc.l $FFF718		; background x-position	2
 ; ---------------------------------------------------------------------------
-; Subroutine to	convert	mappings (etc) to proper Megadrive sprites
+; Subroutine to	convert	mappings (etc) to proper Genesis sprites
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B	R O U T	I N E |||||||||||||||||||||||||||||||||||||||
@@ -23140,8 +23205,7 @@ loc_12460:				; XREF: Obj63_Main
 		bne.w	DeleteObject
 		add.w	d0,d0
 		andi.w	#$1E,d0
-		addi.w	#$70,d0
-		lea	(ObjPos_Index).l,a2
+		lea	(ObjPos_LZxpf_Index).l,a2
 		adda.w	(a2,d0.w),a2
 		move.w	(a2)+,d1
 		movea.l	a0,a1
@@ -29008,8 +29072,7 @@ loc_16380:				; XREF: Obj6F_Main
 loc_1639A:
 		add.w	d0,d0
 		andi.w	#$1E,d0
-		addi.w	#$80,d0
-		lea	(ObjPos_Index).l,a2
+		lea	(ObjPos_SBZ1pf_Index).l,a2
 		adda.w	(a2,d0.w),a2
 		move.w	(a2)+,d1
 		movea.l	a0,a1
@@ -38723,10 +38786,12 @@ ObjPos_Index:	dc.w ObjPos_GHZ1-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_End-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_End-ObjPos_Index, ObjPos_Null-ObjPos_Index
 		dc.w ObjPos_End-ObjPos_Index, ObjPos_Null-ObjPos_Index
+ObjPos_LZxpf_Index:
 		dc.w ObjPos_LZ1pf1-ObjPos_Index, ObjPos_LZ1pf2-ObjPos_Index
 		dc.w ObjPos_LZ2pf1-ObjPos_Index, ObjPos_LZ2pf2-ObjPos_Index
 		dc.w ObjPos_LZ3pf1-ObjPos_Index, ObjPos_LZ3pf2-ObjPos_Index
 		dc.w ObjPos_LZ1pf1-ObjPos_Index, ObjPos_LZ1pf2-ObjPos_Index
+ObjPos_SBZ1pf_Index:
 		dc.w ObjPos_SBZ1pf1-ObjPos_Index, ObjPos_SBZ1pf2-ObjPos_Index
 		dc.w ObjPos_SBZ1pf3-ObjPos_Index, ObjPos_SBZ1pf4-ObjPos_Index
 		dc.w ObjPos_SBZ1pf5-ObjPos_Index, ObjPos_SBZ1pf6-ObjPos_Index

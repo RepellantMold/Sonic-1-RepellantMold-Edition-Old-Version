@@ -49,7 +49,8 @@ echo Compressing screen mappings...
 "FW_KENSC/enicmp.exe" mapeni_u/ssbg1.bin mapeni/ssbg1.bin
 "FW_KENSC/enicmp.exe" mapeni_u/ssbg2.bin mapeni/ssbg2.bin
 "FW_KENSC/enicmp.exe" mapeni_u/titlescr.bin mapeni/titlescr.bin
-echo Compressing title screen crap...
+Twizzler.exe mapeni/jcreds.unc
+echo Compressing title screen...
 TwizMod.exe arttwim/8x8title.bin
 Twizzler.exe map16/TS.unc
 Twizzler.exe map256/TS.unc
@@ -58,4 +59,3 @@ TwizMod.exe arttwim/titleson.bin
 TwizMod.exe arttwim/titletm.bin
 TwizMod.exe arttwim/segalogo.bin
 TwizMod.exe arttwim/Text.bin
-Twizzler.exe mapeni/jcreds.unc
