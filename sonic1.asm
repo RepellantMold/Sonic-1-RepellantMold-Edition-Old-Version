@@ -732,7 +732,13 @@ PalToCRAM:
 		rept 32
 		move.l	(a0)+,(a1)	; move pallet to CRAM
 		endr
-		move.w	#$8ADF,4(a1)
+		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
+		beq.s	.notPAL		; if not, branch
+		move.w	#VDPREG_HRATE+240-1,4(a1)	; H-INT every 240th scanline
+		bra.s	.continue
+.notPAL:
+		move.w	#VDPREG_HRATE+224-1,4(a1)	; H-INT every 224th scanline
+.continue:
 		movem.l	(sp)+,a0-a1
 
 locret_119C:
@@ -3225,7 +3231,7 @@ Level_ClrVars:
 
 		lea	($FFFFF700).w,a1
 		moveq	#0,d0
-		move.w	#$3F,d1
+		moveq	#$3F,d1
 
 Level_ClrVars2:
 		move.l	d0,(a1)+
@@ -3233,7 +3239,7 @@ Level_ClrVars2:
 
 		lea	($FFFFFE60).w,a1
 		moveq	#0,d0
-		move.w	#$47,d1
+		moveq	#$47,d1
 
 Level_ClrVars3:
 		move.l	d0,(a1)+
@@ -3251,7 +3257,7 @@ Level_ClrVars3:
 		btst	#6,($FFFFFFF8).w ; is Genesis PAL?
 		beq.s	.notPAL		; if not, branch
 		move.w	#VDPREG_HRATE+240-1,($FFFFF624).w	; H-INT every 240th scanline
-		move.w	#VDPREG_MODE2|%01111100,(a6)
+	;	move.w	#VDPREG_MODE2|%01111100,(a6)
 		bra.s	.continue
 .notPAL:
 		move.w	#VDPREG_HRATE+224-1,($FFFFF624).w	; H-INT every 224th scanline
@@ -3306,7 +3312,7 @@ Level_GetBgm:
 		move.b  d0,(Saved_music).w
 		move.b	d0,($FFFFF00A).w
 		move.b	#$34,($FFFFD080).w ; load title	card object
-        	move.w  #3,$FFFFFE04.w      ; set the timer (Fixes Title card bug)
+        	move.b  #3,$FFFFFE05.w      ; set the timer (Fixes Title card bug)
 
 Level_TtlCard:
 		move.b	#$C,($FFFFF62A).w
@@ -3453,7 +3459,7 @@ Level_MainLoop:
 		waitvblank
 		addq.w	#1,($FFFFFE04).w ; add 1 to level timer
 		;bsr.w	MoveSonicInDemo
-		bsr.w	LZWaterEffects
+		bsr.s	LZWaterEffects
 		jsr	ObjectsLoad
 		tst.w	($FFFFFE02).w	; is the level set to restart?
 		bne.w	Level		; if yes, branch
@@ -3871,7 +3877,7 @@ locret_3F0A:
 ; End of function LZWindTunnels
 
 ; ===========================================================================
-		dc.w $A80, $300, $C10, $380
+	;	dc.w $A80, $300, $C10, $380
 LZWind_Data:	dc.w $F80, $100, $1410,	$180, $460, $400, $710,	$480, $A20
 		dc.w $600, $1610, $6E0,	$C80, $600, $13D0, $680
 					; XREF: LZWindTunnels
@@ -3965,9 +3971,9 @@ Demo_Index:
 Demo_EndIndex:
 	include "_inc\Demo pointers for ending.asm"
 
-		dc.b 0,	$8B, 8,	$37, 0,	$42, 8,	$5C, 0,	$6A, 8,	$5F, 0,	$2F, 8,	$2C
-		dc.b 0,	$21, 8,	3, $28,	$30, 8,	8, 0, $2E, 8, $15, 0, $F, 8, $46
-		dc.b 0,	$1A, 8,	$FF, 8,	$CA, 0,	0, 0, 0, 0, 0, 0, 0, 0,	0
+	;	dc.b 0,	$8B, 8,	$37, 0,	$42, 8,	$5C, 0,	$6A, 8,	$5F, 0,	$2F, 8,	$2C
+	;	dc.b 0,	$21, 8,	3, $28,	$30, 8,	8, 0, $2E, 8, $15, 0, $F, 8, $46
+	;	dc.b 0,	$1A, 8,	$FF, 8,	$CA, 0,	0, 0, 0, 0, 0, 0, 0, 0,	0
 		even
 
 ; ---------------------------------------------------------------------------
